@@ -36,6 +36,15 @@ class openmx_species:
 				res += self.numorbs[s] * (2 * Shells.SHELLS.lower().index(s) + 1)
 		return res
 
+	def orbarray(self):
+		res = []
+		for s in Shells.SHELLS.lower():
+			if s in self.numorbs.keys():
+				res.append(self.numorbs[s] * (2 * Shells.SHELLS.lower().index(s) + 1))
+			else:
+				res.append(0)
+		return res
+
 	def fulllist(self, prefix=''):
 		orbstr = ''
 		for s in Shells.SHELLS.lower():
@@ -46,8 +55,6 @@ class openmx_species:
 	def prefixed(self, prefix, path):
 		return openmx_species(self.fulllist(prefix), path)
 
-
-		
 	def real_r(self):
 		return self.paor * Units.BOHR / Units.UNIT
 

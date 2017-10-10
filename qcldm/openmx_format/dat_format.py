@@ -60,6 +60,7 @@ class DAT_INPUT:
 			name = self.species[ls[1]].name
 			a = AtomVector(name, v)
 			a.data()[AtomKeys.ORBITAL_COUNT] = self.species[a.name()].orbnum()
+			a.data()[AtomKeys.ORBITAL_ARRAY] = self.species[a.name()].orbarray()
 			a.data()[AtomKeys.CUTOFF] = self.species[a.name()].real_r()
 			a.data()[AtomKeys.FULL_VALENCE] = self.species[a.name()].basis.eval
 			a.data()[AtomKeys.ESTIMATED_VALENCE] = self.species[a.name()].estimate_valence()

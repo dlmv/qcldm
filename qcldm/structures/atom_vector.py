@@ -6,6 +6,7 @@ class AtomKeys:
 	CUTOFF = 'cutoff'
 	FULL_VALENCE = 'full_valence'
 	ESTIMATED_VALENCE = 'estimated_valence'
+	ORBITAL_ARRAY = 'orbital_array'
 
 class AtomVector:
 
