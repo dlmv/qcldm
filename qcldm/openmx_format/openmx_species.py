@@ -23,6 +23,8 @@ class openmx_species:
 
 		pao_path = os.path.join(data_path, "PAO", self.pao+".pao")
 		vps_path = os.path.join(data_path, "VPS", self.vps+".vps")
+		self.pp = None
+		self.basis = None
 		try:
 			self.pp = VPS.from_file(vps_path)
 			self.basis = PAO.from_file(pao_path)

@@ -62,8 +62,10 @@ class DAT_INPUT:
 			a.data()[AtomKeys.ORBITAL_COUNT] = self.species[a.name()].orbnum()
 			a.data()[AtomKeys.ORBITAL_ARRAY] = self.species[a.name()].orbarray()
 			a.data()[AtomKeys.CUTOFF] = self.species[a.name()].real_r()
-			a.data()[AtomKeys.FULL_VALENCE] = self.species[a.name()].basis.eval
-			a.data()[AtomKeys.ESTIMATED_VALENCE] = self.species[a.name()].estimate_valence()
+			if self.species[a.name()].basis:
+				a.data()[AtomKeys.FULL_VALENCE] = self.species[a.name()].basis.eval
+			if self.species[a.name()].pp:
+				a.data()[AtomKeys.ESTIMATED_VALENCE] = self.species[a.name()].estimate_valence()
 			atoms.append(a)
 
 		vectors = []

@@ -1,6 +1,6 @@
 import os, logging
 
-def create_complex(dms, cluster):
+def create_complex(dms, orbarray):
 	
 
 
