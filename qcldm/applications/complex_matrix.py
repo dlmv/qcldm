@@ -99,12 +99,11 @@ def write_complex_matrix(filename, dm, oar, t):
 				f.write("{:20.6f}".format(e))
 			f.write("\n")
 
-		f.write("\n{:20s}".format("Merged occ:"))
+		f.write("\n\nMerged occ:\n")
 		for (l, m) in sorted(lm_map.keys()):
-			f.write("    {:16s}".format("|%d,%.1f>" % (l, m)))
-		f.write("\n" + " " * 20)
-		for (l, m) in sorted(lm_map.keys()):
+			f.write("{:10s}".format("|%s,%.1f>" % (Shells.SHELLS[l], m)))
 			f.write("{:20.6f}".format(lm_map[l, m]))
+			f.write("\n")
 	
 
 

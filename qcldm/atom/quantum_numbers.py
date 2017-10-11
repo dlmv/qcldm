@@ -63,22 +63,6 @@ class R2C_Matrix(Basis_Matrix):
 			U.append(line)
 		return numpy.matrix(U)
 
-#class C2J_Matrix(Basis_Matrix):
-#	def lsmatrix(self, l):
-#		U = []
-#		for j in (l+0.5, l-0.5):
-#			if j > 0:
-#				for mj in frange(-j, j+0.5, 1):
-#					line = [0] * (2*l+1) * 2
-#					for m in range(-l, l+1):
-#						for sn, s in enumerate((0.5, -0.5)):
-#							line[2 * (l + m) + sn] = complexToJ(l, m, s, j, -mj)
-#					U.append(line)
-#		return numpy.matrix(U)
-
-#	def lmatrix(self, l):
-#		raise RuntimeError()
-
 class C2J_Matrix(Basis_Matrix):
 	def lsmatrix(self, l):
 		U = []

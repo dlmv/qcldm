@@ -7,7 +7,7 @@ from qcldm.openmx_format.openmx_orbital_order import Openmx_orbital_order
 from qcldm.util.log_colorizer import init_log
 from qcldm.util.xyz_format import write_xyz
 from qcldm.matrix.matrix_reader import read_matrices
-from qcldm.matrix.complex_matrix import create_complex_matrix
+from qcldm.applications.complex_matrix import create_complex_matrix
 
 init_log(sys.argv)
 
