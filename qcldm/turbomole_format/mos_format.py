@@ -31,8 +31,6 @@ class MosReader:
 					mpart.append(f)
 			self.matrix.append(mpart)
 			n += 1
-		print self.matrix
-
 
 	@staticmethod
 	def from_string(datastring):

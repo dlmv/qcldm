@@ -1,4 +1,4 @@
-import re, os, sys
+import re, os, sys, numpy
 
 from math3d import Vector
 
@@ -13,6 +13,7 @@ class ControlFormat:
 	def __init__(self):
 		self.base_format = None
 		self.cell = None
+		self.dm = []
 
 	def species_map(self):
 		ap = self.base_format.param('atoms')
@@ -67,12 +68,22 @@ class ControlFormat:
 		assert im.lineparam.strip() == 'file=imagmos'
 		rmat = MosReader.from_file('realmos').matrix
 		imat = MosReader.from_file('imagmos').matrix
-		mat = []
-		for rl, il in zip(rmat, imat):
+		basis_mat = []
+		N = len(rmat) / 2
+		for i in range(N * 2):
 			tm = []
-			for r, i in zip(rl, il):
-				tm.append(r + 1j * i)
-			mat.append(tm)
+			for j in range(N):
+				e = rmat[i][j] + imat[i][j] * 1j
+				tm.append(e)
+				e = rmat[i][j + N] + imat[i][j + N] * 1j
+				tm.append(e)
+			basis_mat.append(tm)
+		s = 0
+		for c in basis_mat[5]:
+			s += c.real**2 + c.imag**2
+		print s
+		bm = numpy.matrix(basis_mat)
+		self.dm = bm.getH().dot(bm)
 
 	def get_format(self):
 		return self.base_format
