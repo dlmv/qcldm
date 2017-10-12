@@ -6,6 +6,7 @@ from ..structures.atom_vector import AtomVector, AtomKeys
 from ..structures.cell import Cell
 from turbo_format import TurboTemplate
 from turbo_basis import TurboBasis
+from mos_format import MosReader
 
 
 class ControlFormat:
@@ -59,6 +60,19 @@ class ControlFormat:
 			a.data()[AtomKeys.ORBITAL_COUNT] = bases[smap[n + 1]].orbnum()
 			a.data()[AtomKeys.ORBITAL_ARRAY] = bases[smap[n + 1]].orbarray()
 		self.cell = Cell(atoms, [])
+
+		rm = self.base_format.param('uhfmo_real')
+		im = self.base_format.param('uhfmo_imag')
+		assert rm.lineparam.strip() == 'file=realmos'
+		assert im.lineparam.strip() == 'file=imagmos'
+		rmat = MosReader.from_file('realmos').matrix
+		imat = MosReader.from_file('imagmos').matrix
+		mat = []
+		for rl, il in zip(rmat, imat):
+			tm = []
+			for r, i in zip(rl, il):
+				tm.append(r + 1j * i)
+			mat.append(tm)
 
 	def get_format(self):
 		return self.base_format
