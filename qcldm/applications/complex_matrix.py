@@ -47,16 +47,8 @@ def build_matrix_s(B, oar):
 				res = block_diag(res, B.lsmatrix(ll))
 	return numpy.matrix(res)
 
-def create_complex_matrix(dms, a, ormat):
+def convert_atom_matrix(DM, a, ormat):
 	oar = a.data()[AtomKeys.ORBITAL_ARRAY]
-	on = a.data()[AtomKeys.ORBITAL_COUNT]
-	DM = [[0] * on*2 for x in range(on*2)]
-	for i in range(on):
-		for j in range(on):
-			DM[2*i][2*j] = (dms['a']['a']['re'].get(matrix_key(a, i, j)) or 0) + 1j * (dms['a']['a']['im'].get(matrix_key(a, i, j)) or 0)
-			DM[2*i + 1][2*j] = (dms['a']['b']['re'].get(matrix_key(a, i, j)) or 0) + 1j * (dms['a']['b']['im'].get(matrix_key(a, i, j)) or 0)
-			DM[2*i][2*j + 1] = (dms['a']['b']['re'].get(matrix_key(a, i, j)) or 0) - 1j * (dms['a']['b']['im'].get(matrix_key(a, i, j)) or 0)
-			DM[2*i + 1][2*j + 1] = (dms['b']['b']['re'].get(matrix_key(a, i, j)) or 0) + 1j * (dms['b']['b']['im'].get(matrix_key(a, i, j)) or 0)
 	DM = numpy.matrix(DM)
 	write_complex_matrix('1_complex_raw.mat', DM, oar, LMS)
 	Ubasis = build_matrix_s(ormat, oar)

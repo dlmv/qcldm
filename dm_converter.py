@@ -6,8 +6,8 @@ from qcldm.openmx_format.dat_format import DAT_INPUT
 from qcldm.openmx_format.openmx_orbital_order import Openmx_orbital_order
 from qcldm.util.log_colorizer import init_log
 from qcldm.util.xyz_format import write_xyz
-from qcldm.matrix.matrix_reader import read_matrices
-from qcldm.applications.complex_matrix import create_complex_matrix
+from qcldm.matrix.matrix_reader import read_matrices, merge_matrices
+from qcldm.applications.complex_matrix import convert_atom_matrix
 
 init_log(sys.argv)
 
@@ -20,7 +20,10 @@ if len(d.cell.cell) != 1:
 
 dms, olp, atoms = read_matrices(d.cell)
 
-create_complex_matrix(dms, d.cell.cell[0], Openmx_orbital_order())
+dm = merge_matrices(dms, atoms)
+
+
+convert_atom_matrix(dm, d.cell.cell[0], Openmx_orbital_order())
 
 
 

@@ -1,6 +1,7 @@
 import re, os, sys, logging
 
 from ..structures.cell import CellAtom
+from ..structures.atom_vector import AtomKeys
 
 HEADER = 'all atoms: '
 
@@ -21,6 +22,29 @@ def read_matrices(cell, precision=0):
 	dm['a']['a']['im'] = read_matrix('dm_aa_im.mat', cell, matrix_atoms, precision) or {}
 	dm['b']['b']['im'] = read_matrix('dm_bb_im.mat', cell, matrix_atoms, precision) or {}
 	return dm, olp, matrix_atoms
+
+def merge_matrices(dms, matrix_atoms):
+	on = 0
+	for a in matrix_atoms:
+		on += a.data()[AtomKeys.ORBITAL_COUNT]
+	DM = [[0] * on*2 for x in range(on*2)]
+	i = 0
+	for a1 in matrix_atoms:
+		for o1 in range(a1.data()[AtomKeys.ORBITAL_COUNT]):
+			j = 0
+			for a2 in matrix_atoms:
+				for o2 in range(a2.data()[AtomKeys.ORBITAL_COUNT]):
+					key = matrix_key(a1, a2, o1, o2)
+					DM[2*i][2*j] = (dms['a']['a']['re'].get(key) or 0) + 1j * (dms['a']['a']['im'].get(key) or 0)
+					DM[2*i + 1][2*j] = (dms['a']['b']['re'].get(key) or 0) + 1j * (dms['a']['b']['im'].get(key) or 0)
+					DM[2*i][2*j + 1] = (dms['a']['b']['re'].get(key) or 0) - 1j * (dms['a']['b']['im'].get(key) or 0)
+					DM[2*i + 1][2*j + 1] = (dms['b']['b']['re'].get(key) or 0) + 1j * (dms['b']['b']['im'].get(key) or 0)
+					j += 1
+			i += 1
+	return DM
+
+def matrix_key(a1, a2, o1, o2):
+	return tuple(sorted([(a1.tuple_data(), o1 + 1), (a2.tuple_data(), o2 + 1)]))
 
 def read_cell_atom(line, c):
 	ls = filter(None, re.split('\s*', line))
