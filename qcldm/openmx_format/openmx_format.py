@@ -11,14 +11,12 @@ class Openmx_format:
 	class Param:
 
 		def __init__(self, key, value):
-
 			self.key = key
 			self.value = value
 
 	class MultiParam:
 
 		def __init__(self, key, value):
-
 			self.key = key
 			self.value = value
 
