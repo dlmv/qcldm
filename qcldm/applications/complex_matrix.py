@@ -1,4 +1,4 @@
-import os, logging, numpy
+import os, logging, numpy, scipy
 from scipy.linalg import block_diag
 
 from ..structures.atom_vector import AtomKeys
@@ -47,19 +47,22 @@ def build_matrix_s(B, oar):
 				res = block_diag(res, B.lsmatrix(ll))
 	return numpy.matrix(res)
 
-def convert_atom_matrix(DM, a, ormat):
+def convert_atom_matrix(DM, OLP, a, ormat):
 	oar = a.data()[AtomKeys.ORBITAL_ARRAY]
 	DM = numpy.matrix(DM)
 	write_complex_matrix('1_complex_raw.mat', DM, oar, LMS)
+	S12 = scipy.linalg.sqrtm(OLP)
+	DM = S12.dot(DM).dot(S12)
+	write_complex_matrix('2_complex_overlapped.mat', DM, oar, LMS)
 	Ubasis = build_matrix_s(ormat, oar)
 	DM = ufu(Ubasis, DM)
-	write_complex_matrix('2_complex_ordered.mat', DM, oar, LMS)
+	write_complex_matrix('3_complex_ordered.mat', DM, oar, LMS)
 	Ulm = build_matrix_s(R2C_Matrix(), oar)
 	DM = ufu(Ulm, DM)
-	write_complex_matrix('3_complex_lms.mat', DM, oar, LMS)
+	write_complex_matrix('4_complex_lms.mat', DM, oar, LMS)
 	Ulj = build_matrix_s(C2J_Matrix(), oar)
 	DM = ufu(Ulj, DM)
-	write_complex_matrix('4_complex_ljm.mat', DM, oar, LJM)
+	write_complex_matrix('5_complex_ljm.mat', DM, oar, LJM)
 	return DM
 
 def write_complex_matrix(filename, dm, oar, t):

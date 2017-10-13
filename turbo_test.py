@@ -16,6 +16,6 @@ if len(d.cell.cell) != 1:
 	sys.exit(1)
 
 
-convert_atom_matrix(d.dm, d.cell.cell[0], Turbo_orbital_order())
+#convert_atom_matrix(d.dm, d.cell.cell[0], Turbo_orbital_order())
 
 

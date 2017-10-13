@@ -20,10 +20,10 @@ if len(d.cell.cell) != 1:
 
 dms, olp, atoms = read_matrices(d.cell)
 
-dm = merge_matrices(dms, atoms)
+DM, OLP = merge_matrices(dms, olp, atoms)
 
 
-convert_atom_matrix(dm, d.cell.cell[0], Openmx_orbital_order())
+convert_atom_matrix(DM, OLP, d.cell.cell[0], Openmx_orbital_order())
 
 
 
