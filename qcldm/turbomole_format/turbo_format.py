@@ -11,7 +11,7 @@ class TurboTemplate:
 	def __init__(self, data):
 		self.data = data
 
-	key_regex = re.compile(u"\$\w+")
+	key_regex = re.compile(u"\$[\w\-]+")
 
 	def param(self, key):
 		for d in self.data:

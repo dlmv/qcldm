@@ -26,6 +26,13 @@ class GaussFunctionNormed(GaussFunction):
 	def __call__(self, r):
 		return GaussFunction.__call__(self, r) * self.norm
 
+	@staticmethod
+	def overlap(f1, f2):
+		if f1.l != f2.l:
+			return 0
+		ff = GaussFunctionNormed((f1.a + f2.a) / 2, (f1.l + f2.l) / 2)
+		return (f1.norm * f2.norm) / ff.norm**2
+
 class GaussFunctionContracted:
 	def __init__(self):
 		self.fs = []
@@ -36,14 +43,16 @@ class GaussFunctionContracted:
 			res += f(r) * c
 		return res
 
-	def norm(self):
+	def overlap(self, other):
 		res = 0
 		for c1, f1 in self.fs:
-			for c2, f2 in self.fs:
-				ff = GaussFunctionNormed((f1.a + f2.a) / 2, (f1.l + f2.l) / 2)
-				fnorm =  (f1.norm * f2.norm) / ff.norm**2
+			for c2, f2 in other.fs:
+				fnorm =  GaussFunctionNormed.overlap(f1, f2)
 				res += c1 * c2 * fnorm
-		return res**0.5
+		return res
+
+	def norm(self):
+		return abs(self.overlap(self))**0.5
 
 	def normalize(self):
 		n = self.norm()
@@ -60,9 +69,31 @@ class GaussFunctionContracted:
 		return res
 
 
+#f1 = GaussFunctionNormed(0.77871000000, 0)
+#f2 = GaussFunctionNormed(0.35874000000, 0)
+#print GaussFunctionNormed.overlap(f1, f2)
+
+#g1 = GaussFunctionContracted()
+#g1.fs.append((1, f1))
+#g2 = GaussFunctionContracted()
+#g2.fs.append((1, f2))
+#print g1.overlap(g2)
 
 
+#cg = GaussFunctionContracted()
+#cg.fs.append((-0.22165720000, GaussFunctionNormed(5.6988200000, 0)))
+#cg.fs.append((0.83176290000, GaussFunctionNormed(3.3426600000, 0)))
+#cg.fs.append((-0.25796490000, GaussFunctionNormed(1.7899800000, 0)))
+#print cg.norm()
 
+#res = 0
+#for c1, f1 in cg.fs:
+#	for c2, f2 in cg.fs:
+#		fnorm =  GaussFunctionNormed.overlap(f1, f2)
+#		res += c1 * c2 * fnorm
+#		print c1, c2, fnorm
+#		print c1 * c2 * fnorm
+#print res
 
 
 

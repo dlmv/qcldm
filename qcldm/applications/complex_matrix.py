@@ -50,6 +50,8 @@ def build_matrix_s(B, oar):
 def convert_atom_matrix(DM, OLP, a, ormat):
 	oar = a.data()[AtomKeys.ORBITAL_ARRAY]
 	DM = numpy.matrix(DM)
+	OLP = numpy.matrix(OLP)
+	write_complex_matrix('0_olp_raw.mat', OLP, oar, LMS)
 	write_complex_matrix('1_complex_raw.mat', DM, oar, LMS)
 	S12 = scipy.linalg.sqrtm(OLP)
 	DM = S12.dot(DM).dot(S12)
@@ -95,10 +97,14 @@ def write_complex_matrix(filename, dm, oar, t):
 			f.write("\n")
 
 		f.write("\n\nMerged occ:\n")
+		s = 0
 		for (l, m) in sorted(lm_map.keys()):
 			f.write("{:10s}".format("|%s,%.1f>" % (Shells.SHELLS[l], m)))
 			f.write("{:20.6f}".format(lm_map[l, m]))
 			f.write("\n")
+			s += lm_map[l, m]
+		f.write("\n\nTotal occ:")
+		f.write("{:20.6f}".format(s))
 	
 
 

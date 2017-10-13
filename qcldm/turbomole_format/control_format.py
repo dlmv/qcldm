@@ -1,4 +1,5 @@
 import re, os, sys, numpy
+from scipy.linalg import block_diag
 
 from math3d import Vector
 
@@ -45,7 +46,7 @@ class ControlFormat:
 		self.base_format = of
 		bp = self.base_format.param('basis')
 		assert bp.lineparam.strip() == 'file=basis'
-		bases = TurboBasis.read_basis('basis')
+		self.bases = TurboBasis.read_basis('basis')
 		smap = self.species_map()
 		cp = self.base_format.param('coord')
 		assert cp.lineparam.strip() == 'file=coord'
@@ -58,9 +59,13 @@ class ControlFormat:
 			name = ls[3]
 			a = AtomVector(name, v)
 			atoms.append(a)
-			a.data()[AtomKeys.ORBITAL_COUNT] = bases[smap[n + 1]].orbnum()
-			a.data()[AtomKeys.ORBITAL_ARRAY] = bases[smap[n + 1]].orbarray()
+			a.data()[AtomKeys.ORBITAL_COUNT] = self.bases[smap[n + 1]].orbnum()
+			a.data()[AtomKeys.ORBITAL_ARRAY] = self.bases[smap[n + 1]].orbarray()
 		self.cell = Cell(atoms, [])
+
+		ts = self.base_format.param('twocomp')
+		ls = re.split("[\s\-]+", ts.multiparam[0].strip())
+		nocc = len(range(int(ls[1]), int(ls[2]) + 1))
 
 		rm = self.base_format.param('uhfmo_real')
 		im = self.base_format.param('uhfmo_imag')
@@ -78,12 +83,9 @@ class ControlFormat:
 				e = rmat[i][j + N] + imat[i][j + N] * 1j
 				tm.append(e)
 			basis_mat.append(tm)
-		s = 0
-		for c in basis_mat[5]:
-			s += c.real**2 + c.imag**2
-		print s
 		bm = numpy.matrix(basis_mat)
-		self.dm = bm.getH().dot(bm)
+		occ_m = block_diag(numpy.identity(nocc), numpy.zeros((N * 2 - nocc, N * 2 - nocc)))
+		self.dm = bm.getH().dot(occ_m).dot(bm)
 
 	def get_format(self):
 		return self.base_format
