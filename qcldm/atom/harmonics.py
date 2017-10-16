@@ -3,6 +3,8 @@ import numpy, sympy
 from sympy.physics.quantum.cg import CG
 from sympy import S
 
+from ..util.mathutils import frange, ufu
+
 class Basis_Matrix:
 	def lmatrix(self, l):
 		return numpy.identity(2*l + 1)
@@ -17,22 +19,28 @@ class Basis_Matrix:
 				res[2*i + 1][2*j + 1] = lm[i,j]
 		return numpy.matrix(res)
 
-def frange(x, y, jump):
-	while x < y:
-		yield x
-		x += jump
+class Orbital_Order(Basis_Matrix):
 
-#def complexToReal(l, mr, mc):
-#	if mr == 0:
-#		return 1 if mc == 0 else 0
-#	else:
-#		coef = 1j / 2**0.5 if mr < 0 else 1 / 2**0.5
-#		if mc == -abs(mr):
-#			return coef
-#		elif mc == abs(mr):
-#			return coef * (-1)**mr * math.copysign(1, mr)
-#		else:
-#			return 0
+	def order(self, l):
+		return range(2 * l + 1)
+
+	def lmatrix(self, l):
+		mat = [[0] * (2 * l + 1) for x in range(2 * l + 1)]
+		for i, j in enumerate(self.order(l)):
+			mat[i][j] = 1
+		return numpy.matrix(mat)
+
+def complexToReal(l, mr, mc):
+	if mr == 0:
+		return 1 if mc == 0 else 0
+	else:
+		coef = 1j / 2**0.5 if mr < 0 else 1 / 2**0.5
+		if mc == -abs(mr):
+			return coef
+		elif mc == abs(mr):
+			return coef * (-1)**mr * math.copysign(1, mr)
+		else:
+			return 0
 
 def realToComplex(l, mc, mr):
 	if mc == 0:
@@ -78,9 +86,6 @@ class C2J_Matrix(Basis_Matrix):
 
 	def lmatrix(self, l):
 		raise RuntimeError()
-
-def ufu(u, f):
-	return u.getH().dot(f).dot(u)
 
 
 #print ufu(C2J_Matrix().lsmatrix(1), numpy.identity(6))

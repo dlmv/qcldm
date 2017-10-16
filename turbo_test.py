@@ -3,7 +3,7 @@ import re, sys, os, logging
 sys.dont_write_bytecode = True
 
 from qcldm.turbomole_format.control_format import ControlFormat
-from qcldm.turbomole_format.turbo_orbital_order import Turbo_orbital_order
+from qcldm.turbomole_format.turbo_orbital_order import Turbo_Order
 from qcldm.applications.complex_matrix import convert_atom_matrix
 from qcldm.atom.shells import Shells
 from qcldm.util.log_colorizer import init_log
@@ -38,6 +38,6 @@ for l1, nl1 in enumerate(b.orbarray()):
 				OLP.append(olpline)
 		i1 += 1
 
-convert_atom_matrix(c.dm, OLP, c.cell.cell[0], Turbo_orbital_order())
+convert_atom_matrix(c.dm, OLP, c.cell.cell[0], Turbo_Order())
 
 

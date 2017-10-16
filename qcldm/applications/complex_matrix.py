@@ -3,7 +3,8 @@ from scipy.linalg import block_diag
 
 from ..structures.atom_vector import AtomKeys
 from ..atom.shells import Shells
-from ..atom.quantum_numbers import ufu, R2C_Matrix, C2J_Matrix
+from ..atom.harmonics import R2C_Matrix, C2J_Matrix
+from ..util.mathutils import ufu
 
 LMS = 0
 LJM = 1

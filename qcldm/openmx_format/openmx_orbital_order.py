@@ -1,16 +1,15 @@
-import numpy
-from ..atom.quantum_numbers import Basis_Matrix
+from ..atom.harmonics import Orbital_Order
 
-class Openmx_orbital_order(Basis_Matrix):
+class Openmx_Order(Orbital_Order):
 
-	def lmatrix(self, l):
+	def order(self, l):
 		if l == 1:
-			return numpy.matrix([[0,0,1],[1,0,0],[0,1,0]])
+			return [2,0,1]
 		elif l == 2:
-			return numpy.matrix([[0,0,1,0,0],[0,0,0,0,1],[1,0,0,0,0],[0,0,0,1,0],[0,1,0,0,0]])
+			return [2,4,0,3,1]
 		elif l == 3:
-			return numpy.matrix([[0,0,0,1,0,0,0],[0,0,0,0,1,0,0],[0,0,1,0,0,0,0],[0,0,0,0,0,1,0],[0,1,0,0,0,0,0],[0,0,0,0,0,0,1],[1,0,0,0,0,1,0]])
+			return [3,4,2,5,1,6,0]
 		else:
-			return Basis_Matrix.lmatrix(self,l)
+			return Orbital_Order.order(self,l)
 
 
