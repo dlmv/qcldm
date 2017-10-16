@@ -3,7 +3,7 @@ from scipy.linalg import block_diag
 
 from ..structures.atom_vector import AtomKeys
 from ..atom.shells import Shells
-from ..atom.harmonics import R2C_Matrix, C2J_Matrix
+from ..atom.harmonics import C2R_Matrix, J2C_Matrix
 from ..util.mathutils import ufu
 
 LMS = 0
@@ -60,10 +60,10 @@ def convert_atom_matrix(DM, OLP, a, ormat):
 	Ubasis = build_matrix_s(ormat, oar)
 	DM = ufu(Ubasis, DM)
 	write_complex_matrix('3_complex_ordered.mat', DM, oar, LMS)
-	Ulm = build_matrix_s(R2C_Matrix(), oar)
+	Ulm = build_matrix_s(C2R_Matrix(), oar)
 	DM = ufu(Ulm, DM)
 	write_complex_matrix('4_complex_lms.mat', DM, oar, LMS)
-	Ulj = build_matrix_s(C2J_Matrix(), oar)
+	Ulj = build_matrix_s(J2C_Matrix(), oar)
 	DM = ufu(Ulj, DM)
 	write_complex_matrix('5_complex_ljm.mat', DM, oar, LJM)
 	return DM
