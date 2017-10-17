@@ -6,11 +6,13 @@ from ..atom.shells import Shells
 from ..atom.harmonics import C2R_Matrix, J2C_Matrix
 from ..util.mathutils import ufu
 
+
 LMS = 0
 LJM = 1
+LMS_OLP = 2
 
 def title(n, oar, t):
-	if t == LMS:
+	if t == LMS or t == LMS_OLP:
 		for ll, ns in enumerate(oar):
 			if n < ns * 2:
 				nn = n / Shells.SHELL_POP[ll] + 1
@@ -52,20 +54,20 @@ def convert_atom_matrix(DM, OLP, a, ormat):
 	oar = a.data()[AtomKeys.ORBITAL_ARRAY]
 	DM = numpy.matrix(DM)
 	OLP = numpy.matrix(OLP)
-	write_complex_matrix('0_olp_raw.mat', OLP, oar, LMS)
-	write_complex_matrix('1_complex_raw.mat', DM, oar, LMS)
+	write_complex_matrix('1_olp_input.mat', OLP, oar, LMS_OLP)
+	write_complex_matrix('1_dm_input.mat', DM, oar, LMS)
 	S12 = scipy.linalg.sqrtm(OLP)
 	DM = S12.dot(DM).dot(S12)
-	write_complex_matrix('2_complex_overlapped.mat', DM, oar, LMS)
+	write_complex_matrix('2_dm_overlapped.mat', DM, oar, LMS)
 	Ubasis = build_matrix_s(ormat, oar)
 	DM = ufu(Ubasis, DM)
-	write_complex_matrix('3_complex_ordered.mat', DM, oar, LMS)
+	write_complex_matrix('3_dm_ordered.mat', DM, oar, LMS)
 	Ulm = build_matrix_s(C2R_Matrix(), oar)
 	DM = ufu(Ulm, DM)
-	write_complex_matrix('4_complex_lms.mat', DM, oar, LMS)
+	write_complex_matrix('4_dm_lms.mat', DM, oar, LMS)
 	Ulj = build_matrix_s(J2C_Matrix(), oar)
 	DM = ufu(Ulj, DM)
-	write_complex_matrix('5_complex_ljm.mat', DM, oar, LJM)
+	write_complex_matrix('5_dm_ljm.mat', DM, oar, LJM)
 	return DM
 
 def write_complex_matrix(filename, dm, oar, t):
@@ -96,7 +98,8 @@ def write_complex_matrix(filename, dm, oar, t):
 				e = dm[i,j]
 				f.write("{:20.6f}".format(e))
 			f.write("\n")
-
+		if t == LMS_OLP:
+			return
 		f.write("\n\nMerged occ:\n")
 		s = 0
 		for (l, m) in sorted(lm_map.keys()):
