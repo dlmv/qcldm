@@ -10,13 +10,20 @@ class MosReader:
 
 	def load(self, of):
 		self.base_format = of
-		assert self.base_format.data[0].key.startswith('uhfmo')
-		fmt = self.base_format.data[0].lineparam.split()[-1]
+		fmt = None
+		lines = None
+		if self.base_format.data[0].key.startswith('uhfmo'):
+			fmt = self.base_format.data[0].lineparam.split()[-1]
+			lines = self.base_format.data[0].multiparam[4:]
+		elif len(self.base_format.data) == 3 and self.base_format.data[1].key == "natural":
+			fmt = self.base_format.data[1].lineparam.split()[-1]
+			lines = self.base_format.data[1].multiparam[2:]
+		else:
+		 	assert False
 		m = re.match('format\(([0-9]+)d([0-9]+)\.([0-9]+)\)', fmt)
 		assert m
 		nd = int(m.group(1))
 		dlen = int(m.group(2))
-		lines = self.base_format.data[0].multiparam[4:]
 		n = 0
 		self.matrix = []
 		while n < len(lines):

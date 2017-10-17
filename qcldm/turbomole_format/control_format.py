@@ -1,5 +1,6 @@
 import re, os, sys, numpy
 from scipy.linalg import block_diag
+from numpy.matlib import zeros
 
 from math3d import Vector
 
@@ -42,6 +43,16 @@ class ControlFormat:
 					smap[nn] = name
 		return smap
 
+	def dft_matrix(self, n, na, nb):
+		mat = zeros((n, n))
+		for i in range(na):
+			mat[i*2, i*2] = 1
+		for i in range(nb):
+			mat[i*2 + 1, i*2 + 1] = 1
+		for i in range(n):
+			print mat[i, i]
+		return mat
+
 	def load(self, of):
 		self.base_format = of
 		bp = self.base_format.param('basis')
@@ -63,29 +74,52 @@ class ControlFormat:
 			a.data()[AtomKeys.ORBITAL_ARRAY] = self.bases[smap[n + 1]].orbarray()
 		self.cell = Cell(atoms, [])
 
-		ts = self.base_format.param('twocomp')
-		ls = re.split("[\s\-]+", ts.multiparam[0].strip())
-		nocc = len(range(int(ls[1]), int(ls[2]) + 1))
+		twecp = self.base_format.param('twocomp-ecp')
+		if twecp:
+			ts = self.base_format.param('twocomp')
+			ls = re.split("[\s\-]+", ts.multiparam[0].strip())
+			nocc = len(range(int(ls[1]), int(ls[2]) + 1))
 
-		rm = self.base_format.param('uhfmo_real')
-		im = self.base_format.param('uhfmo_imag')
-		assert rm.lineparam.strip() == 'file=realmos'
-		assert im.lineparam.strip() == 'file=imagmos'
-		rmat = MosReader.from_file('realmos').matrix
-		imat = MosReader.from_file('imagmos').matrix
-		basis_mat = []
-		N = len(rmat) / 2
-		for i in range(N * 2):
-			tm = []
-			for j in range(N):
-				e = rmat[i][j] + imat[i][j] * 1j
-				tm.append(e)
-				e = rmat[i][j + N] + imat[i][j + N] * 1j
-				tm.append(e)
-			basis_mat.append(tm)
-		bm = numpy.matrix(basis_mat)
-		occ_m = block_diag(numpy.identity(nocc), numpy.zeros((N * 2 - nocc, N * 2 - nocc)))
-		self.dm = bm.getH().dot(occ_m).dot(bm)
+			rm = self.base_format.param('uhfmo_real')
+			im = self.base_format.param('uhfmo_imag')
+			assert rm.lineparam.strip() == 'file=realmos'
+			assert im.lineparam.strip() == 'file=imagmos'
+			rmat = MosReader.from_file('realmos').matrix
+			imat = MosReader.from_file('imagmos').matrix
+			basis_mat = []
+			N = len(rmat) / 2
+			for i in range(N * 2):
+				tm = []
+				for j in range(N):
+					e = rmat[i][j] + imat[i][j] * 1j
+					tm.append(e)
+					e = rmat[i][j + N] + imat[i][j + N] * 1j
+					tm.append(e)
+				basis_mat.append(tm)
+			bm = numpy.matrix(basis_mat)
+#			occ_m = self.dft_matrix(N * 2, nalpha, nbeta)
+			occ_m = block_diag(numpy.identity(nocc), numpy.zeros((N * 2 - nocc, N * 2 - nocc)))
+			self.dm = bm.getH().dot(occ_m).dot(bm)
+		else:
+			assert False #TODO
+			nalpha = int(re.split("[\s\-]+", self.base_format.param('alpha').multiparam[0].strip())[2])
+			nbeta = int(re.split("[\s\-]+", self.base_format.param('beta').multiparam[0].strip())[2])
+			no = self.base_format.param('natural')
+			assert no.lineparam.split()[-1] == 'file=natorb'
+			mat = MosReader.from_file('natorb').matrix
+			basis_mat = []
+			N = len(mat)
+			for i in range(N * 2):
+				tm = []
+				for j in range(N * 2):
+					e = 0
+					if (i-j) % 2 == 0:
+						e = mat[i /2 ][j / 2]
+					tm.append(e)
+				basis_mat.append(tm)
+			bm = numpy.matrix(basis_mat)
+			occ_m = self.dft_matrix(N * 2, nalpha, nbeta)
+			self.dm = bm.getH().dot(occ_m).dot(bm)
 
 	def get_format(self):
 		return self.base_format
