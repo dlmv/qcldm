@@ -141,7 +141,7 @@ class Cluster:
 	def write_structure(self, dirname='.'):
 		make_dir(dirname)
 		xyz_cluster = [ca.origin for ca in self.atoms]
-		write_xyz(xyz_cluster, os.path.join(dirname, "cluster.xyz"))
+		write_xyz(xyz_cluster, os.path.join(dirname, "cluster_structure.xyz"))
 
 	def write_charges(self, dirname='.'):
 		make_dir(dirname)
