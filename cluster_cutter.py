@@ -30,6 +30,7 @@ dirname = "cluster%d_%d_%d" % (num, layers, electro)
 
 cluster.write_structure(dirname)
 cluster.write_charges(dirname)
+cluster.write_embedding(dirname)
 
 rewrite_files(d, cluster, dirname)
 

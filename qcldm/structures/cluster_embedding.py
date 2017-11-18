@@ -2,6 +2,7 @@ import os, logging
 from bond_system import MullikenOverlapBondData, LinearSystemChargeTransferBondData
 from ..util.xyz_format import write_xyz
 from ..util.fileutils import make_dir
+from ..util.units import Units
 from ..structures.atom_vector import AtomKeys
 
 
@@ -138,6 +139,32 @@ class Cluster:
 
 		self.atoms = atoms
 
+
+	def write_embedding(self, dirname='.'):
+		k = Units.UNIT / Units.BOHR
+		if os.path.exists('embedding.template'):
+			embeds = {}
+			with open('embedding.template') as f:
+				for l in f.read().splitlines():
+					a, na, core = l.split()
+					embeds[a] = [na, int(core)]
+			with open(os.path.join(dirname, 'embedding'), 'w') as ef, open(os.path.join(dirname, 'embedding.start'), 'w') as esf, open(os.path.join(dirname, 'coord'), 'w') as cf:
+				cf.write('$coord\n')
+				for ca in self.atoms[:len(self.core_atoms)]:
+					cf.write("  {:15.10f}  {:15.10f}  {:15.10f}  {:3}\n".format(ca.origin.position().x * k, ca.origin.position().y * k, ca.origin.position().z * k, ca.origin.name()))
+				for ba in self.atoms[len(self.core_atoms):len(self.core_atoms) + len(self.border_atoms)]:
+					name, core = embeds[ba.origin.name()]
+					ef.write("{:3}  {:7.3f}\n".format(name, ba.valence + core))
+					esf.write("{:3}  {:7.3f}  {:7.3f}  {:7.3f}\n".format(name, ba.valence + core, core, core + ba.origin.data()[AtomKeys.ESTIMATED_VALENCE]))
+					cf.write("  {:15.10f}  {:15.10f}  {:15.10f}  {:3}\n".format(ba.origin.position().x * k, ba.origin.position().y * k, ba.origin.position().z * k, 'zz'))
+				for ea in self.atoms[len(self.core_atoms) + len(self.border_atoms):len(self.core_atoms) + len(self.border_atoms) + len(self.electrostatic_atoms)]:
+					ef.write("{:3}  {:7.3f}\n".format('q', ea.charge + core))
+					cmin, cmax = min(0, ea.origin.data()[AtomKeys.BADER_CHARGE]), max(0, ea.origin.data()[AtomKeys.BADER_CHARGE])
+					esf.write("{:3}  {:7.3f}  {:7.3f}  {:7.3f}\n".format('q', ea.charge, cmin, cmax))
+					cf.write("  {:15.10f}  {:15.10f}  {:15.10f}  {:3}\n".format(ea.origin.position().x * k, ea.origin.position().y * k, ea.origin.position().z * k, 'zz'))
+				cf.write('$end')
+					
+
 	def write_structure(self, dirname='.'):
 		make_dir(dirname)
 		xyz_cluster = [ca.origin for ca in self.atoms]
@@ -145,18 +172,19 @@ class Cluster:
 
 	def write_charges(self, dirname='.'):
 		make_dir(dirname)
-		res = '=========================================================\n' +\
-			'             Valence      Charge      Original valence\n' + \
-			'=========================================================\n'
-		fmt = "  {:3}       {:7.3f}       {:7.3f}       {:7.3f}\n"
+		res = '===============================================================\n' +\
+			'             Valence       Charge    Original valence   Bader\n' + \
+			'===============================================================\n'
+		fmt = "  {:3}       {:7.3f}       {:7.3f}       {:7.3f}       {:7.3f}\n"
 		tc = 0.
 		tv = 0.
 		for ca in self.atoms:
 			full = ca.origin.data()[AtomKeys.ESTIMATED_VALENCE]
-			res += fmt.format(ca.origin.name(), ca.valence, ca.charge, full)
+			bcharge = ca.origin.data()[AtomKeys.BADER_CHARGE]
+			res += fmt.format(ca.origin.name(), ca.valence, ca.charge, full, bcharge)
 			tc += ca.charge - ca.valence
 			tv += ca.valence
-		res += '=========================================================\n'
+		res += '===============================================================\n'
 		res += 'Total:      {:7.3f}       {:7.3f}\n'.format(tv, tc)
 		with open(os.path.join(dirname, "cluster.charge"), 'w') as f:
 			f.write(res)
