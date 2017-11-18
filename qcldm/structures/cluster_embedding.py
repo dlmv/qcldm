@@ -158,7 +158,7 @@ class Cluster:
 					esf.write("{:3}  {:7.3f}  {:7.3f}  {:7.3f}\n".format(name, ba.valence + core, core, core + ba.origin.data()[AtomKeys.ESTIMATED_VALENCE]))
 					cf.write("  {:15.10f}  {:15.10f}  {:15.10f}  {:3}\n".format(ba.origin.position().x * k, ba.origin.position().y * k, ba.origin.position().z * k, 'zz'))
 				for ea in self.atoms[len(self.core_atoms) + len(self.border_atoms):len(self.core_atoms) + len(self.border_atoms) + len(self.electrostatic_atoms)]:
-					ef.write("{:3}  {:7.3f}\n".format('q', ea.charge + core))
+					ef.write("{:3}  {:7.3f}\n".format('q', ea.charge))
 					cmin, cmax = min(0, ea.origin.data()[AtomKeys.BADER_CHARGE]), max(0, ea.origin.data()[AtomKeys.BADER_CHARGE])
 					esf.write("{:3}  {:7.3f}  {:7.3f}  {:7.3f}\n".format('q', ea.charge, cmin, cmax))
 					cf.write("  {:15.10f}  {:15.10f}  {:15.10f}  {:3}\n".format(ea.origin.position().x * k, ea.origin.position().y * k, ea.origin.position().z * k, 'zz'))
