@@ -154,8 +154,8 @@ class Cluster:
 					cf.write("  {:15.10f}  {:15.10f}  {:15.10f}  {:3}\n".format(ca.origin.position().x * k, ca.origin.position().y * k, ca.origin.position().z * k, ca.origin.name()))
 				for ba in self.atoms[len(self.core_atoms):len(self.core_atoms) + len(self.border_atoms)]:
 					name, core = embeds[ba.origin.name()]
-					ef.write("{:3}  {:7.3f}\n".format(name, ba.valence + core))
-					esf.write("{:3}  {:7.3f}  {:7.3f}  {:7.3f}\n".format(name, ba.valence + core, core, core + ba.origin.data()[AtomKeys.ESTIMATED_VALENCE]))
+					ef.write("{:3}  {:7.3f}\n".format(name, ba.charge + core))
+					esf.write("{:3}  {:7.3f}  {:7.3f}  {:7.3f}\n".format(name, ba.charge + core, core, core + ba.origin.data()[AtomKeys.ESTIMATED_VALENCE]))
 					cf.write("  {:15.10f}  {:15.10f}  {:15.10f}  {:3}\n".format(ba.origin.position().x * k, ba.origin.position().y * k, ba.origin.position().z * k, 'zz'))
 				for ea in self.atoms[len(self.core_atoms) + len(self.border_atoms):len(self.core_atoms) + len(self.border_atoms) + len(self.electrostatic_atoms)]:
 					ef.write("{:3}  {:7.3f}\n".format('q', ea.charge))
