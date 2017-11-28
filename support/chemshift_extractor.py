@@ -75,9 +75,11 @@ energy_regex = '\s*value Re \(ljm electron part of .*? orbital energy shift\) = 
 
 def read_data(root):
 	orbitals = []
+	found = False
 	for dr, subFolders, files in os.walk(root):
 		dname = os.path.basename(os.path.normpath(dr))
 		if dname.startswith('JReduced'):
+			found = True
 			if orbitals:
 				print 'Multiple logs in %s' % root
 				print 'Aborting!'
@@ -95,6 +97,10 @@ def read_data(root):
 							rr = re.match(energy_regex, line)
 							if rr:
 								o.e = float(rr.groups()[0])
+	if not found:
+		print 'No logs in %s' % root
+		print 'Aborting!'
+		return
 	orbitals = sorted(orbitals)
 	transitions = []
 	for o1 in orbitals:
@@ -115,7 +121,7 @@ trs2 = read_data(root2)
 #for t in trs1:
 #	print t, t.e
 
-if trs1 == trs2:
+if trs1 and trs2 and trs1 == trs2:
 	for t1, t2 in zip(trs1, trs2):
 #		pass
 		print t1, (t2.e - t1.e) * 27211
