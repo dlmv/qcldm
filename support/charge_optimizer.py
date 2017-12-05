@@ -2,7 +2,7 @@
 import os, sys, threading
 from scipy.optimize import minimize
 
-CUBE_CHARGE_SCALE = 100
+CUBE_CHARGE_SCALE = 1000
 
 class Embedding:
 	def __init__(self):
@@ -10,12 +10,24 @@ class Embedding:
 		self.limits = []
 		self.groups = {}
 		self.cube = []
+		self.cube_first = -1
+
+	def cube_first_charge(self, x):
+		res = 0
+		chgs = self.full_value(x)
+		for i, c in enumerate(chgs):
+			if i in self.cube:
+				res -= chgs[i]
+		return res
 
 	def full_value(self, ls):
 		res = []
 		n = 0
 		for i, s in enumerate(self.symbols):
 			found = False
+			if self.cube_first == i:
+				res.append(None)
+				continue
 			for k in self.groups.keys():
 				if i in self.groups[k][1:]:
 					root = self.groups[k][0]
@@ -29,7 +41,7 @@ class Embedding:
 	def group_list(self):
 		res = []
 		for i, s in enumerate(self.symbols):
-			if i in self.cube:
+			if i in self.cube or self.cube_first == i:
 				res.append("CUBE")
 			else:
 				found = False
@@ -43,23 +55,17 @@ class Embedding:
 
 	def full_charges(self, x):
 		chgs = self.full_value(x)
+		chgs[self.cube_first] = self.cube_first_charge(x)
 		for i, c in enumerate(chgs):
-			if i in self.cube:
+			if i in self.cube or i == self.cube_first:
 				chgs[i] *= CUBE_CHARGE_SCALE
 		return chgs
 
-	def cube_sum(self, x):
-		chgs = self.full_charges(x)
-		res = 0
-		for i, c in enumerate(chgs):
-			if i in self.cube:
-				res += c
-		return res
-
 	def full_limits(self):
 		lmts = self.full_value(self.limits)
+		lmts[self.cube_first] = (None, None)
 		for i, (l, h) in enumerate(lmts):
-			if i in self.cube:
+			if i in self.cube or i == self.cube_first:
 				if h != None:
 					h *= CUBE_CHARGE_SCALE
 				if l != None:
@@ -87,9 +93,12 @@ def read_start_embedding():
 				limits = (float_or_none(ls[2]), float_or_none(ls[3]))
 				grname = ls[4]
 				if grname == 'CUBE':
-					charges.append(charge / CUBE_CHARGE_SCALE)
-					e.limits.append([x / CUBE_CHARGE_SCALE if x != None else x for x in limits])
-					e.cube.append(i)
+					if e.cube_first == -1:
+						e.cube_first = i
+					else:
+						charges.append(charge / CUBE_CHARGE_SCALE)
+						e.limits.append([x / CUBE_CHARGE_SCALE if x != None else x for x in limits])
+						e.cube.append(i)
 				elif grname not in e.groups.keys():
 					charges.append(charge)
 					e.limits.append(limits)
@@ -153,9 +162,9 @@ def write_restart(e, x):
 	with open("embedding.restart", "w") as emb:
 		write_embedding_block(emb, e, x, True)
 
-def write_result(e, x, grad):
+def write_result(e, x, grad, s0):
 	with open("embedding.log", "a") as emb:
-		emb.write("********** GRAD = %13.10f ********\n" % (grad))
+		emb.write("********** GRAD = %12.10f | DSUM = %g **********\n" % (grad, sum(e.full_charges(x)) - s0))
 		write_embedding_block(emb, e, x, False)
 
 def write_embedding_block(emb, e, x, include_limits_and_groups):
@@ -168,13 +177,14 @@ def write_embedding_block(emb, e, x, include_limits_and_groups):
 
 lock = threading.Lock()
 
-def calculate(n, pos, e, x):
+def calculate(n, pos, e, x, s0):
 	with lock:
 		write_embedding(e, x)
 		assert os.system('dscf > log_dscf.log') == 0
 		assert os.system('grad > log_grad.log') == 0
 		grad = read_grad_from_control(n, pos)
-		write_result(e, x, grad)
+#		grad = 0
+		write_result(e, x, grad, s0)
 		return grad
 
 if len(sys.argv) == 3:
@@ -184,8 +194,8 @@ if len(sys.argv) == 3:
 	n, pos = read_embed_positions()
 	e, x0 = read_start_embedding()
 	s = sum(e.full_charges(x0))
-	f = lambda x: calculate(n, pos, e, x)
-	cons = ({'type': 'eq', 'fun' : lambda x: sum(e.full_charges(x)) - s}, {'type': 'eq', 'fun' : lambda x: e.cube_sum(x)})
+	f = lambda x: calculate(n, pos, e, x, s)
+	cons = ({'type': 'eq', 'fun' : lambda x: sum(e.full_charges(x)) - s})
 
 	with open("embedding.log", "w") as emb:
 		emb.write("OPTIMIZATION START: eps=%.2e, ftol=%.2e\n" % (eps, ftol))
