@@ -19,16 +19,14 @@ class NeighbourCache:
 		self.cell = c
 		self.cache = {}
 
-	def neighbours_cluster(self, num, layers):
-		center = self.cell.cell[num - 1]
+	def neighbours_cluster(self, centers, layers):
 		logging.info(u'')
 		logging.info(u'*********************************************')
-		logging.info(u'  Cutting cluster for: '  + str(center))
+		logging.info(u'  Cutting cluster for: '  + str(centers))
 		logging.info(u'*********************************************')
 		logging.info(u'')
-		border = [center]
-		shells = [border]
-		self.load_neighbours_internal(border, layers, shells)
+		shells = [centers]
+		self.load_neighbours_internal(centers, layers, shells)
 		return shells
 
 	def load_all(self):

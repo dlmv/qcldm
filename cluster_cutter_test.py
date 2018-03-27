@@ -22,20 +22,22 @@ dm, olp, atoms = read_matrices(d.cell, 1e-3)
 num = int(sys.argv[1])
 layers = int(sys.argv[2])
 electro = int(sys.argv[3])
+center = d.cell.cell[num - 1]
+centers = [center]
 
-centers = [d.cell.cell[num - 1]]
+tmpshells = d.cell.neighbours.neighbours_cluster(centers, 2)
+for a in tmpshells[-1]:
+	if a.name() != center.name():
+		centers.append(a)
 
 cluster = Cluster(d.cell, centers, layers, electro)
 cluster.estimate_charges(dm, olp)
 
-dirname = "cluster%d_%d_%d" % (num, layers, electro)
+dirname = "cluster_test%d_%d_%d" % (num, layers, electro)
 
 cluster.write_structure(dirname)
 cluster.write_charges(dirname)
 cluster.write_embedding(dirname)
 
 rewrite_files(d, cluster, dirname)
-
-
-
 

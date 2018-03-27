@@ -1,5 +1,5 @@
 #!/usr/bin/python 
-import os, sys, threading, time
+import os, sys, threading
 from scipy.optimize import minimize
 
 #CUBE_CHARGE_SCALE = 1000
@@ -9,7 +9,6 @@ class Embedding:
 		self.symbols = []
 		self.limits = []
 		self.groups = {}
-		self.group_indices = {}
 		self.cube = []
 
 	def full_value(self, ls_emb, ls_cub):
@@ -89,10 +88,9 @@ def read_start_embedding():
 					charges.append(charge)
 					e.limits.append(limits)
 					e.groups[grname] = [i]
-					e.group_indices[grname] = len(e.groups) - 1
 				else:
-					root = e.group_indices[grname]
-					assert charge == charges[root], ("All charges for same group must be equal and %d != %d for group %s" % (charge, charges[root], grname))
+					root = e.groups[grname][0]
+					assert charge == charges[root], "All charges for same group must be equal"
 					assert limits == e.limits[root], "All limits for same group must be equal"
 					e.groups[grname].append(i)
 			else:
@@ -146,39 +144,6 @@ def read_grad_from_control(num, pos, nepos):
 					rawgrads.extend(igrads)
 			grad = (reduce(lambda s, i: s + i**2, rawgrads, 0.))**0.5
 
-last_xe = None
-last_xe_step = None
-
-PREC = 2e-8
-
-def check_if_step_not_grad(xe, eps):
-	global last_xe_step
-	global last_xe
-	if last_xe == None:
-		print 'first step!'
-		last_xe_step = xe
-		last_xe = xe
-		return True
-	else:
-		assert len(xe) == len(last_xe_step)
-		n_diff = 0
-		s_diff = 0
-		for x, lx in zip(xe, last_xe_step):
-			if abs(x - lx) >= PREC:
-				n_diff += 1
-				s_diff += abs(x - lx)
-				
-		if n_diff == 1 and abs(s_diff - eps) <= PREC:
-			print 'grad step!'
-			last_xe = xe
-			return False
-		else:
-			print 'true step!'
-			last_xe_step = xe
-			last_xe = xe
-			return True
-		
-
 def write_embedding(e, xe, xc):
 	with open("embedding", "w") as emb:
 		write_embedding_block(emb, e, xe, xc, False)
@@ -187,9 +152,9 @@ def write_restart(e, xe, xc):
 	with open("embedding.restart", "w") as emb:
 		write_embedding_block(emb, e, xe, xc, True)
 
-def write_result(e, xe, xc, grad, truestep):
+def write_result(e, xe, xc, grad):
 	with open("embedding.log", "a") as emb:
-		emb.write("********** VALUE = %12.10f | SUM = %g | TYPE = %s **********\n" % (grad, sum(e.full_charges(xe, xc)), "MAIN" if truestep else "GRAD"))
+		emb.write("********** GRAD = %12.10f | SUM = %g **********\n" % (grad, sum(e.full_charges(xe, xc))))
 		write_embedding_block(emb, e, xe, xc, False)
 
 def write_embedding_block(emb, e, xe, xc, include_limits_and_groups):
@@ -205,33 +170,25 @@ def write_embedding_block(emb, e, xe, xc, include_limits_and_groups):
 
 lock = threading.Lock()
 
-def calculate(n, pos, nepos, e, xe, xc, eps):
+def calculate(n, pos, nepos, e, xe, xc):
 	with lock:
 		write_embedding(e, xe, xc)
 		assert os.system('dscf > log_dscf.log') == 0
-		time.sleep(5)
 		assert os.system('grad > log_grad.log') == 0
-		time.sleep(5)
 		grad = read_grad_from_control(n, pos, nepos)
-#		grad = random.random()
-		t = check_if_step_not_grad(xe, eps)
-		write_result(e, xe, xc, grad, t)
-		if t:
-			write_restart(e, xe, xc)
+#		grad = 0
+		write_result(e, xe, xc, grad)
 		return grad
 
 
-
-def optimize_embedding(eps, ftol, maxit):
+def optimize_cube(eps, ftol, maxit):
 	e, xe0, xc0 = read_start_embedding()
 	n, pos, nepos = read_embed_positions()
-	s = sum(e.full_charges(xe0, xc0))
-	f = lambda x: calculate(n, pos, nepos, e, x, xc0, eps)
-	cons = ({'type': 'eq', 'fun' : lambda x: sum(e.full_charges(x, xc0)) - s})
-	res = minimize(f, xe0, args=(), method='SLSQP', jac=None, 
-bounds=e.limits, constraints=cons, tol=None, callback=None, options={'disp': False, 'eps': eps, 'maxiter': maxit, 'ftol': ftol})
-	write_embedding(e, res.x, xc0)
-	write_restart(e, res.x, xc0)
+	f = lambda x: calculate(n, pos, nepos, e, xe0, x)
+	res = minimize(f, xc0, args=(), method='SLSQP', jac=None, 
+bounds=None, constraints=(), tol=None, callback=None, options={'disp': False, 'eps': eps, 'maxiter': maxit, 'ftol': ftol})
+	write_embedding(e, xe0, res.x)
+	write_restart(e, xe0, res.x)
 	return res.status, res.nit
 
 if len(sys.argv) == 3:
@@ -239,7 +196,7 @@ if len(sys.argv) == 3:
 	ftol = float(sys.argv[2])
 	with open("embedding.log", "w") as emb:
 		emb.write("OPTIMIZATION START: eps=%.2e, ftol=%.2e\n" % (eps, ftol))
-	optimize_embedding(eps, ftol, 9999)
+	optimize_cube(eps, ftol, 9999)
 
 else:
 	print 'Usage: charge_optimizer.py [STEP] [PRECISION]\nExample: charge_optimizer.py 1e-2 1e-5'

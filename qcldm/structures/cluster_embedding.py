@@ -17,12 +17,12 @@ class ClusterAtom:
 
 class Cluster:
 	
-	def __init__(self, cell, center, shells_num, electro_shells_num=0):
+	def __init__(self, cell, centers, shells_num, electro_shells_num=0):
 		self.cell = cell
-		self.center = center
+		self.centers = centers
 		self.shells_num = shells_num
 
-		shells = cell.neighbours.neighbours_cluster(center, shells_num)
+		shells = cell.neighbours.neighbours_cluster(centers, shells_num)
 
 		border_shell_pos = shells_num - electro_shells_num
 		assert border_shell_pos > 1, "Too few shells for a cluster!"
