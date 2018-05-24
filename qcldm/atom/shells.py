@@ -37,6 +37,11 @@ class Shells:
 		return val
 
 	@staticmethod
+	def estimate_valence_byname(a):
+		z = ELEMENTS[a].number
+		return Shells.estimate_valence(z)
+
+	@staticmethod
 	def estimate_pf_pop(z, zval):
 		zcore = z - zval
 		zcur = 0

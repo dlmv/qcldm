@@ -12,8 +12,8 @@ from qcldm.structures.bader_reader import read_baders
 init_log(sys.argv)
 
 co = CrystalOut.from_file('ypo4.out')
-dcm = CrystalMatrix.from_file('density_ypo4.outp', co, CrystalMatrix.DENSITY, 1e-3)
 ocm = CrystalMatrix.from_file('overlap_ypo4.outp', co, CrystalMatrix.OVERLAP, 1e-3)
+dcm = CrystalMatrix.from_file('density_ypo4.outp', co, CrystalMatrix.DENSITY, 1e-3)
 write_xyz(dcm.cell.cell, 'cell.xyz')
 #write_xyz(cm.cell.supercell, 'supercell.xyz')
 
@@ -23,19 +23,22 @@ read_baders(dcm.cell)
 num = int(sys.argv[1])
 layers = int(sys.argv[2])
 electro = int(sys.argv[3])
+center = dcm.cell.cell[num - 1]
+centers = [center]
 
-centers = [dcm.cell.cell[num - 1]]
+tmpshells = dcm.cell.neighbours.neighbours_cluster(centers, 2)
+for a in tmpshells[-1]:
+	if a.name() != center.name():
+		centers.append(a)
 
 cluster = Cluster(dcm.cell, centers, layers, electro)
 cluster.estimate_charges(dcm.matrix, ocm.matrix)
 
-dirname = "cluster%d_%d_%d" % (num, layers, electro)
+dirname = "cluster_test%d_%d_%d" % (num, layers, electro)
 
 cluster.write_structure(dirname)
 cluster.write_charges(dirname)
 cluster.write_embedding(dirname)
-
-
 
 
 

@@ -51,7 +51,7 @@ class CellAtom:
 		return AtomVector(self.name(), self.position(), self.data())
 		
 	def tuple_data(self):
-		return (self.num, self.shifts[0], self.shifts[1], self.shifts[2])
+		return (self.num, int(self.shifts[0]), int(self.shifts[1]), int(self.shifts[2]))
 
 	def __hash__(self):
 		return hash(self.tuple_data())

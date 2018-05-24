@@ -31,6 +31,7 @@ def mulliken_overlap(a1, a2, dm, olp):
 			if key in keys:
 				for tdm in dm['a']['a']['re'], dm['b']['b']['re']:
 					pop += tdm[key] * olp[key]
+#	print a1, a2, pop
 	return pop
 
 
