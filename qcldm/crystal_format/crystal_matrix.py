@@ -24,6 +24,7 @@ AminusB = 'a-b'
 class CrystalMatrix:
 	OVERLAP = 0
 	DENSITY = 1
+	NONE = -1
 
 	def __init__(self):
 		self.cell = None

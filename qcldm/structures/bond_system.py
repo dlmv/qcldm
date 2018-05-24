@@ -12,7 +12,7 @@ class Bond:
 
 class BondData:
 	def __call__(self, a1, a2):
-		return 0
+		return 0.0
 
 class MullikenOverlapBondData(BondData):
 
@@ -22,6 +22,12 @@ class MullikenOverlapBondData(BondData):
 
 	def __call__(self, a1, a2):
 		return mulliken_overlap(a1, a2, self.dm, self.olp)
+
+class DumbBondData(BondData):
+
+
+	def __call__(self, a1, a2):
+		return 1.0
 
 class PreloadedBondData(BondData):
 

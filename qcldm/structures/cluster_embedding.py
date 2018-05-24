@@ -1,5 +1,5 @@
 import os, logging
-from bond_system import MullikenOverlapBondData, LinearSystemChargeTransferBondData
+from bond_system import MullikenOverlapBondData, LinearSystemChargeTransferBondData, DumbBondData
 from ..util.xyz_format import write_xyz
 from ..util.fileutils import make_dir
 from ..util.units import Units
@@ -72,16 +72,22 @@ class Cluster:
 		if not ok:
 			self.rearrange_charges(atoms)
 
-	def load_atoms_dummy(self):
-		atoms = []
-		for a in self.core_atoms + self.border_atoms + self.electrostatic_atoms:
-			ca = ClusterAtom(a, 0, 0)
-			atoms.append(ca)
-		self.atoms = atoms
+#	def load_atoms_dummy(self):
+#		atoms = []
+#		for a in self.core_atoms + self.border_atoms + self.electrostatic_atoms:
+#			ca = ClusterAtom(a, 0, 0)
+#			atoms.append(ca)
+#		self.atoms = atoms
 
-	def estimate_charges(self, dm, olp):
+	def estimate_charges_mulliken(self, dm, olp):
+		self.estimate_charges(MullikenOverlapBondData(dm, olp))
+
+	def estimate_charges_dumb(self):
+		self.estimate_charges(DumbBondData())
+
+	def estimate_charges(self, bond_data):
 		self.ct_data = LinearSystemChargeTransferBondData(self.cell) if self.electrostatic_atoms else None
-		self.mul_data = MullikenOverlapBondData(dm, olp)
+		self.mul_data = bond_data
 
 		logging.info(u'')
 		logging.info(u'*********************************************')
