@@ -72,6 +72,12 @@ class Cluster:
 		if not ok:
 			self.rearrange_charges(atoms)
 
+	def load_atoms_dummy(self):
+		atoms = []
+		for a in self.core_atoms + self.border_atoms + self.electrostatic_atoms:
+			ca = ClusterAtom(a, 0, 0)
+			atoms.append(ca)
+		self.atoms = atoms
 
 	def estimate_charges(self, dm, olp):
 		self.ct_data = LinearSystemChargeTransferBondData(self.cell) if self.electrostatic_atoms else None
