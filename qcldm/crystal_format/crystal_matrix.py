@@ -6,11 +6,11 @@ from ..structures.cell import Cell
 from ..structures.atom_vector import AtomVector, AtomKeys
 from ..atom.shells import Shells
 
-lattice_str = 'DIRECT LATTICE VECTOR COMPONENTS (BOHR)'
-basis_str = 'LOCAL ATOMIC FUNCTIONS BASIS SET'
+#lattice_str = 'DIRECT LATTICE VECTOR COMPONENTS (BOHR)'
+#basis_str = 'LOCAL ATOMIC FUNCTIONS BASIS SET'
 
-atom_regex = '\s+([0-9]{1,3})\s+([A-Z][a-z]?)\s+(\-?[0-9]+\.[0-9]{3})\s+(\-?[0-9]+\.[0-9]{3})\s+(\-?[0-9]+\.[0-9]{3})'
-orb_regex = '\s+(([0-9]+)\-\s+)?([0-9]+)\s+[SPDFGH]'
+#atom_regex = '\s+([0-9]{1,3})\s+([A-Z][a-z]?)\s+(\-?[0-9]+\.[0-9]{3})\s+(\-?[0-9]+\.[0-9]{3})\s+(\-?[0-9]+\.[0-9]{3})'
+#orb_regex = '\s+(([0-9]+)\-\s+)?([0-9]+)\s+[SPDFGH]'
 
 spin_regex = '\s+(ALPHA[\+\-]BETA|BETA|ALPHA)\s+ELECTRONS'
 matrix_regex =  '\s+([A-Z]+\s+MATRIX)\s+\-\s+CELL\s+N\.\s+([0-9]+)\(\s*(\-?[0-9]+)\s+(\-?[0-9]+)\s+(\-?[0-9]+)\s*\)'
@@ -27,69 +27,69 @@ class CrystalMatrix:
 	NONE = -1
 
 	def __init__(self):
-		self.cell = None
+#		self.cell = None
 		self.matrix = None
 
-	@staticmethod
-	def read_lattice(lines):
-		for n in xrange(len(lines)):
-			if lattice_str in lines[n]:
-				break
-		vectors = []
-		for line in lines[n+1: n+4]:
-			ls = line.split()
-			assert len(ls) == 3
-			v = Vector([(float(x) * Units.BOHR / Units.UNIT) for x in ls])
-			vectors.append(v)
-		return vectors
+#	@staticmethod
+#	def read_lattice(lines):
+#		for n in xrange(len(lines)):
+#			if lattice_str in lines[n]:
+#				break
+#		vectors = []
+#		for line in lines[n+1: n+4]:
+#			ls = line.split()
+#			assert len(ls) == 3
+#			v = Vector([(float(x) * Units.BOHR / Units.UNIT) for x in ls])
+#			vectors.append(v)
+#		return vectors
 
-	@staticmethod
-	def read_cell_and_basis(lines, vm):
-		atoms = []
-		first_n = -1
-		last_n = -1
-		numorbmap = {}
-		for n in xrange(len(lines)):
-			if basis_str in lines[n]:
-				break
-		for line in lines[n+4:]:
-			m = re.match(atom_regex, line)
-			m1 = re.match(orb_regex, line)
-			if not line:
-				if atoms:
-					al = atoms[-1]
-					if last_n != -1 and first_n != -1:
-						numorb = last_n - first_n + 1
-						numorbmap[al.name()] = numorb
-					al.data()[AtomKeys.ORBITAL_COUNT] = numorbmap[al.name()]
-					al.data()[AtomKeys.FULL_VALENCE] = vm[al.name()]
-					al.data()[AtomKeys.ESTIMATED_VALENCE] = Shells.estimate_valence_byname(al.name())
-				break
-			elif m:
-				if atoms:
-					al = atoms[-1]
-					if last_n != -1 and first_n != -1:
-						numorb = last_n - first_n + 1
-						numorbmap[al.name()] = numorb
-					al.data()[AtomKeys.ORBITAL_COUNT] = numorbmap[al.name()]
-					al.data()[AtomKeys.FULL_VALENCE] = vm[al.name()]
-					al.data()[AtomKeys.ESTIMATED_VALENCE] = Shells.estimate_valence_byname(al.name())
-						
-				v = Vector([(float(x) * Units.BOHR / Units.UNIT) for x in [m.group(3), m.group(4), m.group(5)]])
-				name = m.group(2)
-				a = AtomVector(name, v)
+#	@staticmethod
+#	def read_cell_and_basis(lines, vm):
+#		atoms = []
+#		first_n = -1
+#		last_n = -1
+#		numorbmap = {}
+#		for n in xrange(len(lines)):
+#			if basis_str in lines[n]:
+#				break
+#		for line in lines[n+4:]:
+#			m = re.match(atom_regex, line)
+#			m1 = re.match(orb_regex, line)
+#			if not line:
+#				if atoms:
+#					al = atoms[-1]
+#					if last_n != -1 and first_n != -1:
+#						numorb = last_n - first_n + 1
+#						numorbmap[al.name()] = numorb
+#					al.data()[AtomKeys.ORBITAL_COUNT] = numorbmap[al.name()]
+#					al.data()[AtomKeys.FULL_VALENCE] = vm[al.name()]
+#					al.data()[AtomKeys.ESTIMATED_VALENCE] = Shells.estimate_valence_byname(al.name())
+#				break
+#			elif m:
+#				if atoms:
+#					al = atoms[-1]
+#					if last_n != -1 and first_n != -1:
+#						numorb = last_n - first_n + 1
+#						numorbmap[al.name()] = numorb
+#					al.data()[AtomKeys.ORBITAL_COUNT] = numorbmap[al.name()]
+#					al.data()[AtomKeys.FULL_VALENCE] = vm[al.name()]
+#					al.data()[AtomKeys.ESTIMATED_VALENCE] = Shells.estimate_valence_byname(al.name())
+#						
+#				v = Vector([(float(x) * Units.BOHR / Units.UNIT) for x in [m.group(3), m.group(4), m.group(5)]])
+#				name = m.group(2)
+#				a = AtomVector(name, v)
 
-				atoms.append(a)
-				first_n = -1
-				last_n = -1
-			elif m1:
-				if first_n == -1:
-					if m1.group(1):
-						first_n = int(m1.group(2))
-					else:
-						first_n = int(m1.group(3))
-				last_n = int(m1.group(3))
-		return atoms
+#				atoms.append(a)
+#				first_n = -1
+#				last_n = -1
+#			elif m1:
+#				if first_n == -1:
+#					if m1.group(1):
+#						first_n = int(m1.group(2))
+#					else:
+#						first_n = int(m1.group(3))
+#				last_n = int(m1.group(3))
+#		return atoms
 
 	@staticmethod
 	def n_to_atomorb_tuple(k, atoms):
@@ -311,26 +311,26 @@ class CrystalMatrix:
 
 			
 	@staticmethod
-	def from_string(datastring, co, mtype, prec):
+	def from_string(datastring, cell, mtype, prec):
 		lines = datastring.splitlines()
-		vectors = CrystalMatrix.read_lattice(lines)
-		atoms = CrystalMatrix.read_cell_and_basis(lines, co.valence_map)
+#		vectors = CrystalMatrix.read_lattice(lines)
+#		atoms = CrystalMatrix.read_cell_and_basis(lines, co.valence_map)
 		cm = CrystalMatrix()
-		cm.cell = Cell(atoms, vectors)
+#		cm.cell = Cell(atoms, vectors)
 		if mtype == CrystalMatrix.DENSITY:
-			cm.matrix = CrystalMatrix.read_dm(lines, cm.cell, prec)
+			cm.matrix = CrystalMatrix.read_dm(lines, cell, prec)
 		elif mtype == CrystalMatrix.OVERLAP:
-			cm.matrix = CrystalMatrix.read_olp(lines, cm.cell, prec)
+			cm.matrix = CrystalMatrix.read_olp(lines, cell, prec)
 		return cm
 
 	@staticmethod
-	def from_file(name, co, mtype, prec=0):
+	def from_file(name, cell, mtype, prec=0):
 		logging.info(u'')
 		logging.info(u'*********************************************')
 		logging.info(u'  Reading matrix from %s' % name)
 		logging.info(u'*********************************************')
 		logging.info(u'')
 		with open(name) as f:
-			return CrystalMatrix.from_string(f.read(), co, mtype, prec)
+			return CrystalMatrix.from_string(f.read(), cell, mtype, prec)
 
 

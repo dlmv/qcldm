@@ -79,14 +79,14 @@ class Cluster:
 #			atoms.append(ca)
 #		self.atoms = atoms
 
-	def estimate_charges_mulliken(self, dm, olp):
-		self.estimate_charges(MullikenOverlapBondData(dm, olp))
+	def estimate_charges_mulliken(self, dm, olp, key):
+		self.estimate_charges(MullikenOverlapBondData(dm, olp), key)
 
-	def estimate_charges_dumb(self):
-		self.estimate_charges(DumbBondData())
+	def estimate_charges_dumb(self, key):
+		self.estimate_charges(DumbBondData(), key)
 
-	def estimate_charges(self, bond_data):
-		self.ct_data = LinearSystemChargeTransferBondData(self.cell) if self.electrostatic_atoms else None
+	def estimate_charges(self, bond_data, key):
+		self.ct_data = LinearSystemChargeTransferBondData(self.cell, key) if self.electrostatic_atoms else None
 		self.mul_data = bond_data
 
 		logging.info(u'')
@@ -152,7 +152,7 @@ class Cluster:
 		self.atoms = atoms
 
 
-	def write_embedding(self, dirname='.'):
+	def write_embedding(self, key, dirname='.'):
 		k = Units.UNIT / Units.BOHR
 		if os.path.exists('embedding.template'):
 			embeds = {}
@@ -171,7 +171,7 @@ class Cluster:
 					cf.write("  {:15.10f}  {:15.10f}  {:15.10f}  {:3}\n".format(ba.origin.position().x * k, ba.origin.position().y * k, ba.origin.position().z * k, 'zz'))
 				for ea in self.atoms[len(self.core_atoms) + len(self.border_atoms):len(self.core_atoms) + len(self.border_atoms) + len(self.electrostatic_atoms)]:
 					ef.write("{:3}  {:7.3f}\n".format('q', ea.charge))
-					cmin, cmax = min(0, ea.origin.data()[AtomKeys.BADER_CHARGE]), max(0, ea.origin.data()[AtomKeys.BADER_CHARGE])
+					cmin, cmax = min(0, ea.origin.data()[key]), max(0, ea.origin.data()[key])
 					esf.write("{:3}  {:7.3f}  {:7.3f}  {:7.3f}\n".format('q', ea.charge, cmin, cmax))
 					cf.write("  {:15.10f}  {:15.10f}  {:15.10f}  {:3}\n".format(ea.origin.position().x * k, ea.origin.position().y * k, ea.origin.position().z * k, 'zz'))
 				cf.write('$end')
@@ -182,17 +182,17 @@ class Cluster:
 		xyz_cluster = [ca.origin for ca in self.atoms]
 		write_xyz(xyz_cluster, os.path.join(dirname, "cluster_structure.xyz"))
 
-	def write_charges(self, dirname='.'):
+	def write_charges(self, key, dirname='.'):
 		make_dir(dirname)
 		res = '===============================================================\n' +\
-			'             Valence       Charge    Original valence   Bader\n' + \
+			'             Valence       Charge    Original valence   %s\n' % key + \
 			'===============================================================\n'
 		fmt = "  {:3}       {:7.3f}       {:7.3f}       {:7.3f}       {:7.3f}\n"
 		tc = 0.
 		tv = 0.
 		for ca in self.atoms:
 			full = ca.origin.data()[AtomKeys.ESTIMATED_VALENCE]
-			bcharge = ca.origin.data()[AtomKeys.BADER_CHARGE]
+			bcharge = ca.origin.data()[key]
 			res += fmt.format(ca.origin.name(), ca.valence, ca.charge, full, bcharge)
 			tc += ca.charge - ca.valence
 			tv += ca.valence

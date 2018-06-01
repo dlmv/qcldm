@@ -1,7 +1,8 @@
 #!/usr/bin/python
 
 class AtomKeys:
-	BADER_CHARGE = 'bader_charge'
+	BADER_CHARGE = 'Bader Charge'
+	MULLIKEN_CHARGE = 'Mulliken Charge'
 	ORBITAL_COUNT = 'orb_count'
 	CUTOFF = 'cutoff'
 	FULL_VALENCE = 'full_valence'
