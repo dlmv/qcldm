@@ -4,6 +4,7 @@ sys.dont_write_bytecode = True
 
 from qcldm.crystal_format.crystal_matrix import CrystalMatrix
 from qcldm.crystal_format.crystal_out import CrystalOut
+from qcldm.crystal_format.crystal_meta import CrystalMeta
 from qcldm.util.log_colorizer import init_log
 from qcldm.util.xyz_format import write_xyz
 from qcldm.structures.cluster_embedding import Cluster
@@ -11,21 +12,23 @@ from qcldm.structures.bader_reader import read_baders
 
 init_log(sys.argv)
 
-co = CrystalOut.from_file('ypo4.out')
-dcm = CrystalMatrix.from_file('overlap_ypo4.outp', co, CrystalMatrix.NONE)
-write_xyz(dcm.cell.cell, 'cell.xyz')
+c = CrystalMeta()
+c.load('.')
+
+co = CrystalOut.from_file(c.out_file)
+write_xyz(co.cell.cell, 'cell.xyz')
 #write_xyz(cm.cell.supercell, 'supercell.xyz')
 
-read_baders(dcm.cell)
+read_baders(co.cell)
 
 
 num = int(sys.argv[1])
 layers = int(sys.argv[2])
 electro = int(sys.argv[3])
 
-centers = [dcm.cell.cell[num - 1]]
+centers = [co.cell.cell[num - 1]]
 
-cluster = Cluster(dcm.cell, centers, layers, electro)
+cluster = Cluster(co.cell, centers, layers, electro)
 cluster.estimate_charges_dumb()
 
 dirname = "cluster_dumb%d_%d_%d" % (num, layers, electro)
