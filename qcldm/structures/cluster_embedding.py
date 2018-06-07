@@ -1,5 +1,6 @@
 import os, logging
 from bond_system import MullikenOverlapBondData, LinearSystemChargeTransferBondData, DumbBondData
+from cluster_comparator import compare_clusters2
 from ..util.xyz_format import write_xyz
 from ..util.fileutils import make_dir
 from ..util.units import Units
@@ -151,9 +152,39 @@ class Cluster:
 
 		self.atoms = atoms
 
+	def make_groups(self):
+		groups = {}
+		atoms = self.border_atoms + self.electrostatic_atoms
+		nogroups = set()
+		index = 0
+		alph = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+		for i in xrange(len(atoms)):
+			a = atoms[i]
+			if a.tuple_data() in groups.keys() or i in nogroups:
+				continue
+			found = False
+			for j in xrange(len(atoms)):
+				a1 = atoms[j]
+				if a1.tuple_data() in groups.keys() or j in nogroups:
+					continue
+				if compare_clusters2(self.centers[0], atoms, i, self.centers[0], atoms, j):
+					found = True
+					groups[a.tuple_data()] = alph[index]
+					groups[a1.tuple_data()] = alph[index]
+			if not found:
+				nogroups.add(i)
+			else:
+				index += 1
+		return groups
+							
+			
+			
+		
+
 
 	def write_embedding(self, key, dirname='.'):
 		k = Units.UNIT / Units.BOHR
+		groups = self.make_groups()
 		if os.path.exists('embedding.template'):
 			embeds = {}
 			with open('embedding.template') as f:
@@ -167,12 +198,14 @@ class Cluster:
 				for ba in self.atoms[len(self.core_atoms):len(self.core_atoms) + len(self.border_atoms)]:
 					name, core = embeds[ba.origin.name()]
 					ef.write("{:3}  {:7.3f}\n".format(name, ba.charge + core))
-					esf.write("{:3}  {:7.3f}  {:7.3f}  {:7.3f}\n".format(name, ba.charge + core, core, core + ba.origin.data()[AtomKeys.ESTIMATED_VALENCE]))
+					g = '' if ba.origin.tuple_data() not in groups.keys() else groups[ba.origin.tuple_data()]
+					esf.write("{:3}  {:7.3f}  {:7.3f}  {:7.3f} {}\n".format(name, ba.charge + core, core, core + ba.origin.data()[AtomKeys.ESTIMATED_VALENCE], g))
 					cf.write("  {:15.10f}  {:15.10f}  {:15.10f}  {:3}\n".format(ba.origin.position().x * k, ba.origin.position().y * k, ba.origin.position().z * k, 'zz'))
 				for ea in self.atoms[len(self.core_atoms) + len(self.border_atoms):len(self.core_atoms) + len(self.border_atoms) + len(self.electrostatic_atoms)]:
 					ef.write("{:3}  {:7.3f}\n".format('q', ea.charge))
 					cmin, cmax = min(0, ea.origin.data()[key]), max(0, ea.origin.data()[key])
-					esf.write("{:3}  {:7.3f}  {:7.3f}  {:7.3f}\n".format('q', ea.charge, cmin, cmax))
+					g = '' if ea.origin.tuple_data() not in groups.keys() else groups[ea.origin.tuple_data()]
+					esf.write("{:3}  {:7.3f}  {:7.3f}  {:7.3f} {}\n".format('q', ea.charge, cmin, cmax, g))
 					cf.write("  {:15.10f}  {:15.10f}  {:15.10f}  {:3}\n".format(ea.origin.position().x * k, ea.origin.position().y * k, ea.origin.position().z * k, 'zz'))
 				cf.write('$end')
 					

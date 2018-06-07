@@ -38,7 +38,7 @@ for a in tmpshells[-1]:
 
 cluster = Cluster(co.cell, centers, layers, electro)
 
-key = AtomKeys.MULLIKEN_CHARGE
+key = AtomKeys.BADER_CHARGE
 
 cluster.estimate_charges_mulliken(dcm.matrix, ocm.matrix, key)
 

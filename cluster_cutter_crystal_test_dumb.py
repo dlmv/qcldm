@@ -38,7 +38,7 @@ cluster = Cluster(co.cell, centers, layers, electro)
 
 dirname = "cluster_test_dumb%d_%d_%d" % (num, layers, electro)
 
-key = AtomKeys.MULLIKEN_CHARGE
+key = AtomKeys.BADER_CHARGE
 
 cluster.estimate_charges_dumb(key)
 

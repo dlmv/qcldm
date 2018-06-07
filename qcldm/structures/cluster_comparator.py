@@ -146,6 +146,41 @@ def compare_clusters(a1, c1, a2, c2, precision=0.001):
 	return False
 
 
+def compare_clusters2(a1, c1, i1, a2, c2, i2, precision=0.001):
+	a1, c1 = real_cluster(a1, c1)
+	a2, c2 = real_cluster(a2, c2)
+	ax1 = c1[i1]
+	r = ax1.position().length
+	ay1 = None
+	rr = 0
+	
+	for i in range(len(c1)):
+		tmp = c1[i]
+		if i != i1 and not rough_equal(ax1.position().angle(tmp.position()), math.pi, 0.00001):
+			ay1 = tmp
+			break
+	rr = ay1.position().length
+	a = ax1.position().angle(ay1.position())
+		
+	ax2 = c2[i2]
+	if rough_equal(ax2.position().length, ax1.position().length, precision) and ax1._name == ax2._name:
+		c2rot = rotate_to_axis(ax1, ax2, c2)
+		ax2 = c2rot[i2]
+		for j2 in range(len(c2rot)):
+			if j2 != i2:
+				ay2 = c2rot[j2]
+				if rough_equal(ay2.position().length, rr, precision) and rough_equal(ax2.position().angle(ay2.position()), a, precision) and ay1._name == ay2._name:
+					c2fin = rotate_along(ax2, ay1, ay2, c2rot)
+					if compare_ready(c1, c2fin, precision):
+						return True
+					ax2 = c2fin[i2]
+					ay2 = c2fin[j2]
+					c2fin = reflect(c2fin, ax2, ay2)
+					if compare_ready(c1, c2fin, precision):
+						return True
+	return False
+	
+
 
 
 
