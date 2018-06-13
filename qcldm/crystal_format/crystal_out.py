@@ -43,7 +43,7 @@ class CrystalOut:
 		for a in self.cell.atoms:
 			for cg in self.basis[a.name()]:
 				cut = max(cut, cg.get_cutoff(prec))
-			a.data()[AtomKeys.CUTOFF] = cut
+			a.data()[AtomKeys.CUTOFF] = cut * Units.BOHR / Units.UNIT
 
 	@staticmethod
 	def get_charge_map(lines):
