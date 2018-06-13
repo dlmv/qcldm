@@ -33,7 +33,11 @@ def write_dm(dm, cluster, filename):
 			f.write("%3d %3s %12.8f %12.8f %12.8f\n" % (a.num, a.name(), a.position().x * k, a.position().y * k, a.position().z * k))
 		for i1 in ["a", "b"]:
 			for i2 in ["a", "b"]:
+				if i2 not in dm[i1].keys():
+					continue
 				for c in ["re", "im"]:
+					if c not in dm[i1][i2].keys():
+						continue
 					f.write("\n%s Density matrix spin = %s%s" % (c, i1, i2))
 					tdm = dm[i1][i2][c] if i1 != 'b' else dm[i2][i1][c]
 					negative = (i1 == 'b' and i2 == 'a' and c == 'im')

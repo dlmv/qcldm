@@ -1,5 +1,5 @@
 import re
-from omxdm.atom.shells import Shells
+from ..atom.shells import Shells
 from ..functions.gauss_function import GaussFunctionContracted, GaussFunctionNormed
 
 

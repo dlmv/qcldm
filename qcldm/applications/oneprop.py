@@ -3,6 +3,7 @@ import re, os, logging, shutil
 import ConfigParser
 
 from ..matrix.matrix_cutter import write_reduced
+from ..gauss_format.gauss_format import GaussFormat
 
 OPTIONS = '''
 ObjVersion = 1
@@ -67,7 +68,7 @@ def get_dirs():
 
 	return gaussdir, libdir
 
-def prepare_oneprop(dat, atoms, dms, num, rc):
+def prepare_oneprop_openmx(dat, atoms, dms, num, rc):
 	gaussdir, libdir = get_dirs()
 
 	dirname = "reduced_{}".format(num)
@@ -85,6 +86,27 @@ def prepare_oneprop(dat, atoms, dms, num, rc):
 		title = title.replace('X', s.name)
 		bs = basis_to_string(fs, s.numorbs)
 		basis += title
+		basis += bs
+		basis += '****\n'
+	with open(os.path.join(dirname, 'basis.L'), 'w') as f:
+		f.write(basis)
+
+def prepare_oneprop_crystal(co, atoms, dms, num, rc):
+	gaussdir, libdir = get_dirs()
+
+	dirname = "reduced_{}".format(num)
+	write_reduced(dms, num, atoms, rc, dirname)
+	outname = co.name
+	shutil.copy(outname, dirname)
+	options = OPTIONS.replace('%RC%', str(rc)).replace('%LIB%', libdir).replace('%OUT%', outname)
+	with open(os.path.join(dirname, 'Options.ini'), 'w') as f:
+		f.write(options)
+
+	basis = ''
+	for k in co.basis.keys():
+		gs = co.basis[k]
+		bs = GaussFormat.to_gaussian94(gs)
+		basis += '%s 0\n' % k
 		basis += bs
 		basis += '****\n'
 	with open(os.path.join(dirname, 'basis.L'), 'w') as f:

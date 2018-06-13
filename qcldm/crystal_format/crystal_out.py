@@ -4,6 +4,7 @@ from ..util.units import Units
 from ..structures.cell import Cell
 from ..structures.atom_vector import AtomVector, AtomKeys
 from ..atom.shells import Shells
+from ..functions.gauss_function import GaussFunctionContracted, GaussFunctionNormed
 
 DFT_PARAMS = 'DFT PARAMETERS'
 
@@ -16,7 +17,8 @@ atom_regex = '\s+[0-9]+\s+[0-9]+\s+([A-Z][a-z]?)' + '\s+(\-?[0-9]+\.[0-9]+E[\+\-
 
 
 basis_atom_regex = '\s+([0-9]{1,3})\s+([A-Z][a-z]?)\s+(\-?[0-9]+\.[0-9]{3})\s+(\-?[0-9]+\.[0-9]{3})\s+(\-?[0-9]+\.[0-9]{3})'
-basis_orb_regex = '\s+(([0-9]+)\-\s+)?([0-9]+)\s+[SPDFGH]'
+basis_orb_regex = '\s+(([0-9]+)\-\s+)?([0-9]+)\s+([SPDFGH])'
+basis_gauss_regex = '\s{20}' + '\s+(\-?[0-9]+\.[0-9]+E[\+\-][0-9]+)' * 4
 
 ATOMS_POP = 'ATOM    Z CHARGE  SHELL POPULATION'
 
@@ -31,8 +33,17 @@ COORDS =  'CARTESIAN COORDINATES - PRIMITIVE CELL'
 class CrystalOut:
 
 	def __init__(self):
+		self.name = None
 		self.cell = None
 		self.valence_map = {}
+		self.basis = {}
+	
+	def get_cutoffs(self, prec=0.0001):
+		cut = 0
+		for a in self.cell.atoms:
+			for cg in self.basis[a.name()]:
+				cut = max(cut, cg.get_cutoff(prec))
+			a.data()[AtomKeys.CUTOFF] = cut
 
 	@staticmethod
 	def get_charge_map(lines):
@@ -50,7 +61,7 @@ class CrystalOut:
 		return vm
 
 	@staticmethod
-	def get_cell(lines, vm, nm):
+	def get_cell(lines, vm, basis):
 		for n in xrange(len(lines)):
 			if GEOM_OUT in lines[n]:
 				break
@@ -75,7 +86,10 @@ class CrystalOut:
 				v = Vector([(float(x) * Units.ANGSTROM / Units.UNIT) for x in [m.group(2), m.group(3), m.group(4)]])
 				name = m.group(1)
 				a = AtomVector(name, v)
-				a.data()[AtomKeys.ORBITAL_COUNT] = nm[a.name()]
+				numorb = 0
+				for cg in basis[a.name()]:
+					numorb += cg.fs[0][1].l * 2 + 1
+				a.data()[AtomKeys.ORBITAL_COUNT] = numorb
 				a.data()[AtomKeys.FULL_VALENCE] = vm[a.name()]
 				a.data()[AtomKeys.ESTIMATED_VALENCE] = Shells.estimate_valence_byname(a.name())
 				
@@ -84,30 +98,54 @@ class CrystalOut:
 		return cell
 		
 	@staticmethod
-	def read_orbnums(lines):
+	def read_basis(lines):
 		numorbmap = {}
+		basismap = {}
+		basis = []
 		atoms = []
 		first_n = -1
 		last_n = -1
+		l = 0
 		for n in xrange(len(lines)):
 			if BASIS in lines[n]:
 				break
+				
+		gs = []
 		for line in lines[n+4:]:
 			m = re.match(basis_atom_regex, line)
 			m1 = re.match(basis_orb_regex, line)
+			m2 = re.match(basis_gauss_regex, line)
 			if not line:
+				if gs:
+					cg = GaussFunctionContracted()
+					cg.fs = gs
+					basis.append(cg)
+				gs = []
+
 				if atoms:
 					al = atoms[-1]
 					if last_n != -1 and first_n != -1:
 						numorb = last_n - first_n + 1
 						numorbmap[al.name()] = numorb
+					if basis:
+						print basis
+						basismap[al.name()] = basis
+						basis = []
 				break
 			elif m:
+				if gs:
+					cg = GaussFunctionContracted()
+					cg.fs = gs
+					basis.append(cg)
+				gs = []
 				if atoms:
 					al = atoms[-1]
 					if last_n != -1 and first_n != -1:
 						numorb = last_n - first_n + 1
 						numorbmap[al.name()] = numorb
+					if basis:
+						basismap[al.name()] = basis
+						basis = []
 						
 				v = Vector([(float(x) * Units.BOHR / Units.UNIT) for x in [m.group(3), m.group(4), m.group(5)]])
 				name = m.group(2)
@@ -122,7 +160,30 @@ class CrystalOut:
 					else:
 						first_n = int(m1.group(3))
 				last_n = int(m1.group(3))
-		return numorbmap
+				lname = m1.group(4)
+				l = Shells.SHELLS.index(lname)
+				if gs:
+					cg = GaussFunctionContracted()
+					cg.fs = gs
+					basis.append(cg)
+				gs = []
+			elif m2:
+				ls = line.split()
+				a = float(ls[0])
+				ln = min(l + 1, 3)
+				k = float(ls[ln])
+				g = GaussFunctionNormed(a, l)
+				gs.append([k, g])
+				assert k
+		
+#		for k in basismap.keys():
+#			s = 0
+#			for cg in basismap[k]:
+#				s += cg.fs[0][1].l * 2 + 1
+#			print k, s, numorbmap[k]
+			
+				
+		return basismap
 			
 
 	@staticmethod
@@ -143,13 +204,13 @@ class CrystalOut:
 		
 		
 	@staticmethod
-	def from_string(datastring):
+	def from_string(datastring, name):
 		lines = datastring.splitlines()
 		co = CrystalOut()
-
+		co.name = name
 		co.valence_map = CrystalOut.get_charge_map(lines)
-		nm = CrystalOut.read_orbnums(lines)
-		co.cell = CrystalOut.get_cell(lines, co.valence_map, nm)
+		co.basis = CrystalOut.read_basis(lines)
+		co.cell = CrystalOut.get_cell(lines, co.valence_map, co.basis)
 		CrystalOut.get_mulliken_pop(lines, co.cell)
 		logging.debug(u'ATOM VALENCE:')
 		for k in co.valence_map.keys():
@@ -165,6 +226,6 @@ class CrystalOut:
 		logging.info(u'*********************************************')
 		logging.info(u'')
 		with open(name) as f:
-			return CrystalOut.from_string(f.read())
+			return CrystalOut.from_string(f.read(), name)
 
 

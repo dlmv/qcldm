@@ -1,7 +1,7 @@
 import re, sys, math
 sys.dont_write_bytecode = True
 
-from numeric_function import NumericFunction
+from numeric_function import NumericFunction, NumericOperations
 
 def dfac(n):
 	return 1 if n < 2 else reduce(lambda x,y: y*x, range(n,1,-2))
@@ -57,6 +57,9 @@ class GaussFunctionContracted:
 	def normalize(self):
 		n = self.norm()
 		self.fs = [(c / n, f) for c, f in self.fs]
+
+	def get_cutoff(self, prec=0.001):
+		return self.to_numeric(NumericOperations.loggrid(1e-8, 2e2, 1000)).get_cutoff(prec)
 
 	def to_numeric(self, grid):
 		res = NumericFunction()
