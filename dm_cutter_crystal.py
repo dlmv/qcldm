@@ -15,7 +15,7 @@ c = CrystalMeta()
 c.load('.')
 
 co = CrystalOut.from_file(c.out_file)
-dcm = CrystalMatrix.from_file(c.dm_file, co.cell, CrystalMatrix.DENSITY, 1e-3)
+dcm = CrystalMatrix.from_file(c.dm_file, co.cell, CrystalMatrix.DENSITY, 0)
 write_xyz(co.cell.cell, 'cell.xyz')
 
 num = int(sys.argv[1])

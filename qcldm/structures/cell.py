@@ -83,6 +83,8 @@ class Cell:
 		self.cell = self.shift([0,0,0])
 		if self.vectors:
 			self.supercell = self.extended_cell()
+		else:
+			self.supercell = self.cell
 		self.neighbours = NeighbourCache(self)
 #		self.group_atoms()
 

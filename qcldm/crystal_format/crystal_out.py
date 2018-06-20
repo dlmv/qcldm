@@ -14,7 +14,7 @@ dft_regex = '\s+[0-9]+\s+([0-9]+)\s+([A-Z][a-z]?)\s+([0-9]{1,3}\.[0-9]{4})\s+[0-
 
 atom_regex = '\s+[0-9]+\s+[0-9]+\s+([A-Z][a-z]?)' + '\s+(\-?[0-9]+\.[0-9]+E[\+\-][0-9]+)' * 3
 #                 #            n         type          xyz      
-
+atom1_regex = '\s+[0-9]+\s+T\s+[0-9]+\s+([A-Z][a-z]?)' + '\s+(\-?[0-9]+\.[0-9]+E[\+\-][0-9]+)' * 3
 
 basis_atom_regex = '\s+([0-9]{1,3})\s+([A-Z][a-z]?)\s+(\-?[0-9]+\.[0-9]{3})\s+(\-?[0-9]+\.[0-9]{3})\s+(\-?[0-9]+\.[0-9]{3})'
 basis_orb_regex = '\s+(([0-9]+)\-\s+)?([0-9]+)\s+([SPDFGH])'
@@ -27,6 +27,7 @@ pop_regex = '\s+([0-9]+)\s+([A-Z][a-z]?)\s+[0-9]+\s+([0-9]{1,3}\.[0-9]{3})\s+'
 
 GEOM_OUT = 'GEOMETRY OUTPUT FILE'
 LATTICE = 'DIRECT LATTICE VECTORS CARTESIAN COMPONENTS (ANGSTROM)'
+NOLATTICE = '(NON PERIODIC DIRECTION: LATTICE PARAMETER FORMALLY SET TO'
 COORDS =  'CARTESIAN COORDINATES - PRIMITIVE CELL'
 
 
@@ -66,34 +67,52 @@ class CrystalOut:
 			if GEOM_OUT in lines[n]:
 				break
 		for k in xrange(n, len(lines)):
-			if LATTICE in lines[k]:
+			if LATTICE in lines[k] or NOLATTICE in lines[k]:
 				break
 		vectors = []
-		for n in xrange(k+2, k+5):
-			ls = lines[n].split()
-			assert len(ls) == 3
-			v = Vector([(float(x) * Units.ANGSTROM / Units.UNIT) for x in ls])
-			vectors.append(v)
-
-		for k in xrange(n, len(lines)):
-			if COORDS in lines[k]:
-				break
 		atoms = []
-		for n in xrange(k+4, len(lines)):
-			m = re.match(atom_regex, lines[n])
+		if LATTICE in lines[k]:
+			for n in xrange(k+2, k+5):
+				ls = lines[n].split()
+				assert len(ls) == 3
+				v = Vector([(float(x) * Units.ANGSTROM / Units.UNIT) for x in ls])
+				vectors.append(v)
+
+			for k in xrange(n, len(lines)):
+				if COORDS in lines[k]:
+					break
+			for n in xrange(k+4, len(lines)):
+				m = re.match(atom_regex, lines[n])
 			
-			if m:
-				v = Vector([(float(x) * Units.ANGSTROM / Units.UNIT) for x in [m.group(2), m.group(3), m.group(4)]])
-				name = m.group(1)
-				a = AtomVector(name, v)
-				numorb = 0
-				for cg in basis[a.name()]:
-					numorb += cg.fs[0][1].l * 2 + 1
-				a.data()[AtomKeys.ORBITAL_COUNT] = numorb
-				a.data()[AtomKeys.FULL_VALENCE] = vm[a.name()]
-				a.data()[AtomKeys.ESTIMATED_VALENCE] = Shells.estimate_valence_byname(a.name())
-				
-				atoms.append(a)
+				if m:
+					v = Vector([(float(x) * Units.ANGSTROM / Units.UNIT) for x in [m.group(2), m.group(3), m.group(4)]])
+					name = m.group(1)
+					a = AtomVector(name, v)
+					numorb = 0
+					for cg in basis[a.name()]:
+						numorb += cg.fs[0][1].l * 2 + 1
+					a.data()[AtomKeys.ORBITAL_COUNT] = numorb
+					a.data()[AtomKeys.FULL_VALENCE] = vm[a.name()]
+					a.data()[AtomKeys.ESTIMATED_VALENCE] = Shells.estimate_valence_byname(a.name())
+					atoms.append(a)
+		elif NOLATTICE in lines[k]:
+#			vectors = [Vector([500 if i == j else 0 for j in range(3)]) for i in range(3)]
+			for n in xrange(k+5, len(lines)):
+				m = re.match(atom1_regex, lines[n])
+			
+				if m:
+					v = Vector([(float(x) * Units.ANGSTROM / Units.UNIT) for x in [m.group(2), m.group(3), m.group(4)]])
+					name = m.group(1)
+					a = AtomVector(name, v)
+					numorb = 0
+					for cg in basis[a.name()]:
+						numorb += cg.fs[0][1].l * 2 + 1
+					a.data()[AtomKeys.ORBITAL_COUNT] = numorb
+					a.data()[AtomKeys.FULL_VALENCE] = vm[a.name()]
+					a.data()[AtomKeys.ESTIMATED_VALENCE] = Shells.estimate_valence_byname(a.name())
+					atoms.append(a)
+
+
 		cell = Cell(atoms, vectors)
 		return cell
 		
@@ -192,7 +211,9 @@ class CrystalOut:
 		for n in xrange(len(lines)):
 			if ATOMS_POP in lines[n]:
 				break
-		n += 3
+		n += 1
+		while not lines[n]:
+			n += 1
 		for k in xrange(n, len(lines)):
 			if not lines[k]:
 				break

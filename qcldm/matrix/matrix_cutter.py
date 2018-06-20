@@ -60,6 +60,7 @@ def write_matrix(dm, cluster, f, negative=False):
 			header += " %13d %3d" % (i + 1, o + 1)
 	f.write(header)
 	f.write("\n")
+	sp = 0
 	for i, a1 in enumerate(cluster):
 		a10 = a1.relative()
 		n1 = a1.data()[AtomKeys.ORBITAL_COUNT]
@@ -74,6 +75,8 @@ def write_matrix(dm, cluster, f, negative=False):
 					if negative:
 						el *= -1
 					f.write(" %17.12f" % el)
+					if key[0] == key[1]:
+						sp += el
 			f.write("\n")
 		logging.debug(u'Progress: %d/%d' % (i + 1, len(cluster)))
 
