@@ -3,7 +3,6 @@
 import sys, os, logging
 
 from ..openmx_format.dat_format import DAT_INPUT
-from cell_neighbours import distance, angle
 
 def corresponding_atom(a, cell2):
 	return cell2.cell[a.num - 1].shifted(a.shifts)
@@ -31,8 +30,8 @@ def compare_cells(c1, c2):
 		a2 = corresponding_atom(a1, c2)
 		for n1 in c1.neighbours.first_neighbours(a1):
 			n2 = corresponding_atom(n1, c2)
-			r1 = distance(a1, n1)
-			r2 = distance(a2, n2)
+			r1 = a1.distance(n1)
+			r2 = a2.distance(n2)
 			d = ((r1 - r2) / r1)**2
 			sd += d
 			if mxd < d and n1 in c1.cell:
