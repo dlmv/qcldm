@@ -10,19 +10,19 @@ DFT_PARAMS = 'DFT PARAMETERS'
 
 BASIS = 'LOCAL ATOMIC FUNCTIONS BASIS SET'
 
-dft_regex = '\s+[0-9]+\s+([0-9]+)\s+([A-Z][a-z]?)\s+([0-9]{1,3}\.[0-9]{4})\s+[0-9\.\-]+'
+dft_regex = '\s+[0-9]+\s+([0-9]+)\s+([A-Z][a-zA-Z]?)\s+([0-9]{1,3}\.[0-9]{4})\s+(\-?[0-9]{1,3}\.[0-9]{4})\s+[0-9\.\-]+'
 
-atom_regex = '\s+[0-9]+\s+[0-9]+\s+([A-Z][a-z]?)' + '\s+(\-?[0-9]+\.[0-9]+E[\+\-][0-9]+)' * 3
+atom_regex = '\s+[0-9]+\s+[0-9]+\s+([A-Z][a-zA-Z]?)' + '\s+(\-?[0-9]+\.[0-9]+E[\+\-][0-9]+)' * 3
 #                 #            n         type          xyz      
-atom1_regex = '\s+[0-9]+\s+T\s+[0-9]+\s+([A-Z][a-z]?)' + '\s+(\-?[0-9]+\.[0-9]+E[\+\-][0-9]+)' * 3
+atom1_regex = '\s+[0-9]+\s+T\s+[0-9]+\s+([A-Z][a-zA-Z]?)' + '\s+(\-?[0-9]+\.[0-9]+E[\+\-][0-9]+)' * 3
 
-basis_atom_regex = '\s+([0-9]{1,3})\s+([A-Z][a-z]?)\s+(\-?[0-9]+\.[0-9]{3})\s+(\-?[0-9]+\.[0-9]{3})\s+(\-?[0-9]+\.[0-9]{3})'
-basis_orb_regex = '\s+(([0-9]+)\-\s+)?([0-9]+)\s+([SPDFGH])'
+basis_atom_regex = '\s+([0-9]{1,3})\s+([A-Z][a-zA-Z]?)\s+(\-?[0-9]+\.[0-9]{3})\s+(\-?[0-9]+\.[0-9]{3})\s+(\-?[0-9]+\.[0-9]{3})'
+basis_orb_regex = '\s+(([0-9]+)\-\s+)?([0-9]+)\s+([SPDFGH]{1,2})'
 basis_gauss_regex = '\s{20}' + '\s+(\-?[0-9]+\.[0-9]+E[\+\-][0-9]+)' * 4
 
 ATOMS_POP = 'ATOM    Z CHARGE  SHELL POPULATION'
 
-pop_regex = '\s+([0-9]+)\s+([A-Z][a-z]?)\s+[0-9]+\s+([0-9]{1,3}\.[0-9]{3})\s+'
+pop_regex = '\s+([0-9]+)\s+([A-Z][a-zA-Z]?)\s+[0-9]+\s+([0-9]{1,3}\.[0-9]{3})\s+'
 #                 n         type           z            charge
 
 GEOM_OUT = 'GEOMETRY OUTPUT FILE'
@@ -58,16 +58,23 @@ class CrystalOut:
 				break
 			m = re.match(dft_regex, lines[k])
 			if m:
-				vm[m.group(2)] = int(float(m.group(3)))
+				vm[CrystalOut.get_normal_name(m.group(2))] = int(float(m.group(3)) + float(m.group(4)))
 		return vm
 
 	@staticmethod
 	def get_cell(lines, vm, basis):
+		k = 0
 		for n in xrange(len(lines)):
 			if GEOM_OUT in lines[n]:
+				k = n
 				break
+		n = k
 		for k in xrange(n, len(lines)):
-			if LATTICE in lines[k] or NOLATTICE in lines[k]:
+			if NOLATTICE in lines[k]:
+				break
+		for n in xrange(k, len(lines)):
+			if LATTICE in lines[n]:
+				k = n
 				break
 		vectors = []
 		atoms = []
@@ -86,11 +93,12 @@ class CrystalOut:
 			
 				if m:
 					v = Vector([(float(x) * Units.ANGSTROM / Units.UNIT) for x in [m.group(2), m.group(3), m.group(4)]])
-					name = m.group(1)
+					name = CrystalOut.get_normal_name(m.group(1))
 					a = AtomVector(name, v)
 					numorb = 0
-					for cg in basis[a.name()]:
-						numorb += cg.fs[0][1].l * 2 + 1
+					for l in basis[a.name()].keys():
+						for cg in basis[a.name()][l]:
+							numorb += cg.fs[0][1].l * 2 + 1
 					a.data()[AtomKeys.ORBITAL_COUNT] = numorb
 					a.data()[AtomKeys.FULL_VALENCE] = vm[a.name()]
 					a.data()[AtomKeys.ESTIMATED_VALENCE] = Shells.estimate_valence_byname(a.name())
@@ -102,11 +110,12 @@ class CrystalOut:
 			
 				if m:
 					v = Vector([(float(x) * Units.ANGSTROM / Units.UNIT) for x in [m.group(2), m.group(3), m.group(4)]])
-					name = m.group(1)
+					name = CrystalOut.get_normal_name(m.group(1))
 					a = AtomVector(name, v)
 					numorb = 0
-					for cg in basis[a.name()]:
-						numorb += cg.fs[0][1].l * 2 + 1
+					for l in basis[a.name()].keys():
+						for cg in basis[a.name()][l]:
+							numorb += cg.fs[0][1].l * 2 + 1
 					a.data()[AtomKeys.ORBITAL_COUNT] = numorb
 					a.data()[AtomKeys.FULL_VALENCE] = vm[a.name()]
 					a.data()[AtomKeys.ESTIMATED_VALENCE] = Shells.estimate_valence_byname(a.name())
@@ -120,16 +129,18 @@ class CrystalOut:
 	def read_basis(lines):
 		numorbmap = {}
 		basismap = {}
-		basis = []
+		basis = {}
 		atoms = []
 		first_n = -1
 		last_n = -1
 		l = 0
+		l1 = -1
 		for n in xrange(len(lines)):
 			if BASIS in lines[n]:
 				break
 				
 		gs = []
+		gs1 = []
 		for line in lines[n+4:]:
 			m = re.match(basis_atom_regex, line)
 			m1 = re.match(basis_orb_regex, line)
@@ -138,8 +149,17 @@ class CrystalOut:
 				if gs:
 					cg = GaussFunctionContracted()
 					cg.fs = gs
-					basis.append(cg)
+					if gs[0][1].l not in basis.keys():
+						basis[gs[0][1].l] = []
+					basis[gs[0][1].l].append(cg)
+				if gs1:
+					cg = GaussFunctionContracted()
+					cg.fs = gs1
+					if gs1[0][1].l not in basis.keys():
+						basis[gs1[0][1].l] = []
+					basis[gs1[0][1].l].append(cg)
 				gs = []
+				gs1 = []
 
 				if atoms:
 					al = atoms[-1]
@@ -147,16 +167,24 @@ class CrystalOut:
 						numorb = last_n - first_n + 1
 						numorbmap[al.name()] = numorb
 					if basis:
-						print basis
 						basismap[al.name()] = basis
-						basis = []
+						basis = {}
 				break
 			elif m:
 				if gs:
 					cg = GaussFunctionContracted()
 					cg.fs = gs
-					basis.append(cg)
+					if gs[0][1].l not in basis.keys():
+						basis[gs[0][1].l] = []
+					basis[gs[0][1].l].append(cg)
+				if gs1:
+					cg = GaussFunctionContracted()
+					cg.fs = gs1
+					if gs1[0][1].l not in basis.keys():
+						basis[gs1[0][1].l] = []
+					basis[gs1[0][1].l].append(cg)
 				gs = []
+				gs1 = []
 				if atoms:
 					al = atoms[-1]
 					if last_n != -1 and first_n != -1:
@@ -164,10 +192,10 @@ class CrystalOut:
 						numorbmap[al.name()] = numorb
 					if basis:
 						basismap[al.name()] = basis
-						basis = []
+						basis = {}
 						
 				v = Vector([(float(x) * Units.BOHR / Units.UNIT) for x in [m.group(3), m.group(4), m.group(5)]])
-				name = m.group(2)
+				name = CrystalOut.get_normal_name(m.group(2))
 				a = AtomVector(name, v)
 				atoms.append(a)
 				first_n = -1
@@ -180,12 +208,28 @@ class CrystalOut:
 						first_n = int(m1.group(3))
 				last_n = int(m1.group(3))
 				lname = m1.group(4)
-				l = Shells.SHELLS.index(lname)
+				if lname == 'SP':
+					l = 0
+					l1 = 1
+				elif len(lname) == 1:
+					l = Shells.SHELLS.index(lname)
+					l1 = -1
+				else:
+					assert False
 				if gs:
 					cg = GaussFunctionContracted()
 					cg.fs = gs
-					basis.append(cg)
+					if gs[0][1].l not in basis.keys():
+						basis[gs[0][1].l] = []
+					basis[gs[0][1].l].append(cg)
+				if gs1:
+					cg = GaussFunctionContracted()
+					cg.fs = gs1
+					if gs1[0][1].l not in basis.keys():
+						basis[gs1[0][1].l] = []
+					basis[gs1[0][1].l].append(cg)
 				gs = []
+				gs1 = []
 			elif m2:
 				ls = line.split()
 				a = float(ls[0])
@@ -193,6 +237,11 @@ class CrystalOut:
 				k = float(ls[ln])
 				g = GaussFunctionNormed(a, l)
 				gs.append([k, g])
+				if l1 != -1:
+					ln = min(l1 + 1, 3)
+					k = float(ls[ln])
+					g = GaussFunctionNormed(a, l1)
+					gs1.append([k, g])	
 				assert k
 		
 #		for k in basismap.keys():
@@ -200,9 +249,13 @@ class CrystalOut:
 #			for cg in basismap[k]:
 #				s += cg.fs[0][1].l * 2 + 1
 #			print k, s, numorbmap[k]
-			
-				
+
+
 		return basismap
+		
+	@staticmethod
+	def get_normal_name(a):
+		return a[0].upper() + a[1:].lower()
 			
 
 	@staticmethod
@@ -218,8 +271,9 @@ class CrystalOut:
 			if not lines[k]:
 				break
 			m = re.match(pop_regex, lines[k])
+			
 			if m:
-				pop[m.group(2)] = float(m.group(3))
+				pop[CrystalOut.get_normal_name(m.group(2))] = float(m.group(3))
 		for a in cell.atoms:
 			a.data()[AtomKeys.MULLIKEN_CHARGE] = a.data()[AtomKeys.FULL_VALENCE] - pop[a.name()]
 		

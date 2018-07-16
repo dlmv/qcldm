@@ -17,36 +17,23 @@ c = CrystalMeta()
 c.load('.')
 
 co = CrystalOut.from_file(c.out_file)
-
-for a in co.cell.atoms:
-	if a.name() == 'Yb':
-		a.data()[AtomKeys.ESTIMATED_VALENCE] = 2
-
-dcm = CrystalMatrix.from_file(c.dm_file, co.cell, CrystalMatrix.DENSITY, 1e-3)
-ocm = CrystalMatrix.from_file(c.olp_file, co.cell, CrystalMatrix.OVERLAP, 1e-3)
 write_xyz(co.cell.cell, 'cell.xyz')
 #write_xyz(cm.cell.supercell, 'supercell.xyz')
 
-read_baders(co.cell)
+print co.cell.cell
 
-
-num = int(sys.argv[1])
-layers = int(sys.argv[2])
-electro = int(sys.argv[3])
+num = 1
 
 centers = [co.cell.cell[num - 1]]
 
-cluster = Cluster(co.cell, centers, layers, electro)
+tmpshells = co.cell.neighbours.neighbours_cluster(centers, 1)
 
-key = AtomKeys.BADER_CHARGE
+atoms = []
 
-cluster.estimate_charges_mulliken(dcm.matrix, ocm.matrix, key)
+for t in tmpshells:
+	atoms.extend(t)
 
-dirname = "cluster%d_%d_%d" % (num, layers, electro)
-
-cluster.write_structure(dirname)
-cluster.write_charges(key, dirname)
-cluster.write_embedding(key, dirname)
+write_xyz(atoms, 'tt.xyz')
 
 
 

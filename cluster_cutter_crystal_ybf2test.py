@@ -33,8 +33,19 @@ read_baders(co.cell)
 num = int(sys.argv[1])
 layers = int(sys.argv[2])
 electro = int(sys.argv[3])
+center = co.cell.cell[num - 1]
+centers = [center]
 
-centers = [co.cell.cell[num - 1]]
+k = 1
+
+tmpshells = co.cell.neighbours.neighbours_cluster(centers, 2)
+for a in tmpshells[-1]:
+	if a.name() == center.name():
+		k -= 1
+		if k==0:
+			centers.append(a)
+			break
+
 
 cluster = Cluster(co.cell, centers, layers, electro)
 
@@ -42,7 +53,7 @@ key = AtomKeys.BADER_CHARGE
 
 cluster.estimate_charges_mulliken(dcm.matrix, ocm.matrix, key)
 
-dirname = "cluster%d_%d_%d" % (num, layers, electro)
+dirname = "cluster_test%d_%d_%d" % (num, layers, electro)
 
 cluster.write_structure(dirname)
 cluster.write_charges(key, dirname)

@@ -122,8 +122,6 @@ class CrystalMatrix:
 			for vj in range(1, len(ls)):
 				value = float(ls[vj])
 				if abs(value) > prec:
-#					key = tuple(sorted([v_indices[vi - 1], h_indices[vj - 1]]))
-#					data[key] = value
 					avd = v_indices[vi - 1]
 					ahd = h_indices[vj - 1]
 					key = tuple(sorted([avd, ahd]))
@@ -233,6 +231,21 @@ class CrystalMatrix:
 				mat['a']['a']['re'][key] = matrix_map[AminusB][key] / 2
 				mat['b']['b']['re'][key] = -matrix_map[AminusB][key] / 2
 			
+			return mat
+		elif Counter(matrix_map.keys()) == Counter([AplusB]):
+			logging.debug(u'')
+			logging.debug(u'1-spin matrix, converting')
+			mat = {}
+			mat['a'] = {}
+			mat['b'] = {}
+			mat['a']['a'] = {}
+			mat['b']['b'] = {}
+			mat['a']['a']['re'] = {}
+			mat['b']['b']['re'] = {}
+			keysp = set(matrix_map[AplusB].keys())
+			for key in keysp:
+				mat['a']['a']['re'][key] = matrix_map[AplusB][key] / 2
+				mat['b']['b']['re'][key] = matrix_map[AplusB][key] / 2
 			return mat
 		else:
 			assert False, matrix_map.keys()
