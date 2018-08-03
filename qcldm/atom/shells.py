@@ -1,5 +1,7 @@
 from ..util.elements import ELEMENTS
 
+ANIONS = [7, 8, 9, 16, 17, 35, 53]#FIXME: this is ugly :/
+
 class Shells:
 	SHELLS = "SPDFGH"
 	SHELL_POP = [(4 * l + 2) for l in range(len(SHELLS))]
@@ -40,6 +42,18 @@ class Shells:
 	def estimate_valence_byname(a):
 		z = ELEMENTS[a].number
 		return Shells.estimate_valence(z)
+
+	@staticmethod
+	def estimate_charge_byname(a):
+		z = ELEMENTS[a].number
+		return Shells.estimate_charge(z)
+
+	@staticmethod
+	def estimate_charge(z):
+		if z in ANIONS:
+			return Shells.estimate_valence(z) - 8
+		else:
+			return Shells.estimate_valence(z)
 
 	@staticmethod
 	def estimate_pf_pop(z, zval):

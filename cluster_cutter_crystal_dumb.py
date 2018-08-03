@@ -9,6 +9,7 @@ from qcldm.util.log_colorizer import init_log
 from qcldm.util.xyz_format import write_xyz
 from qcldm.structures.cluster_embedding import Cluster
 from qcldm.structures.bader_reader import read_baders
+from qcldm.structures.atom_vector import  AtomKeys
 
 init_log(sys.argv)
 
@@ -29,13 +30,16 @@ electro = int(sys.argv[3])
 centers = [co.cell.cell[num - 1]]
 
 cluster = Cluster(co.cell, centers, layers, electro)
-cluster.estimate_charges_dumb()
 
-dirname = "cluster_dumb%d_%d_%d" % (num, layers, electro)
+key = AtomKeys.BADER_CHARGE
+
+cluster.estimate_charges_dumb(key)
+
+dirname = "cluster%d_%d_%d" % (num, layers, electro)
 
 cluster.write_structure(dirname)
-cluster.write_charges(dirname)
-cluster.write_embedding(dirname)
+cluster.write_charges(key, dirname)
+cluster.write_embedding(key, dirname)
 
 
 

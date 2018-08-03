@@ -41,16 +41,24 @@ class Cluster:
 				else:
 					self.electrostatic_atoms.append(a)
 
-	def round_valence(self, atoms):
+	def round_valence(self, atoms, desired):
 		logging.debug(u'Rounding total valence...')
 		tv = 0
 		for a in atoms:
 			tv += a.valence
-		itv = round(tv)
+		logging.debug(u'  Current is %f; rounding to %d' % (tv, desired))
+#		itv = round(tv)
+		itv = desired
 		for a in atoms:
 			nv = a.valence * itv/tv
 			a.charge += nv - a.valence
 			a.valence = nv
+
+	def estimate_central_charge(self, atoms):
+		s = 0
+		for a in atoms:
+			s += a.origin.data()[AtomKeys.ESTIMATED_CHARGE]
+		return s
 
 	def rearrange_charges(self, atoms):
 		logging.debug(u'Checking for exceeding values...')
@@ -106,6 +114,7 @@ class Cluster:
 			logging.debug(u'  %d/%d' % (i + 1, 	len(self.core_atoms)))
 
 		atoms.extend(tmp)
+		desired = -self.estimate_central_charge(tmp)
 		tmp = []
 
 		logging.debug(u'Border atoms')
@@ -130,7 +139,7 @@ class Cluster:
 			logging.debug(u'  %d/%d' % (i + 1, len(self.border_atoms)))
 
 
-		self.round_valence(tmp)
+		self.round_valence(tmp, desired)
 		self.rearrange_charges(tmp)
 		atoms.extend(tmp)
 

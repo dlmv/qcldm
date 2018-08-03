@@ -8,6 +8,7 @@ class AtomKeys:
 	FULL_VALENCE = 'full_valence'
 	ESTIMATED_VALENCE = 'estimated_valence'
 	ORBITAL_ARRAY = 'orbital_array'
+	ESTIMATED_CHARGE = 'estimated_charge'
 
 class AtomVector:
 
