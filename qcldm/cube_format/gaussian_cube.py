@@ -37,6 +37,7 @@ class GaussianCube:
 					ls = line.split()
 					nat = int(ls[0])
 					logging.debug(u'  atoms count: %d' % nat)
+					gc.start = Vector([float(x) for x in ls[1:4]])
 				elif 3 <= n < 6:
 					ls = line.split()
 					nv = int(ls[0])
@@ -178,8 +179,9 @@ class GaussianCube:
 						i += 1
 						if i % (self.data.size / 10) == 0:
 							logging.debug(u'  %d of %d' % (i, self.data.size))
-						if i % 6 == 0:
+						if z % 6 == 5:
 							f.write("\n")
+					f.write("\n")
 			f.write("\n")
 						
 			

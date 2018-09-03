@@ -9,10 +9,11 @@ from qcldm.util.xyz_format import write_xyz
 init_log(sys.argv)
 
 
-c = GaussianCube.from_file('cube.cube')
-#c.scale([3,3,3])
-c.multiply([3,3,3])
-c.to_file('cube1.cube')
+c = GaussianCube.from_file(sys.argv[1])
+c.to_file('cube.cube')
+c.scale([2,2,2])
+c.multiply([2,2,2], False)
+c.to_file('cube8.cube')
 
 
 
