@@ -2,7 +2,6 @@ import re, os, sys, math, logging
 from math3d import Vector
 import numpy as np
 from scipy.spatial import Delaunay
-import itertools
 
 def tetrahedron_volume(a, b, c, d):
 	return np.abs(np.einsum('ij,ij->i', a-d, np.cross(b-d, c-d))) / 6
@@ -10,7 +9,7 @@ def tetrahedron_volume(a, b, c, d):
 def hull_volume(pts):
 	if not validate_points(pts):
 		return 0
-	pts = [np.array([p.x, p.y, p.z]) for p in pts]
+	pts = [p._data for p in pts]
 	dt = Delaunay(pts)
 	tets = dt.points[dt.simplices]
 	vol = np.sum(tetrahedron_volume(tets[:, 0], tets[:, 1], 
@@ -104,23 +103,73 @@ class Cuboid:
 	def __init__(self, origin, vectors):
 		self.origin = origin
 		self.vectors = vectors
-
-	def center(self):
-		return self.origin + reduce(lambda a,b: a+b, self.vectors) / 2
+		self.end = self.origin + reduce(lambda a,b: a+b, self.vectors)
+		self.center = (self.origin + self.end) / 2
+		vertices = [self.origin]
+		for v in self.vectors:
+			vertices.append(self.origin + v)
+		for v in self.vectors:
+			vertices.append(self.end - v)
+		vertices.append(self.end)
+		self.vertices = vertices
 
 	def cutting_planes(self):
 		planes = []
-		center = self.center()
-		end = self.origin + reduce(lambda a,b: a+b, self.vectors)
-		planes.append(CuttingPlane(plane_2vectors(self.origin, self.vectors[0], self.vectors[1]), center))
-		planes.append(CuttingPlane(plane_2vectors(self.origin, self.vectors[1], self.vectors[2]), center))
-		planes.append(CuttingPlane(plane_2vectors(self.origin, self.vectors[2], self.vectors[0]), center))
-		planes.append(CuttingPlane(plane_2vectors(end, self.vectors[0], self.vectors[1]), center))
-		planes.append(CuttingPlane(plane_2vectors(end, self.vectors[1], self.vectors[2]), center))
-		planes.append(CuttingPlane(plane_2vectors(end, self.vectors[2], self.vectors[0]), center))
+		planes.append(CuttingPlane(plane_2vectors(self.origin, self.vectors[0], self.vectors[1]), self.center))
+		planes.append(CuttingPlane(plane_2vectors(self.origin, self.vectors[1], self.vectors[2]), self.center))
+		planes.append(CuttingPlane(plane_2vectors(self.origin, self.vectors[2], self.vectors[0]), self.center))
+		planes.append(CuttingPlane(plane_2vectors(self.end, self.vectors[0], self.vectors[1]), self.center))
+		planes.append(CuttingPlane(plane_2vectors(self.end, self.vectors[1], self.vectors[2]), self.center))
+		planes.append(CuttingPlane(plane_2vectors(self.end, self.vectors[2], self.vectors[0]), self.center))
 		return planes
 
+
+def have_possible_intersection(c1, c2):
+	for tc1, tc2 in [[c1, c2], [c2, c1]]:
+		for cp in tc1.cutting_planes():
+			same_found = False
+			for v in tc2.vertices:
+				if same_side(v, cp.inner, cp.plane):
+					same_found = True
+					break
+			if not same_found:
+				return False
+	return True
+
+def have_intersection_chance(c1, c2):
+	k1 = [v.x for v in c1.vertices]
+	k2 = [v.x for v in c2.vertices]
+	mink1 = min(k1)
+	mink2 = min(k2)
+	maxk1 = max(k1)
+	maxk2 = max(k2)
+	if mink1 > maxk2 or mink2 > maxk1:
+		return False
+
+	k1 = [v.y for v in c1.vertices]
+	k2 = [v.y for v in c2.vertices]
+	mink1 = min(k1)
+	mink2 = min(k2)
+	maxk1 = max(k1)
+	maxk2 = max(k2)
+	if mink1 > maxk2 or mink2 > maxk1:
+		return False
+
+	k1 = [v.y for v in c1.vertices]
+	k2 = [v.y for v in c2.vertices]
+	mink1 = min(k1)
+	mink2 = min(k2)
+	maxk1 = max(k1)
+	maxk2 = max(k2)
+	if mink1 > maxk2 or mink2 > maxk1:
+		return False
+	return True
+
 def cuboid_intersection(c1, c2):
+	if not have_intersection_chance(c1, c2):
+		return 0
+#	if not have_possible_intersection(c1, c2):
+#		return 0
 	pc = PlaneCut()
 	for cp in c1.cutting_planes() + c2.cutting_planes():
 		pc.add(cp)

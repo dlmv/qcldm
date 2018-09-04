@@ -10,10 +10,8 @@ init_log(sys.argv)
 
 
 c = GaussianCube.from_file(sys.argv[1])
+c.rescale(c.origin, c.size, c.vectors)
 c.to_file('cube.cube')
-c.scale([2,2,2])
-c.multiply([2,2,2], False)
-c.to_file('cube8.cube')
 
 
 
