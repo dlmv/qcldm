@@ -109,20 +109,20 @@ class GaussianCube:
 					print 'c'
 					s1 = 0
 					s2 = 0
-					nc_origin = n_origin.copy()
+					nc_origin = np.copy(n_origin._data)
 					for i in range(2):
-						nc_origin += (nx, ny, nz)[i] * n_vectors[i]
-					nc = Cuboid(nc_origin, n_vectors)
+						nc_origin += [nx, ny, nz][i] * n_vectors[i]._data
+					nc = Cuboid(list(nc_origin), [list(v._data) for v in n_vectors])
 					for ox in xrange(self.size[0]):
 						for oy in xrange(self.size[1]):
 							for oz in xrange(self.size[2]):
-								oc_origin = self.origin.copy()
+								oc_origin = np.copy(self.origin._data)
 								for i in range(2):
-									oc_origin += (ox, oy, oz)[i] * self.vectors[i]
-								oc = Cuboid(oc_origin, self.vectors)
+									oc_origin += [ox, oy, oz][i] * self.vectors[i]._data
+								oc = Cuboid(list(oc_origin), [list(v._data) for v in self.vectors])
 								olp = cuboid_intersection(nc, oc)
 								value = self.data[ox,oy,oz]
-								s1 += olp*value
+								s1 += olp * value
 								s2 += olp
 					n_data[nx,ny,nz] = s1 / s2
 					i += 1
