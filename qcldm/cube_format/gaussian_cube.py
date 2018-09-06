@@ -95,6 +95,16 @@ class GaussianCube:
 					f.write("\n")
 			f.write("\n")
 
+	def find_nearest(self, point):
+		def validate(x, m):
+			x = min(x, m - 1)
+			x = max(x, 0)
+			return x
+		a = np.array([k._data for k in self.vectors])
+		b = (point - self.origin._data)
+		coords = [validate(int(x), s) for x, s in zip(np.linalg.solve(a, b), self.size)]
+		return coords
+
 	def rescale(self, n_origin, n_size, n_vectors):
 		logging.info(u'')
 		logging.info(u'*********************************************')
@@ -110,14 +120,15 @@ class GaussianCube:
 					s1 = 0
 					s2 = 0
 					nc_origin = np.copy(n_origin._data)
-					for i in range(2):
+					for i in range(3):
 						nc_origin += [nx, ny, nz][i] * n_vectors[i]._data
 					nc = Cuboid(list(nc_origin), [list(v._data) for v in n_vectors])
+					self.find_nearest(nc.center)
 					for ox in xrange(self.size[0]):
 						for oy in xrange(self.size[1]):
 							for oz in xrange(self.size[2]):
 								oc_origin = np.copy(self.origin._data)
-								for i in range(2):
+								for i in range(3):
 									oc_origin += [ox, oy, oz][i] * self.vectors[i]._data
 								oc = Cuboid(list(oc_origin), [list(v._data) for v in self.vectors])
 								olp = cuboid_intersection(nc, oc)
