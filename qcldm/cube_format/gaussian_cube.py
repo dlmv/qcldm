@@ -9,6 +9,36 @@ import fortranformat as ff
 import numpy as np
 from polyhedra_intersection import Cuboid, cuboid_intersection
 
+class OverlapDataHolder:
+	def __init__(self):
+		self.v = 0
+		self.o = 0
+		self.n = 0
+
+def convex_walk(f, coords, borders, coord_num):
+#	print coords, coord_num
+	if coord_num == len(coords):
+		res = f(coords)
+#		print res
+		return res
+	start = coords[coord_num]
+	found = False
+	for nc in xrange(start, borders[coord_num]):
+		n_coords = coords[:]
+		n_coords[coord_num] = nc
+		nf = convex_walk(f, n_coords, borders, coord_num + 1)
+		found = found or nf
+		if not nf:
+			break
+	for nc in xrange(start - 1, -1, -1):
+		n_coords = coords[:]
+		n_coords[coord_num] = nc
+		nf = convex_walk(f, n_coords, borders, coord_num + 1)
+		found = found or nf
+		if not nf:
+			break
+#	print found
+	return found
 
 class GaussianCube:
 
@@ -105,6 +135,18 @@ class GaussianCube:
 		coords = [validate(int(x), s) for x, s in zip(np.linalg.solve(a, b), self.size)]
 		return coords
 
+	def check_coord(self, nc, coords, holder):
+			oc_origin = np.copy(self.origin._data)
+			for i in range(3):
+					oc_origin += coords[i] * self.vectors[i]._data
+			oc = Cuboid(list(oc_origin), [list(v._data) for v in self.vectors])
+			olp = cuboid_intersection(nc, oc)
+			value = self.data[tuple(coords)]
+			holder.v += value * olp
+			holder.o += olp
+			holder.n += 1
+			return olp != 0
+
 	def rescale(self, n_origin, n_size, n_vectors):
 		logging.info(u'')
 		logging.info(u'*********************************************')
@@ -116,26 +158,31 @@ class GaussianCube:
 		for nx in xrange(n_size[0]):
 			for ny in xrange(n_size[1]):
 				for nz in xrange(n_size[2]):
-					print 'c'
 					s1 = 0
 					s2 = 0
 					nc_origin = np.copy(n_origin._data)
-					for i in range(3):
-						nc_origin += [nx, ny, nz][i] * n_vectors[i]._data
+					for k in range(3):
+						nc_origin += [nx, ny, nz][k] * n_vectors[k]._data
 					nc = Cuboid(list(nc_origin), [list(v._data) for v in n_vectors])
-					self.find_nearest(nc.center)
-					for ox in xrange(self.size[0]):
-						for oy in xrange(self.size[1]):
-							for oz in xrange(self.size[2]):
-								oc_origin = np.copy(self.origin._data)
-								for i in range(3):
-									oc_origin += [ox, oy, oz][i] * self.vectors[i]._data
-								oc = Cuboid(list(oc_origin), [list(v._data) for v in self.vectors])
-								olp = cuboid_intersection(nc, oc)
-								value = self.data[ox,oy,oz]
-								s1 += olp * value
-								s2 += olp
-					n_data[nx,ny,nz] = s1 / s2
+					coords = self.find_nearest(nc.center)
+					holder = OverlapDataHolder()
+					f = lambda c: self.check_coord(nc, c, holder)
+#					print '============================'
+#					print coords
+					convex_walk(f, coords, self.size, 0)
+#					for ox in xrange(self.size[0]):
+#						for oy in xrange(self.size[1]):
+#							for oz in xrange(self.size[2]):
+#								oc_origin = np.copy(self.origin._data)
+#								for i in range(3):
+#									oc_origin += [ox, oy, oz][i] * self.vectors[i]._data
+#								oc = Cuboid(list(oc_origin), [list(v._data) for v in self.vectors])
+#								olp = cuboid_intersection(nc, oc)
+#								value = self.data[ox,oy,oz]
+#								s1 += olp * value
+#								s2 += olp
+					n_data[nx,ny,nz] = holder.v / holder.o
+
 					i += 1
 					if i % (n_data.size / 100) == 0:
 						logging.debug(u'  %d of %d' % (i, n_data.size))

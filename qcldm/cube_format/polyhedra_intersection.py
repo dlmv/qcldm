@@ -9,24 +9,66 @@ def hull_volume(pts):
 	if not validate_points(pts):
 		return 0
 	pts = [np.array(p) for p in pts]
-	dt = Delaunay(pts)
+	try:
+		dt = Delaunay(pts)
+	except Exception:
+		return 0
 	tets = dt.points[dt.simplices]
 	vol = np.sum(tetrahedron_volume(tets[:, 0], tets[:, 1], 
                                 tets[:, 2], tets[:, 3]))
 	return vol
 
 def validate_points(pts):
+#	print pts
 	if len(pts) < 4:
 		return False
-	for i in range(len(pts) - 3):
-		for i1 in range(len(pts) - 2):
-			for i2 in range(len(pts) - 1):
-				for i3 in range(len(pts)):
-					v1 = sub3(pts[i1], pts[i])
-					v2 = sub3(pts[i2], pts[i])
-					v3 = sub3(pts[i3], pts[i])
-					if dot3(v1, cross3(v2, v3)) != 0:
-						return True
+	i = 0
+	i1 = -1
+	for ti1 in range(len(pts)):
+		if ti1 in [i]:
+			continue
+		if norm3(sub3(pts[i], pts[ti1])) > 5e-14:
+			i1 = ti1
+			break
+#	print i1
+
+	if i1 == -1:
+		return False
+		
+	v1 = sub3(pts[i1], pts[i])
+
+	i2 = -1
+	for ti2 in range(len(pts)):
+		if ti2 in [i, i1]:
+			continue
+		v2 = sub3(pts[ti2], pts[i])
+		if norm3(cross3(v1, v2)) > 5e-14:
+			i2 = ti2
+			break
+
+	if i2 == -1:
+		return False
+	
+#	print i2
+			
+	p = plane_3points(pts[i], pts[i1], pts[i2])
+	
+	for ti3 in range(len(pts)):
+		if ti3 in [i, i1, i2]:
+			continue
+		if abs(p.distance(pts[ti3])) > 5e-14:
+			return True
+				
+	
+#	for i in range(len(pts) - 3):
+#		for i1 in range(i, len(pts) - 2):
+#			for i2 in range(i1, len(pts) - 1):
+#				for i3 in range(i2, len(pts)):
+#					v1 = sub3(pts[i1], pts[i])
+#					v2 = sub3(pts[i2], pts[i])
+#					v3 = sub3(pts[i3], pts[i])
+#					if abs(dot3(v1, cross3(v2, v3))) > 1e-14:
+#						return True
 	return False
 						
 def cross3(n1, n2):
@@ -44,9 +86,12 @@ def sub3(n1, n2):
 def mul3(n, k):
 	return [n[0]*k, n[1]*k, n[2]*k]
 
+def norm3(n):
+	return (n[0]**2 + n[1]**2 + n[2]**2)**0.5
+
 class Plane:
 	def __init__(self, n, d):
-		norm = (n[0]**2 + n[1]**2 + n[2]**2)**0.5
+		norm = norm3(n)
 		self.n = mul3(n, 1/norm)
 		self.d = d / norm
 
@@ -79,6 +124,9 @@ def plane3_intersection(p1, p2, p3):
 
 def same_side(p1, p2, plane):
 	return plane.distance(p1) * plane.distance(p2) >= 0
+
+def same_side_strict(p1, p2, plane):
+	return plane.distance(p1) * plane.distance(p2) > 0
 
 class PlaneCut:
 	def __init__(self):
@@ -126,6 +174,7 @@ class Cuboid:
 		vertices.append(self.end)
 		self.vertices = vertices
 
+	@property
 	def cutting_planes(self):
 		planes = []
 		planes.append(CuttingPlane(plane_2vectors(self.origin, self.vectors[0], self.vectors[1]), self.center))
@@ -142,7 +191,7 @@ def have_possible_intersection(c1, c2):
 		for cp in tc1.cutting_planes():
 			same_found = False
 			for v in tc2.vertices:
-				if same_side(v, cp.inner, cp.plane):
+				if same_side_strict(v, cp.inner, cp.plane):
 					same_found = True
 					break
 			if not same_found:
@@ -167,7 +216,7 @@ def cuboid_intersection(c1, c2):
 #	if not have_possible_intersection(c1, c2):
 #		return 0
 	pc = PlaneCut()
-	for cp in c1.cutting_planes() + c2.cutting_planes():
+	for cp in c1.cutting_planes + c2.cutting_planes:
 		pc.add(cp)
 	return hull_volume(pc.vertices)
 
