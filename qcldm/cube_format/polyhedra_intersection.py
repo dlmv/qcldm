@@ -70,21 +70,53 @@ def validate_points(pts):
 #					if abs(dot3(v1, cross3(v2, v3))) > 1e-14:
 #						return True
 	return False
-						
+
+#cross_cache = {}
+#dot_cache =  {}
+
 def cross3(n1, n2):
-	return [n1[1]*n2[2] - n1[2]*n2[1], n1[2]*n2[0] - n1[0]*n2[2], n1[0]*n2[1] - n1[1]*n2[0]]
+	return (n1[1]*n2[2] - n1[2]*n2[1], n1[2]*n2[0] - n1[0]*n2[2], n1[0]*n2[1] - n1[1]*n2[0])
 
 def dot3(n1, n2):
 	return n1[0]*n2[0] + n1[1]*n2[1] + n1[2]*n2[2]
 	
+#def cross3(n1, n2):
+#	if n1 in cross_cache:
+#		n1cache = cross_cache[n1]
+#		if n2 in n1cache:
+#			return n1cache[n2]
+#		cross = cross3_internal(n1, n2)
+#		n1cache[n2] = cross
+#		return cross
+#	n1cache = {}
+#	cross = cross3_internal(n1, n2)
+#	n1cache[n2] = cross
+#	cross_cache[n1] = n1cache
+#	return cross
+
+#def dot3(n1, n2):
+#	print len(dot_cache)
+#	if n1 in dot_cache:
+#		n1cache = dot_cache[n1]
+#		if n2 in n1cache:
+#			return n1cache[n2]
+#		dot = dot3_internal(n1, n2)
+#		n1cache[n2] = dot
+#		return dot
+#	n1cache = {}
+#	dot = dot3_internal(n1, n2)
+#	n1cache[n2] = dot
+#	dot_cache[n1] = n1cache
+#	return dot
+	
 def add3(n1, n2):
-	return [n1[0]+n2[0], n1[1]+n2[1], n1[2]+n2[2]]
+	return (n1[0]+n2[0], n1[1]+n2[1], n1[2]+n2[2])
 
 def sub3(n1, n2):
-	return [n1[0]-n2[0], n1[1]-n2[1], n1[2]-n2[2]]
+	return (n1[0]-n2[0], n1[1]-n2[1], n1[2]-n2[2])
 	
 def mul3(n, k):
-	return [n[0]*k, n[1]*k, n[2]*k]
+	return (n[0]*k, n[1]*k, n[2]*k)
 
 def norm3(n):
 	return (n[0]**2 + n[1]**2 + n[2]**2)**0.5
@@ -136,10 +168,7 @@ class PlaneCut:
 	def add(self, plane):
 		new_vertices = []
 		for v in self.vertices:
-			ok = True
-			if not same_side(v, plane.inner, plane.plane):
-				ok = False
-			if ok:
+			if same_side(v, plane.inner, plane.plane):
 				new_vertices.append(v)
 		self.vertices = new_vertices
 		if len(self.planes) > 1:
