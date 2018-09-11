@@ -180,15 +180,14 @@ class GaussianCube:
 		for nx in xrange(n_size[0]):
 			for ny in xrange(n_size[1]):
 				for nz in xrange(n_size[2]):
-					s1 = 0
-					s2 = 0
 					nc_origin = np.copy(n_origin._data)
 					for k in range(3):
 						nc_origin += [nx, ny, nz][k] * n_vectors[k]._data
 					nc = Cuboid(list(nc_origin), [list(v._data) for v in n_vectors])
 					holder = OverlapDataHolder()
 					convex_walk(self, [], nc, holder)
-					n_data[nx,ny,nz] = holder.v / holder.o
+					if holder.o > 1e-14:
+						n_data[nx,ny,nz] = holder.v / holder.o
 					i += 1
 					if i % (n_data.size / 100) == 0:
 						logging.debug(u'  %d of %d' % (i, n_data.size))
