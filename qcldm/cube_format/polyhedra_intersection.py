@@ -112,6 +112,9 @@ def dot3(n1, n2):
 def add3(n1, n2):
 	return (n1[0]+n2[0], n1[1]+n2[1], n1[2]+n2[2])
 
+def add3_3(n1, n2, n3):
+	return (n1[0]+n2[0]+n3[0], n1[1]+n2[1]+n3[1], n1[2]+n2[2]+n3[2])
+
 def sub3(n1, n2):
 	return (n1[0]-n2[0], n1[1]-n2[1], n1[2]-n2[2])
 	
@@ -152,7 +155,7 @@ def plane3_intersection(p1, p2, p3):
 	div = dot3(p1.n, cross3(p2.n, p3.n))
 	if div == 0:
 		return None
-	return mul3(add3(add3(mul3(cross3(p2.n, p3.n), p1.d), mul3(cross3(p3.n, p1.n), p2.d)), mul3(cross3(p1.n, p2.n), p3.d)), -1/div)
+	return add3_3(mul3(cross3(p2.n, p3.n), -p1.d/div), mul3(cross3(p3.n, p1.n), -p2.d/div), mul3(cross3(p1.n, p2.n), -p3.d/div))
 
 def same_side(p1, p2, plane):
 	return plane.distance(p1) * plane.distance(p2) >= 0
@@ -188,6 +191,18 @@ class PlaneCut:
 					if ok:
 						self.vertices.append(p)
 		self.planes.append(plane)
+
+	def mass_center(self):
+		center = [0,0,0]
+		for v in self.vertices:
+			for k in range(3):
+				center[k] += v[k]
+		for k in range(3):
+			center[k] /= len(self.vertices)
+		return center
+
+	def volume(self):
+		return hull_volume(self.vertices)
 
 class Cuboid:
 	def __init__(self, origin, vectors):
@@ -241,13 +256,13 @@ def have_intersection_chance(c1, c2):
 
 def cuboid_intersection(c1, c2):
 	if not have_intersection_chance(c1, c2):
-		return 0
+		return None
 #	if not have_possible_intersection(c1, c2):
 #		return 0
 	pc = PlaneCut()
 	for cp in c1.cutting_planes + c2.cutting_planes:
 		pc.add(cp)
-	return hull_volume(pc.vertices)
+	return pc
 
 
 

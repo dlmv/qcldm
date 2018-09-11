@@ -15,29 +15,47 @@ class OverlapDataHolder:
 		self.o = 0
 		self.n = 0
 
-def convex_walk(f, coords, borders, coord_num):
-#	print coords, coord_num
-	if coord_num == len(coords):
-		res = f(coords)
+
+
+def convex_walk(cube, coords, cuboid, holder):
+#	print coords
+	if len(coords) == 3:
+		res = cube.check_coord(cuboid, coords, holder)
 #		print res
 		return res
-	start = coords[coord_num]
+	vectors = []
+	sub_origin = cube.origin.copy()
+	for i in range(3):
+		if i < len(coords):
+			vectors.append(cube.vectors[i])
+			sub_origin += coords[i] * cube.vectors[i]
+		else:
+			vectors.append(cube.vectors[i] * cube.size[i])
+		
+	c = Cuboid(sub_origin._data, vectors)
+	ci = cuboid_intersection(c, cuboid)
+	if not ci:
+		return False
+	if ci.volume() < 1e-14:
+		return False
+	center_coords = cube.find_nearest(ci.mass_center())
+	cnum = len(coords)
+	for i in range(cnum):
+		assert coords[i] == center_coords[i]
+	start = center_coords[cnum]
 	found = False
-	for nc in xrange(start, borders[coord_num]):
-		n_coords = coords[:]
-		n_coords[coord_num] = nc
-		nf = convex_walk(f, n_coords, borders, coord_num + 1)
+	for nc in xrange(start, cube.size[cnum]):
+		n_coords = coords + [nc]
+		nf = convex_walk(cube, n_coords, cuboid, holder)
 		found = found or nf
 		if not nf:
 			break
 	for nc in xrange(start - 1, -1, -1):
-		n_coords = coords[:]
-		n_coords[coord_num] = nc
-		nf = convex_walk(f, n_coords, borders, coord_num + 1)
+		n_coords = coords + [nc]
+		nf = convex_walk(cube, n_coords, cuboid, holder)
 		found = found or nf
 		if not nf:
 			break
-#	print found
 	return found
 
 class GaussianCube:
@@ -126,13 +144,14 @@ class GaussianCube:
 			f.write("\n")
 
 	def find_nearest(self, point):
-		def validate(x, m):
-			x = min(x, m - 1)
-			x = max(x, 0)
-			return x
+#		def validate(x, m):
+#			x = min(x, m - 1)
+#			x = max(x, 0)
+#			return x
 		a = np.array([k._data for k in self.vectors])
 		b = (point - self.origin._data)
-		coords = [validate(int(x), s) for x, s in zip(np.linalg.solve(a, b), self.size)]
+		coords = [int(x) for x in np.linalg.solve(a, b)]
+#		coords = [validate(int(x), s) for x, s in zip(coords, self.size)]
 		return coords
 
 	def check_coord(self, nc, coords, holder):
@@ -140,7 +159,10 @@ class GaussianCube:
 			for i in range(3):
 					oc_origin += coords[i] * self.vectors[i]._data
 			oc = Cuboid(list(oc_origin), [list(v._data) for v in self.vectors])
-			olp = cuboid_intersection(nc, oc)
+			ci = cuboid_intersection(nc, oc)
+			if ci is None:
+				return False
+			olp = ci.volume()
 			value = self.data[tuple(coords)]
 			holder.v += value * olp
 			holder.o += olp
@@ -164,12 +186,12 @@ class GaussianCube:
 					for k in range(3):
 						nc_origin += [nx, ny, nz][k] * n_vectors[k]._data
 					nc = Cuboid(list(nc_origin), [list(v._data) for v in n_vectors])
-					coords = self.find_nearest(nc.center)
+#					coords = self.find_nearest(nc.center)
 					holder = OverlapDataHolder()
-					f = lambda c: self.check_coord(nc, c, holder)
+#					f = lambda c: self.check_coord(nc, c, holder)
 #					print '============================'
 #					print coords
-					convex_walk(f, coords, self.size, 0)
+					convex_walk(self, [], nc, holder)
 #					for ox in xrange(self.size[0]):
 #						for oy in xrange(self.size[1]):
 #							for oz in xrange(self.size[2]):
@@ -182,7 +204,7 @@ class GaussianCube:
 #								s1 += olp * value
 #								s2 += olp
 					n_data[nx,ny,nz] = holder.v / holder.o
-
+#					assert False
 					i += 1
 					if i % (n_data.size / 100) == 0:
 						logging.debug(u'  %d of %d' % (i, n_data.size))
