@@ -186,31 +186,16 @@ class GaussianCube:
 					for k in range(3):
 						nc_origin += [nx, ny, nz][k] * n_vectors[k]._data
 					nc = Cuboid(list(nc_origin), [list(v._data) for v in n_vectors])
-#					coords = self.find_nearest(nc.center)
 					holder = OverlapDataHolder()
-#					f = lambda c: self.check_coord(nc, c, holder)
-#					print '============================'
-#					print coords
 					convex_walk(self, [], nc, holder)
-#					for ox in xrange(self.size[0]):
-#						for oy in xrange(self.size[1]):
-#							for oz in xrange(self.size[2]):
-#								oc_origin = np.copy(self.origin._data)
-#								for i in range(3):
-#									oc_origin += [ox, oy, oz][i] * self.vectors[i]._data
-#								oc = Cuboid(list(oc_origin), [list(v._data) for v in self.vectors])
-#								olp = cuboid_intersection(nc, oc)
-#								value = self.data[ox,oy,oz]
-#								s1 += olp * value
-#								s2 += olp
 					n_data[nx,ny,nz] = holder.v / holder.o
-#					assert False
 					i += 1
 					if i % (n_data.size / 100) == 0:
 						logging.debug(u'  %d of %d' % (i, n_data.size))
 		self.size = n_size
 		self.vectors = n_vectors
 		self.data = n_data
+		self.origin = n_origin
 								
 #	def scale(self, sv):
 #		opar = self.params
