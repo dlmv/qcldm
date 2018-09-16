@@ -42,8 +42,9 @@ class CrystalOut:
 	def get_cutoffs(self, prec=0.0001):
 		cut = 0
 		for a in self.cell.atoms:
-			for cg in self.basis[a.name()]:
-				cut = max(cut, cg.get_cutoff(prec))
+			for l in self.basis[a.name()].keys():
+				for cg in self.basis[a.name()][l]:
+					cut = max(cut, cg.get_cutoff(prec))
 			a.data()[AtomKeys.CUTOFF] = cut * Units.BOHR / Units.UNIT
 
 	@staticmethod
