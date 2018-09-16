@@ -19,7 +19,10 @@ class CrystalMeta():
 		logging.info(u'*********************************************')
 		logging.info(u'')
 		files = os.listdir('.')
-		outs = sorted(filter(lambda x: x.endswith('.out'), files))
+		outs = []
+		for o in sorted(filter(lambda x: x.endswith('.out'), files)):
+			if os.path.exists(o[:-4] + '.d12'):
+				outs.append(o)
 		if len(outs) == 1:
 			self.out_file = outs[0]
 			logging.info(u'  Out found: %s' % self.out_file)
@@ -32,19 +35,21 @@ class CrystalMeta():
 			assert False
 		outps = sorted(filter(lambda x: x.endswith(self.out_file + 'p'), files))
 		for outp in outps:
-			with open(outp) as f:
-				head = ''
-				lim = 20
-				for line in f.xreadlines():
-					lim -=1
-					if lim < 0:
-						break
-					head += line
-				if re.search(dm_regex, head):
+			d3inp = outp[:-len(self.out_file) - 2] + '.d3'
+			with open(d3inp) as f:
+				data = f.read()
+#				head = ''
+#				lim = 20
+#				for line in f.xreadlines():
+#					lim -=1
+#					if lim < 0:
+#						break
+#					head += line
+				if re.search(dm_regex, data):
 					self.dm_file = outp
 					logging.info(u'  DM found: %s' % self.dm_file)
 
-				elif re.search(olp_regex, head):
+				elif re.search(olp_regex, data):
 					self.olp_file = outp
 					logging.info(u'  OLP found: %s' % self.olp_file)
 
