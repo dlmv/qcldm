@@ -18,7 +18,7 @@ atom1_regex = '\s+[0-9]+\s+T\s+[0-9]+\s+([A-Z][a-zA-Z]?)' + '\s+(\-?[0-9]+\.[0-9
 
 basis_atom_regex = '\s+([0-9]{1,3})\s+([A-Z][a-zA-Z]?)\s+(\-?[0-9]+\.[0-9]{3})\s+(\-?[0-9]+\.[0-9]{3})\s+(\-?[0-9]+\.[0-9]{3})'
 basis_orb_regex = '\s+(([0-9]+)\-\s+)?([0-9]+)\s+([SPDFGH]{1,2})'
-basis_gauss_regex = '\s{20}' + '\s+(\-?[0-9]+\.[0-9]+E[\+\-][0-9]+)' * 4
+basis_gauss_regex = '\s{20}' + '\s*([\- ][0-9]+\.[0-9]+E[\+\-][0-9]+)' * 4
 
 ATOMS_POP = 'ATOM    Z CHARGE  SHELL POPULATION'
 
@@ -73,6 +73,8 @@ class CrystalOut:
 		for k in xrange(n, len(lines)):
 			if NOLATTICE in lines[k]:
 				break
+		if k == len(lines) - 1:
+			k = 0
 		for n in xrange(k, len(lines)):
 			if LATTICE in lines[n]:
 				k = n
@@ -235,14 +237,14 @@ class CrystalOut:
 				gs1 = []
 			elif m2:
 				ls = line.split()
-				a = float(ls[0])
+				a = float(m2.group(1))
 				ln = min(l + 1, 3)
-				k = float(ls[ln])
+				k = float(m2.group(ln + 1))
 				g = GaussFunctionNormed(a, l)
 				gs.append([k, g])
 				if l1 != -1:
 					ln = min(l1 + 1, 3)
-					k = float(ls[ln])
+					k = float(m2.group(ln + 1))
 					g = GaussFunctionNormed(a, l1)
 					gs1.append([k, g])	
 				assert k

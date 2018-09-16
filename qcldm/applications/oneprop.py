@@ -92,9 +92,18 @@ def prepare_oneprop_openmx(dat, atoms, dms, num, rc):
 		f.write(basis)
 
 def prepare_oneprop_crystal(co, atoms, dms, num, rc):
+	dirname = "reduced_{}".format(num)
+	basis = ''
+	for k in co.basis.keys():
+		basis += '%s 0\n' % k
+		for l in sorted(co.basis[k].keys()):
+			basis += GaussFormat.to_gaussian94(co.basis[k][l])
+		basis += '****\n'
+	with open(os.path.join(dirname, 'basis.L'), 'w') as f:
+		f.write(basis)
+		
 	gaussdir, libdir = get_dirs()
 
-	dirname = "reduced_{}".format(num)
 	write_reduced(dms, num, atoms, rc, dirname)
 	outname = co.name
 	shutil.copy(outname, dirname)
@@ -102,15 +111,7 @@ def prepare_oneprop_crystal(co, atoms, dms, num, rc):
 	with open(os.path.join(dirname, 'Options.ini'), 'w') as f:
 		f.write(options)
 
-	basis = ''
-	for k in co.basis.keys():
-		gs = co.basis[k]
-		bs = GaussFormat.to_gaussian94(gs)
-		basis += '%s 0\n' % k
-		basis += bs
-		basis += '****\n'
-	with open(os.path.join(dirname, 'basis.L'), 'w') as f:
-		f.write(basis)
+
 
 def read_gauss_basis(gfile):
 	lines = open(gfile).read().splitlines()

@@ -35,7 +35,7 @@ key = AtomKeys.BADER_CHARGE
 
 cluster.estimate_charges_dumb(key)
 
-dirname = "cluster%d_%d_%d" % (num, layers, electro)
+dirname = "cluster_dumb%d_%d_%d" % (num, layers, electro)
 
 cluster.write_structure(dirname)
 cluster.write_charges(key, dirname)

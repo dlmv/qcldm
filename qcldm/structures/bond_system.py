@@ -86,10 +86,9 @@ class LinearSystemChargeTransferBondData(PreloadedBondData):
 
 		A = np.array(a)
 		B = np.array(b)
-		
 
 		# tol copied from matrix_rank
-		tol = np.linalg.svd(A, compute_uv=False).max(axis=-1, keepdims=True) * max(A.shape[-2:]) * np.finfo(float).eps
+		tol = np.linalg.svd(A, compute_uv=False).max(axis=-1, keepdims=True)[0] * max(A.shape[-2:]) * np.finfo(float).eps
 
 		xs, res, rank, s = np.linalg.lstsq(A, B, tol)
 		
