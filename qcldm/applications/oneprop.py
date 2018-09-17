@@ -71,7 +71,7 @@ def get_dirs():
 def prepare_oneprop_openmx(dat, atoms, dms, num, rc):
 	gaussdir, libdir = get_dirs()
 
-	dirname = "reduced_{}".format(num)
+	dirname = "reduced_{}_{}".format(num, rc)
 	write_reduced(dms, num, atoms, rc, dirname)
 	outname = '%s.out' % dat.system_name
 	shutil.copy(outname, dirname)
@@ -92,7 +92,15 @@ def prepare_oneprop_openmx(dat, atoms, dms, num, rc):
 		f.write(basis)
 
 def prepare_oneprop_crystal(co, atoms, dms, num, rc):
-	dirname = "reduced_{}".format(num)
+	gaussdir, libdir = get_dirs()
+	dirname = "reduced_{}_{}".format(num, rc)
+	write_reduced(dms, num, atoms, rc, dirname)
+	outname = co.name
+	shutil.copy(outname, dirname)
+	options = OPTIONS.replace('%RC%', str(rc)).replace('%LIB%', libdir).replace('%OUT%', outname)
+	with open(os.path.join(dirname, 'Options.ini'), 'w') as f:
+		f.write(options)
+		
 	basis = ''
 	for k in co.basis.keys():
 		basis += '%s 0\n' % k
@@ -102,17 +110,6 @@ def prepare_oneprop_crystal(co, atoms, dms, num, rc):
 	with open(os.path.join(dirname, 'basis.L'), 'w') as f:
 		f.write(basis)
 		
-	gaussdir, libdir = get_dirs()
-
-	write_reduced(dms, num, atoms, rc, dirname)
-	outname = co.name
-	shutil.copy(outname, dirname)
-	options = OPTIONS.replace('%RC%', str(rc)).replace('%LIB%', libdir).replace('%OUT%', outname)
-	with open(os.path.join(dirname, 'Options.ini'), 'w') as f:
-		f.write(options)
-
-
-
 def read_gauss_basis(gfile):
 	lines = open(gfile).read().splitlines()
 	title = lines[0] + '\n'
