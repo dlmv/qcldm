@@ -191,6 +191,105 @@ class PlaneCut:
 					if ok:
 						self.vertices.append(p)
 		self.planes.append(plane)
+		
+	def has_vertix(self, point):
+		for v in self.vertices:
+			same = True
+			for i in range(3):
+				if abs(v[i] - point[i]) > 1e-10:
+					same = False
+					break
+			if same:
+				return True
+		return False
+
+	def load_optimized(self, cuboid1, cuboid2):
+		self.vertices = []
+		self.planes = []
+		planes1 = cuboid1.cutting_planes
+		planes2 = cuboid2.cutting_planes
+		for v in cuboid1.vertices:
+			cut = False
+			for plane in planes2:
+				if not same_side(v, plane.inner, plane.plane):
+					cut = True
+					break
+			if not cut:
+				self.vertices.append(v)
+		for v in cuboid2.vertices:
+			if self.has_vertix(v):
+				continue
+			cut = False
+			for plane in planes1:
+				if not same_side(v, plane.inner, plane.plane):
+					cut = True
+					break
+			if not cut:
+				self.vertices.append(v)
+
+#		self.planes = planes1 + planes2
+				
+		for i1 in range(len(planes1)):
+			plane1 = planes1[i1]
+			for i2 in range(i1, len(planes1)):
+				if i2 == i1 + 3:
+					continue
+				plane2 = planes1[i2]
+				for j in range(len(planes2)):
+					plane3 = planes2[j]
+					p = plane3_intersection(plane1.plane, plane2.plane, plane3.plane)
+					if p is None or self.has_vertix(p):
+						continue
+					ok = True
+					for it in range(len(planes1)):
+						if it == i1 or it == i2:
+							continue
+						plane = planes1[it]
+						if not same_side(p, plane.inner, plane.plane):
+							ok = False
+							break
+					if ok:
+						for jt in range(len(planes2)):
+							if jt == j:
+								continue
+							plane = planes2[jt]
+							if not same_side(p, plane.inner, plane.plane):
+								ok = False
+								break
+					if ok:
+						self.vertices.append(p)
+
+		for i1 in range(len(planes2)):
+			plane1 = planes2[i1]
+			for i2 in range(i1, len(planes2)):
+				if i2 == i1 + 3:
+					continue
+				plane2 = planes2[i2]
+				for j in range(len(planes1)):
+					plane3 = planes1[j]
+					p = plane3_intersection(plane1.plane, plane2.plane, plane3.plane)
+					if p is None or self.has_vertix(p):
+						continue
+					ok = True
+					for it in range(len(planes2)):
+						if it == i1 or it == i2:
+							continue
+						plane = planes2[it]
+						if not same_side(p, plane.inner, plane.plane):
+							ok = False
+							break
+					if ok:
+						for jt in range(len(planes1)):
+							if jt == j:
+								continue
+							plane = planes1[jt]
+							if not same_side(p, plane.inner, plane.plane):
+								ok = False
+								break
+					if ok:
+						self.vertices.append(p)
+						
+					
 
 	def mass_center(self):
 		center = [0,0,0]
@@ -210,13 +309,15 @@ class Cuboid:
 		self.vectors = vectors
 		self.end = add3(self.origin, reduce(lambda a,b: add3(a,b), self.vectors))
 		self.center = mul3(add3(self.origin, self.end), 0.5)
-		vertices = [self.origin]
+		vertices = [tuple(self.origin)]
 		for v in self.vectors:
 			vertices.append(add3(self.origin, v))
 		for v in self.vectors:
 			vertices.append(sub3(self.end, v))
 		vertices.append(self.end)
 		self.vertices = vertices
+
+
 
 	@property
 	def cutting_planes(self):
@@ -230,17 +331,17 @@ class Cuboid:
 		return planes
 
 
-def have_possible_intersection(c1, c2):
-	for tc1, tc2 in [[c1, c2], [c2, c1]]:
-		for cp in tc1.cutting_planes():
-			same_found = False
-			for v in tc2.vertices:
-				if same_side_strict(v, cp.inner, cp.plane):
-					same_found = True
-					break
-			if not same_found:
-				return False
-	return True
+#def have_possible_intersection(c1, c2):
+#	for tc1, tc2 in [[c1, c2], [c2, c1]]:
+#		for cp in tc1.cutting_planes():
+#			same_found = False
+#			for v in tc2.vertices:
+#				if same_side_strict(v, cp.inner, cp.plane):
+#					same_found = True
+#					break
+#			if not same_found:
+#				return False
+#	return True
 
 def have_intersection_chance(c1, c2):
 	for i in range(3):
@@ -260,8 +361,12 @@ def cuboid_intersection(c1, c2):
 #	if not have_possible_intersection(c1, c2):
 #		return 0
 	pc = PlaneCut()
-	for cp in c1.cutting_planes + c2.cutting_planes:
-		pc.add(cp)
+#	for cp in c1.cutting_planes + c2.cutting_planes:
+#		pc.add(cp)
+#	vol = pc.volume()
+	pc.load_optimized(c1,c2)
+#	if abs(pc.volume() - vol) > 1e-8:
+#		print pc.volume(), vol
 	return pc
 
 

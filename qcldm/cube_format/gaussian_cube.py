@@ -41,7 +41,7 @@ def convex_walk(cube, coords, cuboid, holder):
 	center_coords = cube.find_nearest(ci.mass_center())
 	cnum = len(coords)
 	for i in range(cnum):
-		assert coords[i] == center_coords[i]
+		assert coords[i] == center_coords[i], (str(coords[i])  + " " + str(center_coords[i]))
 	start = center_coords[cnum]
 	found = False
 	for nc in xrange(start, cube.size[cnum]):

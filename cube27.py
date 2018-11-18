@@ -10,7 +10,7 @@ from math3d import Vector
 init_log(sys.argv)
 
 
-c = GaussianCube.from_file(sys.argv[1])
+c = GaussianCube.from_file('mag.cube')
 #c.rescale(Vector(0,0,0), [s/2 for s in c.size], c.vectors)
 nvs = [v.copy() for v in c.vectors]
 for nv, v in zip(nvs, c.vectors):
