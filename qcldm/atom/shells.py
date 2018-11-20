@@ -40,8 +40,11 @@ class Shells:
 
 	@staticmethod
 	def estimate_valence_byname(a):
-		z = ELEMENTS[a].number
-		return Shells.estimate_valence(z)
+		try:
+			z = ELEMENTS[a].number
+			return Shells.estimate_valence(z)
+		except Exception:
+			return 0
 
 	@staticmethod
 	def estimate_charge_byname(a):
