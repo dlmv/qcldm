@@ -100,8 +100,68 @@ def subtract(cube1, cube2):
 					logging.debug(u'  %d of %d' % (i, res.data.size))
 	return res
 				
+def masked(target, f):
+	assert not target.is_periodic()
+	logging.info(u'')
+	logging.info(u'*********************************************')
+	logging.info(u'  Applying mask')
+	logging.info(u'*********************************************')
+	logging.info(u'')
+	res = GaussianCube()
+	res.size = [x for x in target.size]
+	res.origin = target.origin.copy()
+	res.vectors = [x.copy() for x in target.vectors]
+	res.celltype = target.celltype
+	res.data = np.empty([res.size[x] for x in [0,1,2]])
+	res.atoms = target.atoms #TODO: copy
 	
+	i = 0
+	
+	for tx in range(target.size[0]):
+		for ty in range(target.size[1]):
+			for tz in range(target.size[2]):
+				cuboid = target.voxel_cuboid([tx, ty, tz])
+				value = target.voxel_value([tx, ty, tz]) if f(cuboid.center) else 0
+				res.data[tx,ty,tz] = value
+				i += 1
+				if i % (res.data.size / 10) == 0:
+					logging.debug(u'  %d of %d' % (i, res.data.size))
+	return res
 
+def masked_atomsphere(target, atomnum, r):
+	center = target.atoms[0].position()
+	f = lambda l: ((l[0] - center.x)**2 + (l[1] - center.y)**2 + (l[2] - center.z)**2)**0.5 < r
+	return masked(target, f)
+	
+#def trimmed(target):
+#	assert not target.is_periodic()
+#	logging.info(u'')
+#	logging.info(u'*********************************************')
+#	logging.info(u'  Trimming cube')
+#	logging.info(u'*********************************************')
+#	logging.info(u'')
+#	
+#	
+#	res = GaussianCube()
+#	res.size = [x for x in target.size]
+#	res.origin = target.origin.copy()
+#	res.vectors = [x.copy() for x in target.vectors]
+#	res.celltype = target.celltype
+#	res.data = np.empty([res.size[x] for x in [0,1,2]])
+#	res.atoms = target.atoms #TODO: copy
+#	
+#	i = 0
+#	
+#	for tx in range(target.size[0]):
+#		for ty in range(target.size[1]):
+#			for tz in range(target.size[2]):
+#				cuboid = target.voxel_cuboid([tx, ty, tz])
+#				value = target.voxel_value([tx, ty, tz]) if f(cuboid.center) else 0
+#				res.data[tx,ty,tz] = value
+#				i += 1
+#				if i % (res.data.size / 10) == 0:
+#					logging.debug(u'  %d of %d' % (i, res.data.size))
+#	return res
 
 
 #class OverlapDataHolder:
