@@ -37,6 +37,36 @@ def rescale_simple(source, target):
 					logging.debug(u'  %d of %d' % (i, res.data.size))
 	return res
 
+def rescale_medium(source, target):
+	assert not target.is_periodic()
+	logging.info(u'')
+	logging.info(u'*********************************************')
+	logging.info(u'  Rescaling cube')
+	logging.info(u'*********************************************')
+	logging.info(u'')
+	res = GaussianCube()
+	res.size = [x for x in target.size]
+	res.origin = target.origin.copy()
+	res.vectors = [x.copy() for x in target.vectors]
+	res.celltype = target.celltype
+	res.data = np.empty([res.size[x] for x in [0,1,2]])
+	res.atoms = target.atoms #TODO: copy
+	
+	i = 0
+	
+	for tx in range(target.size[0]):
+		for ty in range(target.size[1]):
+			for tz in range(target.size[2]):
+				cuboid = target.voxel_cuboid([tx, ty, tz])
+				value = source.point_value(cuboid.center)
+				for v in cuboid.vertices:
+					value += source.point_value(v)
+				value /= 9
+				res.data[tx,ty,tz] = value
+				i += 1
+				if i % (res.data.size / 10) == 0:
+					logging.debug(u'  %d of %d' % (i, res.data.size))
+	return res
 
 def subtract(cube1, cube2):
 	assert cube1.size == cube2.size
