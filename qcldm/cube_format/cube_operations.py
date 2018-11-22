@@ -64,7 +64,7 @@ def rescale_medium(source, target):
 				value /= 9
 				res.data[tx,ty,tz] = value
 				i += 1
-				if i % (res.data.size / 10) == 0:
+				if i % (res.data.size / 100) == 0:
 					logging.debug(u'  %d of %d' % (i, res.data.size))
 	return res
 

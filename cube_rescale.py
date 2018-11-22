@@ -11,13 +11,11 @@ from math3d import Vector
 init_log(sys.argv)
 
 
-target = GaussianCube.from_file('dens.cube')
+target = GaussianCube.from_file('cluster.cube')
 
-source = GaussianCube.from_file('cube_fersmite_dat.DENS_CUBE')
+source = GaussianCube.from_file('crystal.cube')
 
 source.celltype = GaussianCube.TYPE_PERIODIC_WITH_BORDER
-
-#cs = GaussianCube.from_file('mag.cube')
 
 c = rescale_medium(source, target)
 
