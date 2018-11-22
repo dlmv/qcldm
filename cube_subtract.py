@@ -11,7 +11,7 @@ from math3d import Vector
 init_log(sys.argv)
 
 cube1 = GaussianCube.from_file('rescaled.cube')
-cube2 = GaussianCube.from_file('dens.cube')
+cube2 = GaussianCube.from_file('cluster.cube')
 
 #cs = GaussianCube.from_file('mag.cube')
 
