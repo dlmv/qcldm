@@ -37,6 +37,12 @@ def rescale_simple(source, target):
 					logging.debug(u'  %d of %d' % (i, res.data.size))
 	return res
 
+def weighted_mean(p1, w1, p2, w2):
+	res = []
+	for k in range(3):
+		res.append((p1[k] * w1 + p2[k] * w2) / (w1 + w2))
+	return res
+
 def rescale_medium(source, target):
 	assert not target.is_periodic()
 	logging.info(u'')
@@ -60,7 +66,8 @@ def rescale_medium(source, target):
 				cuboid = target.voxel_cuboid([tx, ty, tz])
 				value = source.point_value(cuboid.center)
 				for v in cuboid.vertices:
-					value += source.point_value(v)
+					wv = weighted_mean(cuboid.center, 1, v, 9)
+					value += source.point_value(wv)
 				value /= 9
 				res.data[tx,ty,tz] = value
 				i += 1

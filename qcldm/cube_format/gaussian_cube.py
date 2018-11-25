@@ -133,13 +133,13 @@ class GaussianCube:
 		return Cuboid(list(n_origin), [list(v._data) for v in self.vectors])
 
 	def find_voxel(self, point):
-		a = np.array([k._data for k in self.vectors])
+		a = np.array([k._data for k in self.vectors]).transpose()
 		b = (point - self.origin._data)
 		coords = [int(x) for x in np.linalg.solve(a, b)]
 		return coords
 
 	def point_value(self, point):
-		return self.voxel_value(self.find_voxel(point))
+		return self.voxel_value(self.find_voxel(np.array(point)))
 	
 
 

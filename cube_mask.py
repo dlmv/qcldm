@@ -10,9 +10,11 @@ from math3d import Vector
 
 init_log(sys.argv)
 
+r = float(sys.argv[1])
+
 cube = GaussianCube.from_file('diff.cube')
 
-c = masked_atomsphere(cube, 1, 5)
+c = masked_atomsphere(cube, 1, r)
 
 
 c.to_file('masked.cube')
