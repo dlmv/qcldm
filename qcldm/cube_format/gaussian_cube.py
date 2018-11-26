@@ -135,7 +135,7 @@ class GaussianCube:
 	def find_voxel(self, point):
 		a = np.array([k._data for k in self.vectors]).transpose()
 		b = (point - self.origin._data)
-		coords = [math.floor(x) for x in np.linalg.solve(a, b)]
+		coords = [int(math.floor(x)) for x in np.linalg.solve(a, b)]
 		return coords
 
 	def point_value(self, point):
