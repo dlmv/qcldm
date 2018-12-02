@@ -25,6 +25,10 @@ ATOMS_POP = 'ATOM    Z CHARGE  SHELL POPULATION'
 pop_regex = '\s+([0-9]+)\s+([A-Z][a-zA-Z]?)\s+[0-9]+\s+([0-9]{1,3}\.[0-9]{3})\s+'
 #                 n         type           z            charge
 
+
+#float_regex = '[-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?'
+
+
 GEOM_OUT = 'GEOMETRY OUTPUT FILE'
 LATTICE = 'DIRECT LATTICE VECTORS CARTESIAN COMPONENTS (ANGSTROM)'
 NOLATTICE = '(NON PERIODIC DIRECTION: LATTICE PARAMETER FORMALLY SET TO'
@@ -129,6 +133,14 @@ class CrystalOut:
 
 		cell = Cell(atoms, vectors)
 		return cell
+
+#	@staticmethod
+#	def read_input_basis(lines):
+#		basismap = {}
+#		basis = {}
+#		for n in xrange(len(lines)):
+#			if 'CRYSTAL' in lines[n]:
+#				break
 		
 	@staticmethod
 	def read_basis(lines):

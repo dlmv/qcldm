@@ -17,7 +17,7 @@ source = GaussianCube.from_file('crystal.cube')
 
 source.celltype = GaussianCube.TYPE_PERIODIC_WITH_BORDER
 
-c = rescale_medium(source, target)
+c = rescale_simple(source, target)
 
 
 c.to_file('rescaled.cube')

@@ -168,6 +168,10 @@ class Cluster:
 		nogroups = set()
 		index = 0
 		alph = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+		titles = [a for a in alph]
+		for a1 in alph:
+			for a2 in alph:
+				titles.append(a1+a2)
 		for i in xrange(len(atoms)):
 			a = atoms[i]
 			if a.tuple_data() in groups.keys() or i in nogroups:
@@ -179,8 +183,8 @@ class Cluster:
 					continue
 				if compare_clusters(a, full_atoms, a1, full_atoms):
 					found = True
-					groups[a.tuple_data()] = alph[index]
-					groups[a1.tuple_data()] = alph[index]
+					groups[a.tuple_data()] = titles[index]
+					groups[a1.tuple_data()] = titles[index]
 			if not found:
 				nogroups.add(i)
 			else:

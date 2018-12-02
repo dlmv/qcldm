@@ -110,7 +110,7 @@ class NeighbourCache:
 
 	def test_neighbour(self, center, a):
 		rc = (ELEMENTS[center.name()].covrad + ELEMENTS[a.name()].covrad) / Units.UNIT
-		if not check_distance(center, a, rc * 0.8 + 0.8):
+		if not check_distance(center, a, rc * 0.7 + 0.95):
 			return False
 		r = center.distance(a)
 		for b in center.cell.supercell:
