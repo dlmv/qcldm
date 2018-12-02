@@ -152,6 +152,7 @@ last_xe_step = None
 PREC = 2e-8
 
 def check_if_step_not_grad(xe, eps):
+	xe = list(xe)
 	global last_xe_step
 	global last_xe
 	if last_xe == None:
