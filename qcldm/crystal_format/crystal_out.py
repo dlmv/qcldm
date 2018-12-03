@@ -108,8 +108,6 @@ class CrystalOut:
 							numorb += cg.fs[0][1].l * 2 + 1
 					a.data()[AtomKeys.ORBITAL_COUNT] = numorb
 					a.data()[AtomKeys.FULL_VALENCE] = vm[a.name()]
-					a.data()[AtomKeys.ESTIMATED_VALENCE] = Shells.estimate_valence_byname(a.name())
-					a.data()[AtomKeys.ESTIMATED_CHARGE] = Shells.estimate_charge_byname(a.name())
 					atoms.append(a)
 		elif NOLATTICE in lines[k]:
 #			vectors = [Vector([500 if i == j else 0 for j in range(3)]) for i in range(3)]
@@ -126,8 +124,6 @@ class CrystalOut:
 							numorb += cg.fs[0][1].l * 2 + 1
 					a.data()[AtomKeys.ORBITAL_COUNT] = numorb
 					a.data()[AtomKeys.FULL_VALENCE] = vm[a.name()]
-					a.data()[AtomKeys.ESTIMATED_VALENCE] = Shells.estimate_valence_byname(a.name())
-					a.data()[AtomKeys.ESTIMATED_CHARGE] = Shells.estimate_charge_byname(a.name())
 					atoms.append(a)
 
 

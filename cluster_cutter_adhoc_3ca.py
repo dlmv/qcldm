@@ -27,7 +27,14 @@ num = int(sys.argv[1])
 layers = int(sys.argv[2])
 electro = int(sys.argv[3])
 
-centers = [co.cell.cell[num - 1]]
+center = co.cell.cell[num - 1]
+centers = [center]
+
+tmpshells = co.cell.neighbours.neighbours_cluster(centers, 2)
+cas = filter(lambda x: x.name() == center.name(), tmpshells[-1])
+for a in cas:
+	if a.distance(center) < 4:
+		centers.append(a)
 
 cluster = Cluster(co.cell, centers, layers, electro)
 
@@ -35,7 +42,7 @@ key = AtomKeys.BADER_CHARGE
 
 cluster.estimate_charges_dumb(key)
 
-dirname = "cluster_dumb%d_%d_%d" % (num, layers, electro)
+dirname = "cluster_3test%d_%d_%d" % (num, layers, electro)
 
 cluster.write_structure(dirname)
 cluster.write_charges(key, dirname)

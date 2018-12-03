@@ -64,8 +64,6 @@ class DAT_INPUT:
 			a.data()[AtomKeys.CUTOFF] = self.species[a.name()].real_r()
 			if self.species[a.name()].basis:
 				a.data()[AtomKeys.FULL_VALENCE] = self.species[a.name()].basis.eval
-			if self.species[a.name()].pp:
-				a.data()[AtomKeys.ESTIMATED_VALENCE] = self.species[a.name()].estimate_valence()
 			atoms.append(a)
 
 		vectors = []

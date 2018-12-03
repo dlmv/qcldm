@@ -59,7 +59,6 @@ class GaussianCube:
 					v = Vector([float(x) for x in ls[2:]])
 					a = AtomVector(name, v)
 					a.data()[AtomKeys.FULL_VALENCE] = val
-					a.data()[AtomKeys.ESTIMATED_VALENCE] = Shells.estimate_valence_byname(a.name())
 					gc.atoms.append(a)
 					if n == 5 + nat:
 						gc.data = np.empty([gc.size[x] for x in [0,1,2]])

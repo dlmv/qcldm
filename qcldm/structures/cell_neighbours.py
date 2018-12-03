@@ -14,6 +14,8 @@ def check_distance(a1, a2, r):
 		return False
 	return a1.distance(a2) < r
 
+NONMETALS = ['H', 'C', 'O', 'F', 'P', 'S', 'Cl', 'Se', 'Br', 'I']
+
 class NeighbourCache:
 	def __init__(self, c):
 		self.cell = c
@@ -26,7 +28,8 @@ class NeighbourCache:
 		logging.info(u'*********************************************')
 		logging.info(u'')
 		shells = [centers]
-		self.load_neighbours_internal(centers, layers, shells)
+		for i in range(layers):
+			self.expand_neighbours(shells)
 		return shells
 
 	def load_all(self):
@@ -61,12 +64,9 @@ class NeighbourCache:
 				nb = self.cell.cell[int(ls1[0])].shifted(int(ls1[1]), int(ls1[2]), int(ls1[3]))
 				self.cache[num].append(nb)
 
-	def load_neighbours_internal(self, border, layers, shells):
-		if layers == 0:
-			logging.debug(u'Cluster done!')
-			return []
+	def expand_neighbours(self, shells):
+		border = shells[-1]
 		newborder = []
-		logging.debug(u'Finding next cluster shell')
 		for b in border:
 			nbs = self.first_neighbours(b)
 			for nb in nbs:
@@ -79,7 +79,9 @@ class NeighbourCache:
 				if not found:
 					newborder.append(nb)
 		shells.append(newborder)
-		self.load_neighbours_internal(newborder, layers - 1, shells)
+
+	def expand_covalent_bonds(self, shells, limit=5):
+		pass#TODO
 
 	def merge_from(self, other):
 		for n in other.cache.keys():

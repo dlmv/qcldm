@@ -1,10 +1,12 @@
 import os, logging
-from bond_system import MullikenOverlapBondData, LinearSystemChargeTransferBondData, DumbBondData
-from cluster_comparator import compare_clusters
+from ..structures.bond_system import MullikenOverlapBondData, LinearSystemChargeTransferBondData, DumbBondData
+from ..structures.cluster_comparator import compare_clusters
 from ..util.xyz_format import write_xyz
 from ..util.fileutils import make_dir
 from ..util.units import Units
 from ..structures.atom_vector import AtomKeys
+from ..atom.shells import Shells
+from .turbo_writer import TurboWriter
 
 
 class ClusterAtom:
@@ -16,17 +18,26 @@ class ClusterAtom:
 
 		self.atoms = []
 
+
+
 class Cluster:
-	
-	def __init__(self, cell, centers, shells_num, electro_shells_num=0):
+
+	def __init__(self, cell, settings):
 		self.cell = cell
-		self.centers = centers
-		self.shells_num = shells_num
+		self.settings = settings
+		self.centers = [cell.cell[settings.center - 1]]
+		
+		self.estimate_atoms_charges()
 
-		shells = cell.neighbours.neighbours_cluster(centers, shells_num)
+		shells = cell.neighbours.neighbours_cluster(self.centers, settings.inner_shell_num)
+		
+		
+		cell.neighbours.expand_neighbours(shells)
+		
+		for i in range(settings.electro_shell_num):
+			cell.neighbours.expand_neighbours(shells)
 
-		border_shell_pos = shells_num - electro_shells_num
-		assert border_shell_pos > 1, "Too few shells for a cluster!"
+		assert settings.inner_shell_num > 0, "Too few shells for a cluster!"
 
 		self.core_atoms = []
 		self.border_atoms = []
@@ -34,12 +45,21 @@ class Cluster:
 
 		for i in range(len(shells)):
 			for a in shells[i]:
-				if i < border_shell_pos:
+				if i < settings.inner_shell_num + 1:
 					self.core_atoms.append(a)
-				elif i == border_shell_pos:
+				elif i == settings.inner_shell_num + 1:
 					self.border_atoms.append(a)
 				else:
 					self.electrostatic_atoms.append(a)
+#		self.core_atoms.sort()
+#		self.border_atoms.sort()
+#		self.electrostatic_atoms.sort()
+
+	def estimate_atoms_charges(self):
+		for a in self.cell.atoms:
+			a.data()[AtomKeys.ESTIMATED_VALENCE] = Shells.estimate_valence_byname(a.name())
+			a.data()[AtomKeys.ESTIMATED_CHARGE] = Shells.estimate_charge_byname(a.name())
+		
 
 	def round_valence(self, atoms, desired):
 		logging.debug(u'Rounding total valence...')
@@ -81,13 +101,6 @@ class Cluster:
 		if not ok:
 			self.rearrange_charges(atoms)
 
-#	def load_atoms_dummy(self):
-#		atoms = []
-#		for a in self.core_atoms + self.border_atoms + self.electrostatic_atoms:
-#			ca = ClusterAtom(a, 0, 0)
-#			atoms.append(ca)
-#		self.atoms = atoms
-
 	def estimate_charges_mulliken(self, dm, olp, key):
 		self.estimate_charges(MullikenOverlapBondData(dm, olp), key)
 
@@ -95,7 +108,8 @@ class Cluster:
 		self.estimate_charges(DumbBondData(), key)
 
 	def estimate_charges(self, bond_data, key):
-		self.ct_data = LinearSystemChargeTransferBondData(self.cell, key) if self.electrostatic_atoms else None
+		self.charge_key = key
+		self.ct_data = LinearSystemChargeTransferBondData(self.cell, self.charge_key) if self.electrostatic_atoms else None
 		self.mul_data = bond_data
 
 		logging.info(u'')
@@ -196,56 +210,35 @@ class Cluster:
 		
 
 
-	def write_embedding(self, key, dirname='.'):
+	def write_embedding(self):
 		k = Units.UNIT / Units.BOHR
-		groups = self.make_groups()
-		if os.path.exists('embedding.template'):
-			embeds = {}
-			with open('embedding.template') as f:
-				for l in f.read().splitlines():
-					a, na, core = l.split()
-					embeds[a] = [na, int(core)]
-			with open(os.path.join(dirname, 'embedding'), 'w') as ef, open(os.path.join(dirname, 'embedding.start'), 'w') as esf, open(os.path.join(dirname, 'coord'), 'w') as cf:
-				cf.write('$coord\n')
-				for ca in self.atoms[:len(self.core_atoms)]:
-					cf.write("  {:15.10f}  {:15.10f}  {:15.10f}  {:3}\n".format(ca.origin.position().x * k, ca.origin.position().y * k, ca.origin.position().z * k, ca.origin.name()))
-				for ba in self.atoms[len(self.core_atoms):len(self.core_atoms) + len(self.border_atoms)]:
-					name, core = embeds[ba.origin.name()]
-					ef.write("{:3}  {:9.5f}\n".format(name, ba.charge + core))
-					g = '' if ba.origin.tuple_data() not in groups.keys() else groups[ba.origin.tuple_data()]
-					esf.write("{:3}  {:9.5f}  {:9.5f}  {:9.5f} {}\n".format(name, ba.charge + core, core, core + ba.origin.data()[AtomKeys.ESTIMATED_VALENCE], g))
-					cf.write("  {:15.10f}  {:15.10f}  {:15.10f}  {:3}\n".format(ba.origin.position().x * k, ba.origin.position().y * k, ba.origin.position().z * k, 'zz'))
-				for ea in self.atoms[len(self.core_atoms) + len(self.border_atoms):len(self.core_atoms) + len(self.border_atoms) + len(self.electrostatic_atoms)]:
-					ef.write("{:3}  {:9.5f}\n".format('q', ea.charge))
-					cmin, cmax = min(0, ea.origin.data()[key]), max(0, ea.origin.data()[key])
-					g = '' if ea.origin.tuple_data() not in groups.keys() else groups[ea.origin.tuple_data()]
-					esf.write("{:3}  {:9.5f}  {:9.5f}  {:9.5f} {}\n".format('q', ea.charge, cmin, cmax, g))
-					cf.write("  {:15.10f}  {:15.10f}  {:15.10f}  {:3}\n".format(ea.origin.position().x * k, ea.origin.position().y * k, ea.origin.position().z * k, 'zz'))
-				cf.write('$end')
+		TurboWriter.write_embedding(self)
+		TurboWriter.write_embedding_start(self)
+		TurboWriter.write_coord(self)
 					
 
-	def write_structure(self, dirname='.'):
-		make_dir(dirname)
+	def write_structure(self):
+		make_dir(self.settings.name)
 		xyz_cluster = [ca.origin for ca in self.atoms]
-		write_xyz(xyz_cluster, os.path.join(dirname, "cluster_structure.xyz"))
+		write_xyz(xyz_cluster, os.path.join(self.settings.name, "cluster_structure.xyz"))
 
-	def write_charges(self, key, dirname='.'):
-		make_dir(dirname)
+	def write_charges(self):
+		make_dir(self.settings.name)
 		res = '===============================================================\n' +\
-			'             Valence       Charge    Original valence   %s\n' % key + \
+			'             Valence       Charge    Original valence   %s\n' % self.charge_key + \
 			'===============================================================\n'
 		fmt = "  {:3}       {:7.3f}       {:7.3f}       {:7.3f}       {:7.3f}\n"
 		tc = 0.
 		tv = 0.
 		for ca in self.atoms:
 			full = ca.origin.data()[AtomKeys.ESTIMATED_VALENCE]
-			bcharge = ca.origin.data()[key]
+			bcharge = ca.origin.data()[self.charge_key]
 			res += fmt.format(ca.origin.name(), ca.valence, ca.charge, full, bcharge)
 			tc += ca.charge - ca.valence
 			tv += ca.valence
 		res += '===============================================================\n'
 		res += 'Total:      {:7.3f}       {:7.3f}\n'.format(tv, tc)
-		with open(os.path.join(dirname, "cluster.charge"), 'w') as f:
+		with open(os.path.join(self.settings.name, "cluster.charge"), 'w') as f:
 			f.write(res)
 
 
