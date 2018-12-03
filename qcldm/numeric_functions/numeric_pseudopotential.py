@@ -1,7 +1,7 @@
 import logging
 from ..util.elements import ELEMENTS
-from ..functions.numeric_function import NumericFunction, NumericOperations, CustomFunctions
-from ..functions.numeric_potential import create_pseudo_potential, blochl_form
+from .numeric_function import NumericFunction, NumericOperations, CustomFunctions
+from .numeric_potential import create_pseudo_potential, blochl_form
 
 
 class SeparablePseudoPotential:

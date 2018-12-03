@@ -9,7 +9,10 @@ class EmbeddingSettings:
 		self.charge_override_map = {}
 		self.valence_override_map = {}
 		self.bond_distance_override_map = {}
+		self.basis_map = {}
+		self.ecp_map = {}
 		self.name = ''
+		self.make_turbo = False
 
 	@staticmethod
 	def from_file(name):
@@ -34,6 +37,22 @@ class EmbeddingSettings:
 						atom, replacement, core = read_3params(ls)
 						core = int(core)
 						es.embedding_map[atom] = [replacement, core]
+					elif param == 'make_turbo':
+						es.make_turbo = True
+					elif param == 'basisfull':
+						atom, basis = read_2params(ls)
+						es.basis_map[(atom, True)] = basis
+					elif param == 'basisborder':
+						atom, basis = read_2params(ls)
+						es.basis_map[(atom, False)] = basis
+					elif param == 'ecpfull':
+						atom, ecp = read_2params(ls)
+						es.ecp_map[(atom, True)] = ecp
+					elif param == 'ecpborder':
+						atom, ecp = read_2params(ls)
+						es.ecp_map[(atom, False)] = ecp
+						
+						
 			return es
 
 def read_param(ls):

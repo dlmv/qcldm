@@ -1,10 +1,10 @@
 import math, logging, sys
 from ..util.elements import ELEMENTS
-from ..functions.numeric_function import NumericFunction, NumericOperations
+from .numeric_function import NumericFunction, NumericOperations
 from shells import Shells
 
 
-class Basis:
+class NumericBasis:
 
 	def __init__(self):
 		self.z = 0

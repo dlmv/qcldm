@@ -1,7 +1,7 @@
 import re, sys, math
 sys.dont_write_bytecode = True
 
-from numeric_function import NumericFunction, NumericOperations
+from ..numeric_functions.numeric_function import NumericFunction, NumericOperations
 
 def dfac(n):
 	return 1 if n < 2 else reduce(lambda x,y: y*x, range(n,1,-2))
@@ -71,33 +71,20 @@ class GaussFunctionContracted:
 		res.l = self.fs[0][1].l
 		return res
 
+class GaussBasis:
+	def __init__(self):
+		self.components = {}
 
-#f1 = GaussFunctionNormed(0.77871000000, 0)
-#f2 = GaussFunctionNormed(0.35874000000, 0)
-#print GaussFunctionNormed.overlap(f1, f2)
+	def add_function(self, cg):
+		l = cg.fs[0].l
+		if l not in self.components.keys():
+			self.components[l] = []
+		self.components[l].append(cg)
+		
 
-#g1 = GaussFunctionContracted()
-#g1.fs.append((1, f1))
-#g2 = GaussFunctionContracted()
-#g2.fs.append((1, f2))
-#print g1.overlap(g2)
-
-
-#cg = GaussFunctionContracted()
-#cg.fs.append((-0.22165720000, GaussFunctionNormed(5.6988200000, 0)))
-#cg.fs.append((0.83176290000, GaussFunctionNormed(3.3426600000, 0)))
-#cg.fs.append((-0.25796490000, GaussFunctionNormed(1.7899800000, 0)))
-#print cg.norm()
-
-#res = 0
-#for c1, f1 in cg.fs:
-#	for c2, f2 in cg.fs:
-#		fnorm =  GaussFunctionNormed.overlap(f1, f2)
-#		res += c1 * c2 * fnorm
-#		print c1, c2, fnorm
-#		print c1 * c2 * fnorm
-#print res
-
+class GaussPseudoPotential:
+	def __init__(self):
+		self.components = {}
 
 
 

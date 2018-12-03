@@ -74,11 +74,18 @@ class Cluster:
 			a.charge += nv - a.valence
 			a.valence = nv
 
-	def estimate_central_charge(self, atoms):
+	def estimate_central_charge(self):
 		s = 0
-		for a in atoms:
-			s += a.origin.data()[AtomKeys.ESTIMATED_CHARGE]
+		for a in self.core_atoms:
+			s += a.data()[AtomKeys.ESTIMATED_CHARGE]
 		return s
+
+	def total_electrons(self):
+		s = -self.estimate_central_charge()
+		for a in self.core_atoms:
+			s += a.data()[AtomKeys.FULL_VALENCE]
+		return s
+		
 
 	def rearrange_charges(self, atoms):
 		logging.debug(u'Checking for exceeding values...')
@@ -128,7 +135,7 @@ class Cluster:
 			logging.debug(u'  %d/%d' % (i + 1, 	len(self.core_atoms)))
 
 		atoms.extend(tmp)
-		desired = -self.estimate_central_charge(tmp)
+		desired = -self.estimate_central_charge()
 		tmp = []
 
 		logging.debug(u'Border atoms')
@@ -174,7 +181,7 @@ class Cluster:
 		atoms.extend(tmp)
 
 		self.atoms = atoms
-
+		
 	def make_groups(self):
 		groups = {}
 		atoms = self.border_atoms + self.electrostatic_atoms
@@ -205,16 +212,23 @@ class Cluster:
 				index += 1
 		return groups
 							
-			
+	def write(self):
+		self.write_structure()
+		self.write_charges()
+		if self.settings.make_turbo:
+			self.write_embedding()
+		
 			
 		
 
 
 	def write_embedding(self):
-		k = Units.UNIT / Units.BOHR
 		TurboWriter.write_embedding(self)
 		TurboWriter.write_embedding_start(self)
 		TurboWriter.write_coord(self)
+		TurboWriter.write_coord_ca(self)
+		TurboWriter.write_mos(self)
+		TurboWriter.write_control(self)
 					
 
 	def write_structure(self):

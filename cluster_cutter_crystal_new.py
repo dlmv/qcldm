@@ -34,9 +34,7 @@ key = AtomKeys.BADER_CHARGE
 
 cluster.estimate_charges_dumb(key)
 
-cluster.write_structure()
-cluster.write_charges()
-cluster.write_embedding()
+cluster.write()
 
 
 

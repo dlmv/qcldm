@@ -4,7 +4,7 @@ from ..util.units import Units
 from ..structures.cell import Cell
 from ..structures.atom_vector import AtomVector, AtomKeys
 from ..atom.shells import Shells
-from ..functions.gauss_function import GaussFunctionContracted, GaussFunctionNormed
+from ..gauss_functions.gauss_function import GaussFunctionContracted, GaussFunctionNormed
 
 DFT_PARAMS = 'DFT PARAMETERS'
 
