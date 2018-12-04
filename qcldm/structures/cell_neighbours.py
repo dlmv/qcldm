@@ -112,7 +112,7 @@ class NeighbourCache:
 
 	def test_neighbour(self, center, a, override_map):
 		rc = (ELEMENTS[center.name()].covrad + ELEMENTS[a.name()].covrad) / Units.UNIT
-		rc = rc * 0.7 + 0.95
+		rc = rc * 0.8 + 0.8
 		bond = tuple(sorted([center.name(), a.name()]))
 		if bond in override_map.keys():
 			rc = override_map[bond]

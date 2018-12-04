@@ -25,7 +25,10 @@ class Cluster:
 	def __init__(self, cell, settings):
 		self.cell = cell
 		self.settings = settings
-		self.centers = [cell.cell[settings.center - 1]]
+		
+		center = cell.cell[settings.center - 1]
+		assert center.name() == settings.centername, 'wrong center name'
+		self.centers = [center]
 		
 		self.estimate_atoms_charges()
 

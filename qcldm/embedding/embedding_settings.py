@@ -2,6 +2,7 @@ import os
 class EmbeddingSettings:
 	def __init__(self):
 		self.center = -1
+		self.centername = ''
 		self.inner_shell_num = 0
 		self.electro_shell_num = 0
 		self.expand_covalent = False
@@ -29,7 +30,9 @@ class EmbeddingSettings:
 					ls = line.strip().split()
 					param = ls[0]
 					if param == 'center':
-						es.center = int(read_param(ls))
+						centernum, centername = read_2params(ls)
+						es.center = int(centernum)
+						es.centername = centername
 					elif param == 'inner_shells':
 						es.inner_shell_num = int(read_param(ls))
 					elif param == 'electro_shells':

@@ -20,19 +20,17 @@ co = CrystalOut.from_file(c.out_file)
 write_xyz(co.cell.cell, 'cell.xyz')
 write_xyz(co.cell.supercell, 'supercell.xyz')
 
-read_baders(co.cell)
-
+try:
+	read_baders(co.cell)
+except Exception:
+	pass
 
 settingsfile = sys.argv[1]
-
 settings = EmbeddingSettings.from_file(settingsfile)
 
 
 cluster = Cluster(co.cell, settings)
-
-
 cluster.estimate_charges_dumb()
-
 cluster.write()
 
 
