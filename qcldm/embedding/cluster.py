@@ -29,13 +29,13 @@ class Cluster:
 		
 		self.estimate_atoms_charges()
 
-		shells = cell.neighbours.neighbours_cluster(self.centers, settings.inner_shell_num)
+		shells = cell.neighbours.neighbours_cluster(self.centers, self.settings.inner_shell_num, self.settings.bond_distance_override_map)
 		
 		
-		cell.neighbours.expand_neighbours(shells)
+		cell.neighbours.expand_neighbours(shells, self.settings.bond_distance_override_map)
 		
 		for i in range(settings.electro_shell_num):
-			cell.neighbours.expand_neighbours(shells)
+			cell.neighbours.expand_neighbours(shells, self.settings.bond_distance_override_map)
 
 		assert settings.inner_shell_num > 0, "Too few shells for a cluster!"
 
@@ -116,7 +116,7 @@ class Cluster:
 
 	def estimate_charges(self, bond_data, key):
 		self.charge_key = key
-		self.ct_data = LinearSystemChargeTransferBondData(self.cell, self.charge_key) if self.electrostatic_atoms else None
+		self.ct_data = LinearSystemChargeTransferBondData(self.cell, self.charge_key, self.settings.bond_distance_override_map) if self.electrostatic_atoms else None
 		self.mul_data = bond_data
 
 		logging.info(u'')
@@ -141,7 +141,7 @@ class Cluster:
 		logging.debug(u'Border atoms')
 		for i in range(len(self.border_atoms)):
 			a = self.border_atoms[i]
-			nbs = self.cell.neighbours.first_neighbours(a)
+			nbs = self.cell.neighbours.first_neighbours(a, self.settings.bond_distance_override_map)
 			total_overlap = 0
 			inside_overlap = 0
 			el_charge = 0
@@ -168,7 +168,7 @@ class Cluster:
 		logging.debug(u'Electrostatic atoms')
 		for i in range(len(self.electrostatic_atoms)):
 			a = self.electrostatic_atoms[i]
-			nbs = self.cell.neighbours.first_neighbours(a)
+			nbs = self.cell.neighbours.first_neighbours(a, self.settings.bond_distance_override_map)
 			el_charge = 0
 			for nb in nbs:
 				if nb in self.core_atoms or nb in self.border_atoms or nb in self.electrostatic_atoms:

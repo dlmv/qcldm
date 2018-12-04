@@ -21,7 +21,7 @@ class NeighbourCache:
 		self.cell = c
 		self.cache = {}
 
-	def neighbours_cluster(self, centers, layers):
+	def neighbours_cluster(self, centers, layers, override_map):
 		logging.info(u'')
 		logging.info(u'*********************************************')
 		logging.info(u'  Cutting cluster for: '  + str(centers))
@@ -29,7 +29,7 @@ class NeighbourCache:
 		logging.info(u'')
 		shells = [centers]
 		for i in range(layers):
-			self.expand_neighbours(shells)
+			self.expand_neighbours(shells, override_map)
 		return shells
 
 	def load_all(self):
@@ -64,11 +64,11 @@ class NeighbourCache:
 				nb = self.cell.cell[int(ls1[0])].shifted(int(ls1[1]), int(ls1[2]), int(ls1[3]))
 				self.cache[num].append(nb)
 
-	def expand_neighbours(self, shells):
+	def expand_neighbours(self, shells, override_map):
 		border = shells[-1]
 		newborder = []
 		for b in border:
-			nbs = self.first_neighbours(b)
+			nbs = self.first_neighbours(b, override_map)
 			for nb in nbs:
 				found = False
 				for shell in shells:
@@ -92,7 +92,7 @@ class NeighbourCache:
 				if self_atom not in self.cache[n]:
 					self.cache[n].append(self_atom)
 
-	def first_neighbours(self, center):
+	def first_neighbours(self, center, override_map):
 		atoms = []
 		shifts = center.shifts
 		center = center.shifted(-shifts)
@@ -101,7 +101,7 @@ class NeighbourCache:
 		else:
 			for a0 in center.cell.supercell:
 				if a0 != center:
-					if self.test_neighbour(center, a0):
+					if self.test_neighbour(center, a0, override_map):
 						atoms.append(a0)
 			self.cache[center.num] = atoms
 		satoms = []
@@ -110,9 +110,13 @@ class NeighbourCache:
 		return satoms
 
 
-	def test_neighbour(self, center, a):
+	def test_neighbour(self, center, a, override_map):
 		rc = (ELEMENTS[center.name()].covrad + ELEMENTS[a.name()].covrad) / Units.UNIT
-		if not check_distance(center, a, rc * 0.7 + 0.95):
+		rc = rc * 0.7 + 0.95
+		bond = tuple(sorted([center.name(), a.name()]))
+		if bond in override_map.keys():
+			rc = override_map[bond]
+		if not check_distance(center, a, rc):
 			return False
 		r = center.distance(a)
 		for b in center.cell.supercell:

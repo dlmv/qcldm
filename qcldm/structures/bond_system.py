@@ -37,10 +37,13 @@ class DumbBondData(BondData):
 
 class PreloadedBondData(BondData):
 
+	def __init__(self, override_map):
+		self.override_map = override_map
+
 	def load_bonds(self, cell):
 		bonds = []
 		for a in cell.cell:
-			nbs = cell.neighbours.first_neighbours(a)
+			nbs = cell.neighbours.first_neighbours(a, self.override_map)
 			for nb in nbs:
 				bond = Bond(a, nb)
 				if a > nb:
@@ -58,7 +61,8 @@ class PreloadedBondData(BondData):
 
 class LinearSystemChargeTransferBondData(PreloadedBondData):
 
-	def __init__(self, cell, key):
+	def __init__(self, cell, key, override_map):
+		PreloadedBondData.__init__(self, override_map)
 		logging.info(u'')
 		logging.info(u'*********************************************')
 		logging.info(u'  Estimating CT from linear system')

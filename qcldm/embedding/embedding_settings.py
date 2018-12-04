@@ -39,19 +39,23 @@ class EmbeddingSettings:
 						es.embedding_map[atom] = [replacement, core]
 					elif param == 'make_turbo':
 						es.make_turbo = True
-					elif param == 'basisfull':
+					elif param == 'basis_full':
 						atom, basis = read_2params(ls)
 						es.basis_map[(atom, True)] = basis
-					elif param == 'basisborder':
+					elif param == 'basis_border':
 						atom, basis = read_2params(ls)
 						es.basis_map[(atom, False)] = basis
-					elif param == 'ecpfull':
+					elif param == 'ecp_full':
 						atom, ecp = read_2params(ls)
 						es.ecp_map[(atom, True)] = ecp
-					elif param == 'ecpborder':
+					elif param == 'ecp_border':
 						atom, ecp = read_2params(ls)
 						es.ecp_map[(atom, False)] = ecp
-						
+					elif param == 'override_bond':
+						bond, length = read_2params(ls)
+						length = float(length)
+						bond = tuple(sorted(bond.split('-')))
+						es.bond_distance_override_map[bond] = length
 						
 			return es
 
