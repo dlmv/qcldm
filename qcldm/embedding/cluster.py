@@ -108,14 +108,14 @@ class Cluster:
 		if not ok:
 			self.rearrange_charges(atoms)
 
-	def estimate_charges_mulliken(self, dm, olp, key):
-		self.estimate_charges(MullikenOverlapBondData(dm, olp), key)
+	def estimate_charges_mulliken(self, dm, olp,):
+		self.estimate_charges(MullikenOverlapBondData(dm, olp))
 
-	def estimate_charges_dumb(self, key):
-		self.estimate_charges(DumbBondData(), key)
+	def estimate_charges_dumb(self):
+		self.estimate_charges(DumbBondData())
 
-	def estimate_charges(self, bond_data, key):
-		self.charge_key = key
+	def estimate_charges(self, bond_data):
+		self.charge_key = AtomKeys.BADER_CHARGE if self.settings.bader else AtomKeys.MULLIKEN_CHARGE
 		self.ct_data = LinearSystemChargeTransferBondData(self.cell, self.charge_key, self.settings.bond_distance_override_map) if self.electrostatic_atoms else None
 		self.mul_data = bond_data
 

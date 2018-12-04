@@ -13,6 +13,7 @@ class EmbeddingSettings:
 		self.ecp_map = {}
 		self.name = ''
 		self.make_turbo = False
+		self.bader = False
 
 	@staticmethod
 	def from_file(name):
@@ -39,6 +40,8 @@ class EmbeddingSettings:
 						es.embedding_map[atom] = [replacement, core]
 					elif param == 'make_turbo':
 						es.make_turbo = True
+					elif param == 'bader':
+						es.bader = True
 					elif param == 'basis_full':
 						atom, basis = read_2params(ls)
 						es.basis_map[(atom, True)] = basis

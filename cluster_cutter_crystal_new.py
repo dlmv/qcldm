@@ -30,9 +30,8 @@ settings = EmbeddingSettings.from_file(settingsfile)
 
 cluster = Cluster(co.cell, settings)
 
-key = AtomKeys.BADER_CHARGE
 
-cluster.estimate_charges_dumb(key)
+cluster.estimate_charges_dumb()
 
 cluster.write()
 
