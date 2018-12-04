@@ -80,8 +80,32 @@ class NeighbourCache:
 					newborder.append(nb)
 		shells.append(newborder)
 
-	def expand_covalent_bonds(self, shells, limit=5):
-		pass#TODO
+	def expand_covalent_border(self, shells, override_map, limit=5):
+		i = limit
+		while i > 0:
+			border = shells[-1]
+			newborder = []
+			for b in border:
+				if b.name() not in NONMETALS:
+					continue
+				nbs = self.first_neighbours(b, override_map)
+				for nb in nbs:
+					if nb.name() not in NONMETALS:
+						continue
+					found = False
+					for shell in shells:
+						if nb in shell:
+							found = True
+					if nb in newborder:
+						found = True
+					if not found:
+						newborder.append(nb)
+			if not newborder:
+				return
+			border.extend(newborder)
+			i -= 1
+		assert False, 'expand limit exceeded'
+			
 
 	def merge_from(self, other):
 		for n in other.cache.keys():

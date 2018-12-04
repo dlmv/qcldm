@@ -45,6 +45,8 @@ class EmbeddingSettings:
 						es.make_turbo = True
 					elif param == 'bader':
 						es.bader = True
+					elif param == 'expand_covalent':
+						es.expand_covalent = True
 					elif param == 'basis_full':
 						atom, basis = read_2params(ls)
 						es.basis_map[(atom, True)] = basis
@@ -64,11 +66,11 @@ class EmbeddingSettings:
 						es.bond_distance_override_map[bond] = length
 					elif param == 'override_charge':
 						atom, value = read_2params(ls)
-						value = float(value)
+						value = int(value)
 						es.charge_override_map[atom] = value
 					elif param == 'override_valence':
 						atom, value = read_2params(ls)
-						value = float(value)
+						value = int(value)
 						es.valence_override_map[atom] = value
 						
 			return es

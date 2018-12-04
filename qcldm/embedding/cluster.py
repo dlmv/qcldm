@@ -34,6 +34,8 @@ class Cluster:
 
 		shells = cell.neighbours.neighbours_cluster(self.centers, self.settings.inner_shell_num, self.settings.bond_distance_override_map)
 		
+		if self.settings.expand_covalent:
+			cell.neighbours.expand_covalent_border(shells, self.settings.bond_distance_override_map)
 		
 		cell.neighbours.expand_neighbours(shells, self.settings.bond_distance_override_map)
 		
