@@ -62,6 +62,14 @@ class EmbeddingSettings:
 						length = float(length)
 						bond = tuple(sorted(bond.split('-')))
 						es.bond_distance_override_map[bond] = length
+					elif param == 'override_charge':
+						atom, value = read_2params(ls)
+						value = float(value)
+						es.charge_override_map[atom] = value
+					elif param == 'override_valence':
+						atom, value = read_2params(ls)
+						value = float(value)
+						es.valence_override_map[atom] = value
 						
 			return es
 

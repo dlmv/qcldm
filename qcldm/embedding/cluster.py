@@ -62,6 +62,11 @@ class Cluster:
 		for a in self.cell.atoms:
 			a.data()[AtomKeys.ESTIMATED_VALENCE] = Shells.estimate_valence_byname(a.name())
 			a.data()[AtomKeys.ESTIMATED_CHARGE] = Shells.estimate_charge_byname(a.name())
+			
+			if a.name() in self.settings.valence_override_map.keys():
+				a.data()[AtomKeys.ESTIMATED_VALENCE] = self.settings.valence_override_map[a.name()]
+			if a.name() in self.settings.charge_override_map.keys():
+				a.data()[AtomKeys.ESTIMATED_CHARGE] = self.settings.charge_override_map[a.name()]
 		
 
 	def round_valence(self, atoms, desired):
