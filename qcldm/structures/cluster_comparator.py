@@ -121,8 +121,12 @@ def compare_clusters(a1, c1, a2, c2, precision=0.001):
 	ax1 = c1[0]
 	r = ax1.position().length
 	ay1 = c1[1]
-	if rough_equal(ax1.position().angle(ay1.position()), math.pi, 0.00001):
-		ay1 = c1[2]
+	for i in range(1, len(c1)):
+		ay1 = c1[i]
+		if rough_equal(ax1.position().angle(ay1.position()), math.pi, 0.00001) or rough_equal(ax1.position().angle(ay1.position()), 0, 0.00001):
+			continue
+		else:
+			break
 	rr = ay1.position().length
 	a = ax1.position().angle(ay1.position())
 
