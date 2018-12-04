@@ -15,6 +15,7 @@ class EmbeddingSettings:
 		self.name = ''
 		self.make_turbo = False
 		self.bader = False
+		self.add_centers = []
 
 	@staticmethod
 	def from_file(name):
@@ -72,6 +73,11 @@ class EmbeddingSettings:
 						atom, value = read_2params(ls)
 						value = int(value)
 						es.valence_override_map[atom] = value
+					elif param == 'add_center':
+						atom, shell, r = read_3params(ls)
+						shell = int(shell)
+						r = float(r)
+						es.add_centers.append((atom, shell, r))
 						
 			return es
 

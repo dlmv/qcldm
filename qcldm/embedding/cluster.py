@@ -22,6 +22,16 @@ class ClusterAtom:
 
 class Cluster:
 
+	def get_add_center(self, centers, name, shell, r):
+		center = centers[0]
+		shells = self.cell.neighbours.neighbours_cluster([center], shell, self.settings.bond_distance_override_map)
+		for a in shells[-1]:
+			if a in self.centers:
+				continue
+			if a.name() == name and abs(center.distance(a) - r) < 1e-4:
+				return a
+		assert False, 'additional center not found! {} {} {}' .format(name, shell, r)
+
 	def __init__(self, cell, settings):
 		self.cell = cell
 		self.settings = settings
@@ -29,6 +39,10 @@ class Cluster:
 		center = cell.cell[settings.center - 1]
 		assert center.name() == settings.centername, 'wrong center name'
 		self.centers = [center]
+		
+		for (atom, shell, r) in self.settings.add_centers:
+			ac = self.get_add_center(self.centers, atom, shell, r)
+			self.centers.append(ac)
 		
 		self.estimate_atoms_charges()
 
