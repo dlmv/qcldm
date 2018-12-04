@@ -1,71 +1,98 @@
 #!/usr/bin/python 
 import os, sys, threading, time
 from scipy.optimize import minimize
+import numpy as np
 
-#CUBE_CHARGE_SCALE = 1000
+
+last_xe = None
+last_xe_step = None
+
+PREC = 2e-8
+
+def check_if_step_not_grad(xe, eps):
+	xe = list(xe)
+	global last_xe_step
+	global last_xe
+	if last_xe == None:
+		last_xe_step = xe
+		last_xe = xe
+		return True
+	else:
+		assert len(xe) == len(last_xe_step)
+		n_diff = 0
+		s_diff = 0
+		for x, lx in zip(xe, last_xe_step):
+			if abs(x - lx) >= PREC:
+				n_diff += 1
+				s_diff += abs(x - lx)
+				
+		if n_diff == 1 and abs(s_diff - eps) <= PREC:
+			last_xe = xe
+			return False
+		else:
+			last_xe_step = xe
+			last_xe = xe
+			return True
 
 class Embedding:
 	def __init__(self):
 		self.symbols = []
-		self.limits = []
-		self.groups = {}
-		self.group_indices = {}
-		self.cube = []
+		self.lowlimits = []
+		self.highlimits = []
+		self.group_matrix = []
+		self.group_names = []
+		self.charges = []
 
-	def full_value(self, ls_emb, ls_cub):
-		res = []
-		ne = 0
-		nc = 0
-		for i, s in enumerate(self.symbols):
-			if self.cube and self.cube[-1] == i:
-				res.append(None)
-			elif i in self.cube:
-				res.append(ls_cub[nc])
-				nc += 1
+	def expand_matrix(self):
+		for row in self.group_matrix:
+			row.append(0)
+
+	def add_new(self, charge, ll, hl, group):
+		
+		self.charges.append(charge)
+		self.lowlimits.append(ll)
+		self.highlimits.append(hl)
+		self.group_names.append(group)
+		row = [0] * (len(self.group_matrix[0]) if self.group_matrix else 1)
+		row [-1] = 1
+		self.group_matrix.append(row)
+
+	def add(self, symbol, charge, ll, hl, group):
+		self.symbols.append(symbol)
+		self.expand_matrix()
+		if group:
+			if group in self.group_names:
+				index = self.group_names.index(group)
+				assert hl == self.highlimits[index], 'upper limits must be equal for equal atoms\nand they are not for group %s:\n%f != %f' % (group, hl, self.highlimits[index])
+				assert ll == self.lowlimits[index], 'limits must be equal for equal atoms\nand they are not for group %s:\n%f != %f' % (group, ll, self.lowlimits[index])
+				assert charge == self.charges[index], 'charges must be equal for equal atoms\nand they are not for group %s:\n%f != %f' % (group, charge, self.charges[index])
+				self.group_matrix[index][-1] = 1
 			else:
-				found = False
-				for k in self.groups.keys():
-					if i in self.groups[k][1:]:
-						root = self.groups[k][0]
-						res.append(res[root])
-						found = True
-				if not found:
-					res.append(ls_emb[ne])
-					ne += 1
-		return res
+				self.add_new(charge, ll, hl, group)
+		else:
+			self.add_new(charge, ll, hl, '')
+
+	def apply_groups(self, x):
+		assert len(x) == len(self.charges)
+		a = np.array(self.group_matrix).transpose()
+		b = np.array(x)
+		return list(a.dot(b))
 
 	def group_list(self):
 		res = []
-		for i, s in enumerate(self.symbols):
-			if i in self.cube:
-				res.append("CUBE")
-			else:
-				found = False
-				for k in self.groups.keys():
-					if i in self.groups[k]:
-						res.append(k)
-						found = True
-				if not found:
-					res.append("")
+		a = np.array(self.group_matrix).transpose()
+		for (x,y), value in np.ndenumerate(a):
+			if value == 1:
+				res.append(self.group_names[y])
 		return res
+			
 
-	def full_charges(self, xe, xc):
-		chgs = self.full_value(xe, xc)
-		if self.cube:
-			chgs[self.cube[-1]] = -sum(xc)
-		return chgs
-
-	def full_limits(self):
-		cl = [(None, None)] * (len(self.cube))
-		lmts = self.full_value(self.limits, cl)
-		if self.cube:
-			lmts[self.cube[-1]] = (None, None)
-		return lmts
+def float_or_none(x):
+	return float(x) if x != '*' else None
 
 def read_start_embedding():
 	e = Embedding()
 	charges = []
-	cube_charges = []
 	filename = "embedding.start"
 	if os.path.exists("embedding.restart"):
 		filename = "embedding.restart"
@@ -73,50 +100,29 @@ def read_start_embedding():
 	with open(filename) as es:
 		for i, l in enumerate(es):
 			ls = l.split()
-			e.symbols.append(ls[0])
-			float_or_none = lambda x: float(x) if x != '*' else None
-			if len(ls) == 4:
-				charges.append(float(ls[1]))
-				e.limits.append((float_or_none(ls[2]), float_or_none(ls[3])))
-			elif len(ls) == 5:
-				charge = float(ls[1])
-				limits = (float_or_none(ls[2]), float_or_none(ls[3]))
-				grname = ls[4]
-				if grname == 'CUBE':
-					cube_charges.append(charge)
-					e.cube.append(i)
-				elif grname not in e.groups.keys():
-					charges.append(charge)
-					e.limits.append(limits)
-					e.groups[grname] = [i]
-					e.group_indices[grname] = len(e.groups) - 1
-				else:
-					root = e.group_indices[grname]
-					assert charge == charges[root], ("All charges for same group must be equal and %d != %d for group %s" % (charge, charges[root], grname))
-					assert limits == e.limits[root], "All limits for same group must be equal"
-					e.groups[grname].append(i)
-			else:
-				raise Exception("That's a very bad line: %s" % l)
-	if len(cube_charges) > 1:
-		cube_charges = cube_charges[:-1]
-	return e, charges, cube_charges
+			symbol = ls[0]
+			charge = float(ls[1])
+			ll = float_or_none(ls[2])
+			hl =float_or_none(ls[3])
+			group = ''
+			if len(ls) == 5:
+				group = ls[4]
+			e.add(symbol, charge, ll, hl, group)	
+		return e
 
 def read_embed_positions():
-	pos = []
-	nepos = []
+	empos = []
 	with open("coord") as c:
 		n = 0
 		for l in c:
 			ls = l.split()
 			if '$' not in l and ls:
 				if ls[-1] == 'zz':
-					pos += [n]
-				elif ls[-1] == 'ne':#FIXME
-					nepos += [n]
+					empos += [n]
 				n += 1
-	return n, pos, nepos
+	return n, empos	
 
-def read_grad_from_control(num, pos, nepos):
+def read_grad_from_control(num, empos):
 	with open("control") as c:
 		lines = c.read().splitlines()
 		n = 0
@@ -142,97 +148,61 @@ def read_grad_from_control(num, pos, nepos):
 			for i in range(num):
 				n = n0 + num + 1 +  i
 				igrads = [float(l.replace("D", "E")) for l in lines[n].split()]
-				if i not in pos + nepos:
+				if i not in empos:
 					rawgrads.extend(igrads)
 			grad = (reduce(lambda s, i: s + i**2, rawgrads, 0.))**0.5
 
-last_xe = None
-last_xe_step = None
-
-PREC = 2e-8
-
-def check_if_step_not_grad(xe, eps):
-	xe = list(xe)
-	global last_xe_step
-	global last_xe
-	if last_xe == None:
-		print 'first step!'
-		last_xe_step = xe
-		last_xe = xe
-		return True
-	else:
-		assert len(xe) == len(last_xe_step)
-		n_diff = 0
-		s_diff = 0
-		for x, lx in zip(xe, last_xe_step):
-			if abs(x - lx) >= PREC:
-				n_diff += 1
-				s_diff += abs(x - lx)
-				
-		if n_diff == 1 and abs(s_diff - eps) <= PREC:
-			print 'grad step!'
-			last_xe = xe
-			return False
-		else:
-			print 'true step!'
-			last_xe_step = xe
-			last_xe = xe
-			return True
-		
-
-def write_embedding(e, xe, xc):
+def write_embedding(e, xe):
 	with open("embedding", "w") as emb:
-		write_embedding_block(emb, e, xe, xc, False)
+		write_embedding_block(emb, e, xe, False)
 
-def write_restart(e, xe, xc):
+def write_restart(e, xe):
 	with open("embedding.restart", "w") as emb:
-		write_embedding_block(emb, e, xe, xc, True)
+		write_embedding_block(emb, e, xe, True)
 
-def write_result(e, xe, xc, grad, truestep):
+def write_result(e, xe, grad, truestep):
 	with open("embedding.log", "a") as emb:
-		emb.write("********** VALUE = %12.10f | SUM = %g | TYPE = %s **********\n" % (grad, sum(e.full_charges(xe, xc)), "MAIN" if truestep else "GRAD"))
-		write_embedding_block(emb, e, xe, xc, False)
+		emb.write("********** VALUE = %12.10f | SUM = %g | TYPE = %s **********\n" % (grad, sum(e.apply_groups(xe)), "MAIN" if truestep else "GRAD"))
+		if truestep:
+			write_embedding_block(emb, e, xe, False)
 
-def write_embedding_block(emb, e, xe, xc, include_limits_and_groups):
-	limit_str = lambda x: "%7.3f" % x if x != None else '*'
-	fcs = e.full_charges(xe, xc)
-#	for i in e.cube:
-#		fcs[i] *= -1
-	for s, c, (l, h), g in zip(e.symbols, fcs, e.full_limits(), e.group_list()):
+def write_embedding_block(emb, e, xe, include_limits_and_groups):
+	limit_str = lambda x: "%9.5f" % x if x != None else '*'
+	charges = e.apply_groups(xe)
+	hlimits = e.apply_groups(e.highlimits)
+	llimits = e.apply_groups(e.lowlimits)
+	for s, c, l, h, g in zip(e.symbols, charges, llimits, hlimits, e.group_list()):
 		if include_limits_and_groups:
-			emb.write("%2s %12.8f %7s %7s %s\n" % (s, c, limit_str(l), limit_str(h), g))
+			emb.write("%2s %12.8f %10s %10s %s\n" % (s, c, limit_str(l), limit_str(h), g))
 		else:
 			emb.write("%2s %12.8f\n" % (s, c))
 
-lock = threading.Lock()
-
-def calculate(n, pos, nepos, e, xe, xc, eps):
-	with lock:
-		write_embedding(e, xe, xc)
+def calculate(n, empos, e, xe, eps):
+		write_embedding(e, xe)
 		assert os.system('dscf > log_dscf.log') == 0
 		time.sleep(5)
 		assert os.system('grad > log_grad.log') == 0
 		time.sleep(5)
-		grad = read_grad_from_control(n, pos, nepos)
-#		grad = random.random()
+		grad = read_grad_from_control(n, empos)
 		t = check_if_step_not_grad(xe, eps)
-		write_result(e, xe, xc, grad, t)
+		write_result(e, xe, grad, t)
 		if t:
-			write_restart(e, xe, xc)
+			write_restart(e, xe)
 		return grad
 
 
-
 def optimize_embedding(eps, ftol, maxit):
-	e, xe0, xc0 = read_start_embedding()
-	n, pos, nepos = read_embed_positions()
-	s = sum(e.full_charges(xe0, xc0))
-	f = lambda x: calculate(n, pos, nepos, e, x, xc0, eps)
-	cons = ({'type': 'eq', 'fun' : lambda x: sum(e.full_charges(x, xc0)) - s})
-	res = minimize(f, xe0, args=(), method='SLSQP', jac=None, 
-bounds=e.limits, constraints=cons, tol=None, callback=None, options={'disp': False, 'eps': eps, 'maxiter': maxit, 'ftol': ftol})
-	write_embedding(e, res.x, xc0)
-	write_restart(e, res.x, xc0)
+	e = read_start_embedding()
+	x0 = e.charges
+	n, empos = read_embed_positions()
+	s = sum(e.apply_groups(x0))
+	cons = ({'type': 'eq', 'fun' : lambda x: sum(e.apply_groups(x)) - s})
+	f = lambda x: calculate(n, empos, e, x, eps)
+	limits = zip(e.lowlimits, e.highlimits)
+	res = minimize(f, x0, args=(), method='SLSQP', jac=None, 
+bounds=limits, constraints=cons, tol=None, callback=None, options={'disp': False, 'eps': eps, 'maxiter': maxit, 'ftol': ftol})
+	write_embedding(e, res.x)
+	write_restart(e, res.x)
 	return res.status, res.nit
 
 if len(sys.argv) == 3:
