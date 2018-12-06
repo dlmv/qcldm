@@ -21,7 +21,6 @@ class Embedding:
 			row.append(0)
 
 	def add_new(self, charge, ll, hl, group):
-		
 		self.charges.append(charge)
 		self.lowlimits.append(ll)
 		self.highlimits.append(hl)
