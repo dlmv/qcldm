@@ -56,7 +56,7 @@ class Cluster:
 		for i in range(settings.electro_shell_num):
 			cell.neighbours.expand_neighbours(shells, self.settings.bond_distance_override_map)
 
-		assert settings.inner_shell_num > 0, "Too few shells for a cluster!"
+#		assert settings.inner_shell_num > 0, "Too few shells for a cluster!"
 
 		self.core_atoms = []
 		self.border_atoms = []

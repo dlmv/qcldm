@@ -32,7 +32,7 @@ class NeighbourCache:
 			self.expand_neighbours(shells, override_map)
 		return shells
 
-	def load_all(self):
+	def load_all(self, override_map):
 		logging.info(u'')
 		logging.info(u'*********************************************')
 		logging.info(u'  Loading neighbours for the whole cell')
@@ -41,7 +41,7 @@ class NeighbourCache:
 		for i in range(len(self.cell.cell)):
 			c = self.cell.cell[i]
 			logging.debug(u'Finding neighbours %d/%d for: %s' % (i+1, len(self.cell.cell), str(c)))
-			logging.debug(u'  Neighbours count: %d' % (len(self.first_neighbours(c))))
+			logging.debug(u'  Neighbours count: %d' % (len(self.first_neighbours(c, override_map))))
 
 	def write_neighbours(self, name):
 		self.load_all()

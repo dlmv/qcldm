@@ -2,7 +2,7 @@
 
 import sys, os, logging
 
-from ..openmx_format.dat_format import DAT_INPUT
+#from ..openmx_format.dat_format import DAT_INPUT
 
 def corresponding_atom(a, cell2):
 	return cell2.cell[a.num - 1].shifted(a.shifts)
@@ -15,8 +15,8 @@ def compare_cells(c1, c2):
 		if a1.name() != a2.name():
 			print 'different atom types!'
 			return
-	c1.neighbours.load_all()
-	c2.neighbours.load_all()
+	c1.neighbours.load_all({})
+	c2.neighbours.load_all({})
 	c1.neighbours.merge_from(c2.neighbours)
 
 	sd = 0
@@ -28,7 +28,7 @@ def compare_cells(c1, c2):
 
 	for a1 in c1.cell:
 		a2 = corresponding_atom(a1, c2)
-		for n1 in c1.neighbours.first_neighbours(a1):
+		for n1 in c1.neighbours.first_neighbours(a1, {}):
 			n2 = corresponding_atom(n1, c2)
 			r1 = a1.distance(n1)
 			r2 = a2.distance(n2)
