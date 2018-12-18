@@ -207,33 +207,32 @@ class Cluster:
 		self.atoms = atoms
 		
 	def make_groups(self):
+		logging.info(u'')
+		logging.info(u'*********************************************')
+		logging.info(u'  GROUPING ATOMS')
+		logging.info(u'*********************************************')
+		logging.info(u'')
 		groups = {}
 		atoms = self.border_atoms + self.electrostatic_atoms
 		full_atoms = self.core_atoms + self.border_atoms + self.electrostatic_atoms
-		nogroups = set()
 		index = 0
-		alph = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-		titles = [a for a in alph]
-		for a1 in alph:
-			for a2 in alph:
-				titles.append(a1+a2)
 		for i in xrange(len(atoms)):
+			logging.debug(u'  %d/%d' % (i + 1, len(atoms)))
 			a = atoms[i]
-			if a.tuple_data() in groups.keys() or i in nogroups:
+			if a.tuple_data() in groups.keys():
 				continue
 			found = False
 			for j in xrange(len(atoms)):
 				a1 = atoms[j]
-				if a1.tuple_data() in groups.keys() or j in nogroups or i==j:
+				if a1.tuple_data() in groups.keys() or i==j:
 					continue
 				if compare_clusters(a, full_atoms, a1, full_atoms):
 					found = True
-					groups[a.tuple_data()] = titles[index]
-					groups[a1.tuple_data()] = titles[index]
+					groups[a.tuple_data()] = "GROUP_%d" % index
+					groups[a1.tuple_data()] = "GROUP_%d" % index
 			if not found:
-				nogroups.add(i)
-			else:
-				index += 1
+				groups[a.tuple_data()] = "SINGLE_%d" % index
+			index += 1
 		return groups
 							
 	def write(self):
