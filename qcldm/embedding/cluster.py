@@ -228,10 +228,10 @@ class Cluster:
 					continue
 				if compare_clusters(a, full_atoms, a1, full_atoms):
 					found = True
-					groups[a.tuple_data()] = "GROUP_%d" % index
-					groups[a1.tuple_data()] = "GROUP_%d" % index
+					groups[a.tuple_data()] = "GROUP_%d" % (index+1)
+					groups[a1.tuple_data()] = "GROUP_%d" % (index+1)
 			if not found:
-				groups[a.tuple_data()] = "SINGLE_%d" % index
+				groups[a.tuple_data()] = "SINGLE_%d" % (index+1)
 			index += 1
 		return groups
 							
