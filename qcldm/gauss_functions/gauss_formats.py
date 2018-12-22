@@ -7,10 +7,10 @@ from .gauss_function import GaussFunctionContracted, GaussFunctionNormed, GaussF
 class GaussFormat:
 
 	@staticmethod
-	def basis_to_gaussian94(basis):
+	def basis_to_gaussian94(components):
 		res = ''
-		for l in sorted(basis.components.keys())
-			for cg in basis.components[l]:
+		for l in sorted(components.keys()):
+			for cg in components[l]:
 				res += "%s  %2d 1.00   \n" % (Shells.SHELLS[l], len(cg.fs))
 				for n, gf in cg.fs:
 					res += "    %25.18f    %25.18f\n" % (gf.a, n)

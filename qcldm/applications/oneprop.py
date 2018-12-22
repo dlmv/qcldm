@@ -3,7 +3,7 @@ import re, os, logging, shutil
 import ConfigParser
 
 from ..matrix.matrix_cutter import write_reduced
-from ..gauss_format.gauss_format import GaussFormat
+from ..gauss_functions.gauss_formats import GaussFormat
 
 OPTIONS = '''
 ObjVersion = 1
@@ -104,8 +104,7 @@ def prepare_oneprop_crystal(co, atoms, dms, num, rc):
 	basis = ''
 	for k in co.basis.keys():
 		basis += '%s 0\n' % k
-		for l in sorted(co.basis[k].keys()):
-			basis += GaussFormat.to_gaussian94(co.basis[k][l])
+		basis += GaussFormat.basis_to_gaussian94(co.basis[k])
 		basis += '****\n'
 	with open(os.path.join(dirname, 'basis.L'), 'w') as f:
 		f.write(basis)

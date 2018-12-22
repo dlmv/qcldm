@@ -26,7 +26,7 @@ write_xyz(co.cell.cell, 'cell.xyz')
 
 
 centers = [co.cell.cell[num - 1]]
-cluster = co.cell.neighbours.neighbours_cluster(centers, 6)
+cluster = co.cell.neighbours.neighbours_cluster(centers, 6, {})
 atoms = []
 for shell in cluster:
 	atoms.extend(shell)
