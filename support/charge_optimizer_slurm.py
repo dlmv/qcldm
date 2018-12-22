@@ -167,22 +167,27 @@ class GradTask:
 		self.gradfunc = gradfunc
 		
 	def create_input(self):
+		commands = []
 		if os.path.exists(self.dirname):
 			shutil.rmtree(self.dirname)
 		os.mkdir(self.dirname)
-		for cf in self.calc_files:
-			shutil.copyfile(cf, os.path.join(self.dirname, cf))
 		write_embedding(self.e, self.x, self.dirname)
+		for cf in self.calc_files:
+			tmpc = "cp %s %s" % (cf, self.dirname)
+			commands.append(srun_command % tmpc)
+		command = " && ".join(commands)
+		self.process = subprocess.Popen(command, shell=True, cwd='.')
+		self.state = 1
 
-	def start(self):
+	def start_dscf(self):
 		command = srun_command % dscf_command
 		self.process = subprocess.Popen(command, shell=True, cwd=self.dirname)
-		self.state = 1
+		self.state = 2
 
 	def start_grad(self):
 		command = srun_command % grad_command
 		self.process = subprocess.Popen(command, shell=True, cwd=self.dirname)
-		self.state = 2
+		self.state = 3
 
 	def status(self):
 		if self.process == None:
@@ -193,7 +198,10 @@ class GradTask:
 				return poll
 			elif poll != 0:#error
 				return poll
-			elif self.state == 1:#dscf finished,but  not grad:
+			elif self.state == 1:#directory_created:
+				self.start_dscf()
+				return None
+			elif self.state == 2:#dscf finished, but not grad:
 				self.start_grad()
 				return None
 			else:#finished
@@ -213,7 +221,7 @@ class GradQueue:
 		while len(self.runq) < self.limit and len(self.waitq) > 0:
 			task = self.waitq.pop()
 			self.runq.append(task)
-			task.start()
+			task.create_input()
 
 	def check_finished(self, task):
 		status = task.status()
@@ -291,7 +299,6 @@ class GradManager:
 					for i, xs in enumerate(all_grads(self.last_main_x, eps)):
 						dirname = 'grad%s' % i
 						task = GradTask(dirname, self.e, xs, self.cache, gradfunc)
-						task.create_input()
 						tasks.append(task)
 					q = GradQueue(tasks, self.limit)
 					q.do_tasks()
