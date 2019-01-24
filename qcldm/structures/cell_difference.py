@@ -34,7 +34,9 @@ def compare_cells(c1, c2):
 			r1 = a1.distance(n1)
 			r2 = a2.distance(n2)
 			d = ((r1 - r2) / r1)**2
-			if abs(r1-r2) > 0.05:
+			if abs(r1-r2) > 2:
+				continue
+			if abs(r1-r2) > 0.01:
 				print "%7s%6.3f%6.3f" % ("%s%d" % (n1.name(), n1.num), r1, r2)
 			sd += d
 			if mxd < d and n1 in c1.cell:
@@ -49,6 +51,8 @@ def compare_cells(c1, c2):
 				m2 = corresponding_atom(m1, c2)
 				an1 = a1.angle(n1, m1)
 				an2 = a2.angle(n2, m2)
+				if abs(an1-an2) > 15:
+					continue
 				if abs(an1-an2) > 3:
 					print "%7s%5s%8.3f%8.3f" % ("%s%d" % (n1.name(), n1.num), "%s%d" % (m1.name(), m1.num), an1, an2)
 	sd = (sd / n) ** 0.5
