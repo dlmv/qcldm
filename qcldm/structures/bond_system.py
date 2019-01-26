@@ -96,7 +96,7 @@ class LinearSystemChargeTransferBondData(PreloadedBondData):
 
 		xs, res, rank, s = np.linalg.lstsq(A, B, tol)
 		
-		assert rank < len(b)
+		#assert rank < len(b)
 
 		self.data = zip(bonds, xs)
 

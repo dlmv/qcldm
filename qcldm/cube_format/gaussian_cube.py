@@ -139,6 +139,9 @@ class GaussianCube:
 
 	def point_value(self, point):
 		return self.voxel_value(self.find_voxel(np.array(point)))
+
+	def voxel_volume(self):
+		return self.vectors[0] * (self.vectors[1].cross(self.vectors[2]))
 	
 
 

@@ -136,9 +136,49 @@ def masked(target, f):
 	return res
 
 def masked_atomsphere(target, atomnum, r):
-	center = target.atoms[0].position()
+	center = target.atoms[atomnum - 1].position()
 	f = lambda l: ((l[0] - center.x)**2 + (l[1] - center.y)**2 + (l[2] - center.z)**2)**0.5 < r
 	return masked(target, f)
+
+def integrate(target):
+	logging.info(u'')
+	logging.info(u'*********************************************')
+	logging.info(u'  Integrating')
+	logging.info(u'*********************************************')
+	logging.info(u'')
+	res = 0
+	i = 0
+	dv = target.voxel_volume()
+	for tx in range(target.size[0]):
+		for ty in range(target.size[1]):
+			for tz in range(target.size[2]):
+				res += target.voxel_value([tx, ty, tz]) * dv
+				i += 1
+				if i % (target.data.size / 10) == 0:
+					logging.debug(u'  %d of %d' % (i, target.data.size))
+	return res
+
+def integrate_in_sphere(target, atomnum, r):
+	logging.info(u'')
+	logging.info(u'*********************************************')
+	logging.info(u'  Integrating')
+	logging.info(u'*********************************************')
+	logging.info(u'')
+	res = 0
+	i = 0
+	dv = target.voxel_volume()
+	center = target.atoms[atomnum - 1].position()
+	f = lambda l: ((l[0] - center.x)**2 + (l[1] - center.y)**2 + (l[2] - center.z)**2)**0.5 < r
+	for tx in range(target.size[0]):
+		for ty in range(target.size[1]):
+			for tz in range(target.size[2]):
+				cuboid = target.voxel_cuboid([tx, ty, tz])
+				if f(cuboid.center):
+					res += abs(target.voxel_value([tx, ty, tz]) * dv)
+				i += 1
+				if i % (target.data.size / 10) == 0:
+					logging.debug(u'  %d of %d' % (i, target.data.size))
+	return res
 	
 #def trimmed(target):
 #	assert not target.is_periodic()
