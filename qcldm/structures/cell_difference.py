@@ -27,13 +27,13 @@ def compare_cells(c1, c2):
 	a, nb = 0,0
 
 	for a1 in c1.cell:
-		print "%s%d" % (a1.name(), a1.num)
 		a2 = corresponding_atom(a1, c2)
 		for n1 in c1.neighbours.first_neighbours(a1, {}):
 			n2 = corresponding_atom(n1, c2)
 			r1 = a1.distance(n1)
 			r2 = a2.distance(n2)
-			d = ((r1 - r2) / r1)**2
+#			d = ((r1 - r2) / r1)**2
+			d = (r1 - r2)**2
 			if abs(r1-r2) > 2:
 				continue
 			if abs(r1-r2) > 0.01:
@@ -75,7 +75,6 @@ def compare_cells3(c1, c2, c3):
 	c1.neighbours.merge_from(c3.neighbours)
 
 	for a1 in c1.cell:
-		print "%s%d" % (a1.name(), a1.num)
 		a2 = corresponding_atom(a1, c2)
 		a3 = corresponding_atom(a1, c3)
 		for n1 in c1.neighbours.first_neighbours(a1, {}):

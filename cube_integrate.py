@@ -10,15 +10,14 @@ from math3d import Vector
 
 init_log(sys.argv)
 
-cube = GaussianCube.from_file('diff.cube')
+filename = sys.argv[1]
+r = float(sys.argv[2])
 
-r = float(sys.argv[1])
+cube = GaussianCube.from_file(filename)
 
 n = integrate_in_sphere(cube, 1, r)
 print n
 
-
-#c.to_file('diff.cube')
 
 
 

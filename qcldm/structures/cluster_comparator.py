@@ -45,7 +45,7 @@ def rotate_to_axis(ax1, ax2, c2):
 			for a in c2:
 				res.append(AtomVector(a._name, - a._vector))
 			return res
-	angle = ax2.position().signed_angle(ax1.position(), ax_rot)
+	angle = ax2.position().signed_angle_to(ax1.position(), ax_rot)
 	rot = Orientation.new_axis_angle(ax_rot, angle)
 	res = []
 	for a in c2:
@@ -56,7 +56,7 @@ def rotate_along(ax2, ay1, ay2, c2):
 	ax_rot = ax2.position()
 	r1 = ay1.position() - ay1.position().projection(ax_rot)
 	r2 = ay2.position() - ay2.position().projection(ax_rot)
-	angle = r2.signed_angle(r1, ax_rot)
+	angle = r2.signed_angle_to(r1, ax_rot)
 	rot = Orientation.new_axis_angle(ax_rot, angle)
 	res = []
 	for a in c2:
