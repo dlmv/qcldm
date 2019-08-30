@@ -304,10 +304,10 @@ class ElementsDict(object):
         self._list = []
         self._dict = {}
         for element in elements:
-            if element.number > len(self._list) + 1:
+            if element.number > len(self._list):
                 raise ValueError("Elements must be added in order")
-            if element.number <= len(self._list):
-                self._list[element.number - 1] = element
+            if element.number <= len(self._list) - 1:
+                self._list[element.number] = element
             else:
                 self._list.append(element)
             self._dict[element.number] = element
@@ -332,12 +332,23 @@ class ElementsDict(object):
         except KeyError:
             try:
                 start, stop, step = key.indices(len(self._list))
-                return self._list[slice(start - 1, stop - 1, step)]
+                return self._list[slice(start, stop, step)]
             except:
                 raise KeyError
 
 
 ELEMENTS = ElementsDict(
+    Element(
+        0, 'X', 'Nothing',
+        group=0, period=0, block='s', series=0,
+        mass=0.0, eleneg=0.0, eleaffin=0.0,
+        covrad=0.0, atmrad=0.0, vdwrad=0.0,
+        tboil=0.0, tmelt=0.0, density=0.0,
+        eleconfig='0s',
+        oxistates='*',
+        ionenergy=(0.0, ),
+        isotopes={1: Isotope(0.0, 1, 0)}),
+
     Element(
         1, 'H', 'Hydrogen',
         group=1, period=1, block='s', series=1,

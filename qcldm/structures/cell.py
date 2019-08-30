@@ -82,7 +82,7 @@ class Cell:
 		self.atoms = atoms
 		self.cell = self.shift([0,0,0])
 		if self.vectors:
-			self.supercell = self.extended_cell()
+			self.supercell = self.extended_cell(1)
 		else:
 			self.supercell = self.cell
 		self.neighbours = NeighbourCache(self)
@@ -96,9 +96,10 @@ class Cell:
 			atoms.append(at1)
 		return atoms
 
-	def extended_cell(self):
+	def extended_cell(self, size):
 		atoms = []
-		c_range = (-1, 0, 1)
+
+		c_range = range(-size, size+1)
 		for ia in c_range:
 			for ib in c_range:
 				for ic in c_range:

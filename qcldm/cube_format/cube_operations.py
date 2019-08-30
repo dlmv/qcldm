@@ -179,6 +179,62 @@ def integrate_in_sphere(target, atomnum, r):
 				if i % (target.data.size / 10) == 0:
 					logging.debug(u'  %d of %d' % (i, target.data.size))
 	return res
+
+def integrate_in_sphere_range(target, atomnum, r, step):
+	logging.info(u'')
+	logging.info(u'*********************************************')
+	logging.info(u'  Integrating')
+	logging.info(u'*********************************************')
+	logging.info(u'')
+	i = 0
+	dv = target.voxel_volume()
+	center = target.atoms[atomnum - 1].position()
+	funcs = []
+	rs = [1.0 * x * step for x in range(0, int(math.ceil(r / step)))]
+	for rr in rs:
+		f = lambda l,rr=rr: ((l[0] - center.x)**2 + (l[1] - center.y)**2 + (l[2] - center.z)**2)**0.5 < rr
+		funcs.append(f)
+	res = [0] * len(funcs)
+	for tx in range(target.size[0]):
+		for ty in range(target.size[1]):
+			for tz in range(target.size[2]):
+				cuboid = target.voxel_cuboid([tx, ty, tz])
+				for n, f  in enumerate(funcs):
+					if f(cuboid.center):
+						res[n] += abs(target.voxel_value([tx, ty, tz]) * dv)
+				i += 1
+				if i % (target.data.size / 10) == 0:
+					logging.debug(u'  %d of %d' % (i, target.data.size))
+	return rs, res
+
+def integrate_in_sphere_range_opt(target, atomnum, r, step):
+	logging.info(u'')
+	logging.info(u'*********************************************')
+	logging.info(u'  Integrating')
+	logging.info(u'*********************************************')
+	logging.info(u'')
+	i = 0
+	dv = target.voxel_volume()
+	center = target.atoms[atomnum - 1].position()
+	rs = [1.0 * x * step for x in range(0, int(math.ceil(r / step)))]
+	res = [0] * len(rs)
+	ls = list(reversed(list(enumerate(rs))))
+	for tx in range(target.size[0]):
+		for ty in range(target.size[1]):
+			for tz in range(target.size[2]):
+				cuboid = target.voxel_cuboid([tx, ty, tz])
+				value = abs(target.voxel_value([tx, ty, tz]) * dv)
+				cc = cuboid.center
+				r = ((cc[0] - center.x)**2 + (cc[1] - center.y)**2 + (cc[2] - center.z)**2)**0.5
+				for n, r0 in ls:
+					if r < r0:
+						res[n] += value
+					else:
+						break
+				i += 1
+				if i % (target.data.size / 10) == 0:
+					logging.debug(u'  %d of %d' % (i, target.data.size))
+	return rs, res
 	
 #def trimmed(target):
 #	assert not target.is_periodic()

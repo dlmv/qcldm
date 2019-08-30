@@ -55,7 +55,7 @@ $twocomp-ecp
 $dft-section
 $dft-functional pbe0
 $dft-gridtype cvw-3
-$ncpus   24
+$ncpus   28
 $scfmo    file=mos
 $twocomp shells
  a    1-  %%ELECTRONS%%    (  1  )
