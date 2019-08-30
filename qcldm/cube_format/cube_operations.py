@@ -222,9 +222,8 @@ def integrate_in_sphere_range_opt(target, atomnum, r, step):
 	for tx in range(target.size[0]):
 		for ty in range(target.size[1]):
 			for tz in range(target.size[2]):
-				cuboid = target.voxel_cuboid([tx, ty, tz])
+				cc = target.voxel_center([tx, ty, tz])
 				value = abs(target.voxel_value([tx, ty, tz]) * dv)
-				cc = cuboid.center
 				r = ((cc[0] - center.x)**2 + (cc[1] - center.y)**2 + (cc[2] - center.z)**2)**0.5
 				for n, r0 in ls:
 					if r < r0:

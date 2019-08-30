@@ -130,6 +130,14 @@ class GaussianCube:
 		for k in range(3):
 				n_origin += coords[k] * self.vectors[k]._data
 		return Cuboid(list(n_origin), [list(v._data) for v in self.vectors])
+		
+	def voxel_center(self, coords):
+		assert len(coords) == 3
+		res = np.copy(self.origin._data)
+		for k in range(3):
+				res += (coords[k] + 0.5) * self.vectors[k]._data
+		return res
+		
 
 	def find_voxel(self, point):
 		a = np.array([k._data for k in self.vectors]).transpose()
