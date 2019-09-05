@@ -101,6 +101,38 @@ def compare_cells3(c1, c2, c3):
 
 
 
+def get_dispacements(c1, c2):
+	if len(c1.cell) != len(c2.cell):
+		print 'different atom number!!'
+		return
+	for a1, a2 in zip(c1.cell, c2.cell):
+		if a1.name() != a2.name():
+			print 'different atom types!'
+			return
+
+	sd = 0
+	mxd = 0
+	mxa = None
+	
+	n = 0
+
+	for a1 in c1.cell:
+		a2 = corresponding_atom(a1, c2)
+		r = a1.distance(a2)
+		d = r**2
+		sd += d
+		if mxd < d:
+			mxd = d
+			mxa = a1
+		if a1.name() != 'X':
+			n += 1
+	print n
+	sd = (sd / n) ** 0.5
+	mxd = mxd ** 0.5
+	return sd, mxd, mxa
+
+
+
 
 
 
