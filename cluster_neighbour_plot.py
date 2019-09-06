@@ -12,7 +12,19 @@ IONIC_RADII = {
 'P': 0.35
 }
 
-FORMULA_TEMPLATE = 'exp(-((x-%f)**2)/(2*%f**2))'
+#FORMULA_TEMPLATE = 'where(abs(x-%(R)f)>%(r)f,0,(1-((x-%(R)f)/%(r)f)**2)**0.5)'
+
+FORMULA_TEMPLATE = '''
+where(
+  abs(x-%(R)f)>%(r)f,
+  0,
+  where(
+    x-%(R)f>0,
+    1-(1-((x-%(R)f-%(r)f)/%(r)f)**2)**0.5,
+    1-(1-((x-%(R)f+%(r)f)/%(r)f)**2)**0.5
+  )
+)
+'''.replace("\n", "").replace(" ", "")
 
 init_log(sys.argv)
 
@@ -23,14 +35,14 @@ cluster = read_xyz(filename)
 
 neighmap = {}
 center = cluster.atoms[0]
-for atom in cluster.atoms[1:]:
+for atom in cluster.atoms[0:]:
 	if r < atom.distance(center):
 		continue
 	if atom.name() not in neighmap.keys():
 		neighmap[atom.name()] = ''
 	else:
 		neighmap[atom.name()] += ' + '
-	neighmap[atom.name()] += FORMULA_TEMPLATE % (atom.distance(center) / Units.BOHR, IONIC_RADII[atom.name()] / Units.BOHR / 10)
+	neighmap[atom.name()] += FORMULA_TEMPLATE % {'R' : atom.distance(center) / Units.BOHR, 'r' : IONIC_RADII[atom.name()] / Units.BOHR / 2}
 
 with open('cluster_neghbour_formulas', 'w') as o:
 	for k in sorted(neighmap.keys()):
