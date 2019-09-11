@@ -84,22 +84,25 @@ def write_coords(coords, filename):
 			outp.write(" %16.10f %16.10f% 16.10f  %s\n" % (x,y,z,name))
 		outp.write("$end")
 
-def write_result(grad):
+def write_result(grad, damp):
 	with open("coord.log", "a") as log:
-		log.write("grad = %f\n" % grad)
+		log.write("grad = %13.8f | damp = %5.3f\n" % (grad, damp))
 
-def step(coords, num, empos):
+def step(startcoords, lastcoords, num, empos, lastgrad, damp):
 		assert os.system('/home/demidov/turbo/bin/amd64/part_relax > log_relax.log') == 0
 		time.sleep(2)
-		tcoords = read_coord('coord')
+		relaxcoords = read_coord('coord')
+			
 		ncoords = []
-		for i, ([name, cc], [tname, tc]) in enumerate(zip(coords, tcoords)):
+		for i, ([sname, sc], [lname, lc], [rname, rc]) in enumerate(zip(startcoords, lastcoords, relaxcoords)):
 			nc = None
 			if i in empos:
-				nc = cc
+				nc = sc
 			else:
-				nc = tc
-			ncoords.append([name, nc])
+				nc = []
+				for lk, rk in zip(lc, rc):
+					nc.append(lk*(1-damp) + rk*damp)
+			ncoords.append([sname, nc])
 		write_coords(ncoords, 'coord')
 		assert os.system('/home/demidov/turbo/bin/amd64/part_dscf > log_dscf.log') == 0
 		time.sleep(2)
@@ -107,10 +110,10 @@ def step(coords, num, empos):
 		time.sleep(2)
 		grad = read_grad_from_control(num, empos)
 		write_coords(ncoords, 'coord.restart')
-		return grad
+		return grad, ncoords
 
 eps = float(sys.argv[1])
-num, empos = read_embed_positions()
+
 coords = None
 if os.path.exists('coord.restart'):
 	print 'restarting'
@@ -118,6 +121,9 @@ if os.path.exists('coord.restart'):
 else:
 	coords = read_coord('coord.start')
 write_coords(coords, 'coord')
+
+num, empos = read_embed_positions()
+
 with open("coord.log", "w") as log:
 	log.write("OPTIMIZATION START: eps=%.2e\n" % eps)
 assert os.system('/home/demidov/turbo/bin/amd64/part_dscf > log_dscf.log') == 0
@@ -125,10 +131,13 @@ time.sleep(2)
 assert os.system('/home/demidov/turbo/bin/amd64/part_grad > log_grad.log') == 0
 time.sleep(2)
 grad = read_grad_from_control(num, empos)
-write_result(grad)
+damp = 0.5
+write_result(grad, damp)
+tcoords = coords
+
 while True:
-	grad1 = step(coords, num, empos)
-	write_result(grad1)
+	grad1, tcoords = step(coords, tcoords, num, empos, grad, damp)
+	write_result(grad1, damp)
 	if abs(grad1-grad) < eps:
 		break
 	grad = grad1
