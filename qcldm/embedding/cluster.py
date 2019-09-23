@@ -32,6 +32,17 @@ class Cluster:
 				return a
 		assert False, 'additional center not found! {} {} {}' .format(name, shell, r)
 
+	def add_cations(self, shells, name, r):
+		for a in self.cell.extended_cell(2):
+			if a.name() == name and a.distance(self.centers[0]) <= r:
+				print a
+				found = False
+				for shell in shells:
+					if a in shell:
+						found = True
+				if not found:
+					shells[-1].append(a)
+
 	def __init__(self, cell, settings):
 		self.cell = cell
 		self.settings = settings
@@ -52,6 +63,9 @@ class Cluster:
 			cell.neighbours.expand_covalent_border(shells, self.settings.bond_distance_override_map)
 		
 		cell.neighbours.expand_neighbours(shells, self.settings.bond_distance_override_map)
+		
+		for name, r in self.settings.cation_sphere:
+			self.add_cations(shells, name, r)
 		
 		for i in range(settings.electro_shell_num):
 			cell.neighbours.expand_neighbours(shells, self.settings.bond_distance_override_map)
