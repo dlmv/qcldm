@@ -21,7 +21,7 @@ write_xyz(co.cell.cell, 'cell.xyz')
 write_xyz(co.cell.supercell, 'supercell.xyz')
 
 atoms = []
-vectors = [6.93665819, 6.93665819, 6.06490067]
+vectors = [6.91898051, 6.91898051, 6.06871692]
 zero = [-2.3, -3, -2.3]
 for a in co.cell.extended_cell(3):
 	ok = True
