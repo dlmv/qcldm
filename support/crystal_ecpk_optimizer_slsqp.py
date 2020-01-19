@@ -57,10 +57,10 @@ def read_start():
 				a, k, nr = [float(x) for x in line.split('!')[0].split()]
 				nr = int(nr)
 				if nr == -2:
-					group.effective_value = a
+					group.effective_value = k
 					group.value_is_2 = True
 				elif not group.value_is_2:
-					group.effective_value = a
+					group.effective_value = k
 				
 
 			e.rawfile += line
@@ -79,14 +79,16 @@ def write_current(e, values, restart, noguess):
 				value = values[group_index]
 				a, k, nr = [float(x) for x in line.split('!')[0].split()]
 				nr = int(nr)
-				mult = math.exp(value) / group.effective_value
-				if nr == -2:
-					a *= mult
-				elif nr == -1:
-					a *= mult
-					k *= mult**0.5
-				else:
-					assert False, nr
+#				mult = math.exp(value) / group.effective_value
+				mult = value / group.effective_value
+				k *= mult
+#				if nr == -2:
+#					a *= mult
+#				elif nr == -1:
+#					a *= mult
+#					k *= mult**0.5
+#				else:
+#					assert False, nr
 				line = "{:24.16f} {:24.16f} {:3d}".format(a, k, nr)
 				if restart:
 					line += " !" + group_name
@@ -158,8 +160,8 @@ def do_step(xs, e, crystall_command=crystall_command):
 	return grad
 
 e = read_start()
-values = [math.log(g.effective_value) for g in e.groups]
-bounds = [(math.log(1./15),math.log(15))] * len(values)
+values = [g.effective_value for g in e.groups]
+bounds = [(-10,10)] * len(values)
 target = lambda x: do_step(x, e)
 
 with open(log_filename, 'w') as logf:

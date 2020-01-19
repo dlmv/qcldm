@@ -5,7 +5,7 @@ import numpy as np
 
 dscf_command = '/home/demidov/turbo/bin/amd64/part_dscf>log_dscf.log'
 grad_command = '/home/demidov/turbo/bin/amd64/part_grad>log_grad.log'
-srun_command = 'srun -N 1 -n 1 -c 24 %s'
+srun_command = 'srun -N 1 -n 1 -c 28 %s'
 
 class Embedding:
 	def __init__(self):

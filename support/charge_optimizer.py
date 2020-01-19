@@ -179,9 +179,9 @@ def write_embedding_block(emb, e, xe, include_limits_and_groups):
 
 def calculate(n, empos, e, xe, eps):
 		write_embedding(e, xe)
-		assert os.system('dscf > log_dscf.log') == 0
+		assert os.system('/home/demidov/turbo/bin/amd64/part_dscf > log_dscf.log') == 0
 		time.sleep(5)
-		assert os.system('grad > log_grad.log') == 0
+		assert os.system('/home/demidov/turbo/bin/amd64/part_grad > log_grad.log') == 0
 		time.sleep(5)
 		grad = read_grad_from_control(n, empos)
 		t = check_if_step_not_grad(xe, eps)

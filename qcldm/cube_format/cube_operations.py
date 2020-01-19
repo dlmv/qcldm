@@ -235,6 +235,37 @@ def integrate_in_sphere_range_opt(target, atomnum, r, step):
 					logging.debug(u'  %d of %d' % (i, target.data.size))
 	return rs, res
 	
+def integrate_in_sphere_range_normed(target, atomnum, r, step):
+	logging.info(u'')
+	logging.info(u'*********************************************')
+	logging.info(u'  Integrating')
+	logging.info(u'*********************************************')
+	logging.info(u'')
+	i = 0
+	dv = target.voxel_volume()
+	center = target.atoms[atomnum - 1].position()
+	rs = [1.0 * x * step for x in range(0, int(math.ceil(r / step)))]
+	res = [0] * len(rs)
+	res_vol = [0] * len(rs)
+	ls = list(enumerate(rs))
+	for tx in range(target.size[0]):
+		for ty in range(target.size[1]):
+			for tz in range(target.size[2]):
+				i += 1
+				if i % (target.data.size / 10) == 0:
+					logging.debug(u'  %d of %d' % (i, target.data.size))
+				
+				cc = target.voxel_center([tx, ty, tz])
+				value = abs(target.voxel_value([tx, ty, tz]) * dv)
+				r = ((cc[0] - center.x)**2 + (cc[1] - center.y)**2 + (cc[2] - center.z)**2)**0.5
+				for n, r0 in ls:
+					if r < r0:
+						res[n] += value
+						res_vol[n] += dv
+						break
+
+	return rs, [r/v if v != 0 else 0 for r,v in zip(res, res_vol)]
+	
 #def trimmed(target):
 #	assert not target.is_periodic()
 #	logging.info(u'')

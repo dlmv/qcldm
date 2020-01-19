@@ -25,7 +25,8 @@ def read_grad_from_control(num, pos, nepos):
 				break
 			n += 1
 		assert n < len(lines)
-		grad = 0.
+		grad_s = 0.
+		grad_a = 0.
 		while n < len(lines):
 			while n < len(lines):
 				if lines[n][0] == '#':
@@ -35,8 +36,9 @@ def read_grad_from_control(num, pos, nepos):
 					break
 				n += 1
 			if n == len(lines):
-				return grad
-			grad = 0.
+				return grad_s, grad_a
+			grad_s = 0.
+			grad_a = 0.
 			rawgrads = []
 			n0 = n
 			for i in range(num):
@@ -44,11 +46,14 @@ def read_grad_from_control(num, pos, nepos):
 				igrads = [float(l.replace("D", "E")) for l in lines[n].split()]
 				if i not in pos + nepos:
 					rawgrads.extend(igrads)
-			grad = (reduce(lambda s, i: s + i**2, rawgrads, 0.))**0.5
+			grad_s = (reduce(lambda s, i: s + i**2, rawgrads, 0.))**0.5 
+			grad_a = grad_s / (len(rawgrads) / 3)**0.5
 
 
 n, pos, nepos = read_embed_positions()
-print read_grad_from_control(n, pos, nepos)
+grad_s, grad_a = read_grad_from_control(n, pos, nepos)
+print grad_s
+print grad_a
 
 
 

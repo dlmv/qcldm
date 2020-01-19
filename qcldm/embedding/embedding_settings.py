@@ -16,6 +16,7 @@ class EmbeddingSettings:
 		self.make_turbo = False
 		self.bader = False
 		self.add_centers = []
+		self.cation_sphere = []
 
 	@staticmethod
 	def from_file(name):
@@ -78,6 +79,10 @@ class EmbeddingSettings:
 						shell = int(shell)
 						r = float(r)
 						es.add_centers.append((atom, shell, r))
+					elif param == 'add_cations_in_sphere':
+						atom, r = read_2params(ls)
+						r = float(r)
+						es.cation_sphere.append((atom, r))
 						
 			return es
 
