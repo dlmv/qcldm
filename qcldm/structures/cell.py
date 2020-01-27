@@ -77,8 +77,11 @@ class CellAtom:
 
 class Cell:
 
-	def __init__(self, atoms, vectors):
+	def __init__(self, atoms, vectors, cryst_mat, symops, assym_n):
 		self.vectors = vectors
+		self.cryst_mat = cryst_mat
+		self.symops = symops
+		self.assym_n = assym_n
 		self.atoms = atoms
 		self.cell = self.shift([0,0,0])
 		if self.vectors:

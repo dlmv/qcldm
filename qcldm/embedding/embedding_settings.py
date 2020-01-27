@@ -15,6 +15,7 @@ class EmbeddingSettings:
 		self.name = ''
 		self.make_turbo = False
 		self.bader = False
+		self.skip_centers = []
 		self.add_centers = []
 		self.cation_sphere = []
 
@@ -74,6 +75,11 @@ class EmbeddingSettings:
 						atom, value = read_2params(ls)
 						value = int(value)
 						es.valence_override_map[atom] = value
+					elif param == 'skip_center':
+						atom, shell, r = read_3params(ls)
+						shell = int(shell)
+						r = float(r)
+						es.skip_centers.append((atom, shell, r))
 					elif param == 'add_center':
 						atom, shell, r = read_3params(ls)
 						shell = int(shell)
