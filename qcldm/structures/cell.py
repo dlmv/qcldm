@@ -1,5 +1,6 @@
 import math, logging
 from math3d import Vector
+import numpy as np
 
 from cell_neighbours import NeighbourCache
 from cluster_comparator import compare_clusters
@@ -85,11 +86,41 @@ class Cell:
 		self.atoms = atoms
 		self.cell = self.shift([0,0,0])
 		if self.vectors:
+			self.bordered_cell = [a.real_atom() for a in self.shift([0,0,0])]
+			start = Vector(0,0,0)
+			for i in range(2):
+				for j in range(2):
+					for k in range(2):
+						self.bordered_cell.append(AtomVector('x', start + self.vectors[0] * i + self.vectors[1] * j + self.vectors[2] * k, {}))
+
+		
+		if self.vectors:
 			self.supercell = self.extended_cell(1)
 		else:
 			self.supercell = self.cell
 		self.neighbours = NeighbourCache(self)
 #		self.group_atoms()
+
+	def relative_atom(self, atom, cryst_cell=False):
+		vector_basis = np.array([v._data for v in self.vectors])
+		if (cryst_cell):
+			crysmat = np.array(self.cryst_mat)
+			vector_basis = crysmat.dot(vector_basis)
+		rel = np.linalg.inv(np.transpose(vector_basis)).dot(atom.position()._data)
+		rel = [x - 1 if x > 0.5 else x for x in rel]
+		rel = [x + 1 if x < -0.5 else x for x in rel]
+		return AtomVector(atom.name(), Vector(rel), {})
+
+	def cartesian_atom(self, atom, cryst_cell=False):
+		vector_basis = np.array([v._data for v in self.vectors])
+		if (cryst_cell):
+			crysmat = np.array(self.cryst_mat)
+			vector_basis = crysmat.dot(vector_basis)
+		unrel = np.transpose(vector_basis).dot(atom.position()._data)
+#		for ca in self.supercell:
+#			if abs(ca.position()[0] - unrel[0]) < 1e-5 and abs(ca.position()[1] - unrel[1]) < 1e-5 and abs(ca.position()[2] - unrel[2]) < 1e-5:
+#				return ca.relative()
+		return AtomVector(atom.name(), Vector(unrel), {})
 
 	def shift(self, shifts):
 		assert self.vectors or shifts == [0, 0, 0], "Trying to shift non-periodic cell!"

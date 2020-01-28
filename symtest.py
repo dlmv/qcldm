@@ -19,6 +19,7 @@ c.load('.')
 
 co = CrystalOut.from_file(c.out_file)
 write_xyz(co.cell.cell, 'cell.xyz')
+write_xyz(co.cell.bordered_cell, 'cell_b.xyz')
 write_xyz(co.cell.supercell, 'supercell.xyz')
 
 write_crystal_part(co, 'tmp')

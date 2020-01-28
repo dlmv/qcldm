@@ -28,15 +28,12 @@ def write_structure(cell, f):
 	primbas = np.array([v._data for v in cell.vectors])
 	crysbas = crysmat.dot(primbas)
 	for i, atom in enumerate(cell.atoms):
-		cartpos = atom.position()._data
-		rel = np.linalg.inv(np.transpose(primbas)).dot(cartpos)
-		rel = [x - 1 if x > 0.5 else x for x in rel]
-		rel = [x + 1 if x < -0.5 else x for x in rel]
+		relatom = cell.relative_atom(atom, False)
 		f.write('    %3d %s %3d %2s   %19.12e %19.12e %19.12e\n' % (i+1,
 			'T' if i in cell.assym_n else 'F',
-			ELEMENTS[atom.name()].number,
+			ELEMENTS[relatom.name()].number,
 			atom.name() + " " if len(atom.name()) == 1 else atom.name(),
-			rel[0], rel[1], rel[2]
+			relatom.position()[0], relatom.position()[1], relatom.position()[2]
 			))
 	f.write("\n")
 	if not (crysmat == np.identity(3)).all():
@@ -53,15 +50,12 @@ def write_structure(cell, f):
 		f.write('     ATOM                 X/A                 Y/B                 Z/C    \n')
 		f.write(DIVIDER)
 		for i, atom in enumerate(cell.atoms):
-			cartpos = atom.position()._data
-			rel = np.linalg.inv(np.transpose(crysbas)).dot(cartpos)
-			rel = [x - 1 if x > 0.5 else x for x in rel]
-			rel = [x + 1 if x < -0.5 else x for x in rel]
+			relatom = cell.relative_atom(atom, True)
 			f.write('    %3d %s %3d %2s   %19.12e %19.12e %19.12e\n' % (i+1,
 				'T' if i in cell.assym_n else 'F',
-				ELEMENTS[atom.name()].number,
-				atom.name() + " " if len(atom.name()) == 1 else '',
-				rel[0], rel[1], rel[2]
+				ELEMENTS[relatom.name()].number,
+				relatom.name() + " " if len(relatom.name()) == 1 else '',
+				relatom.position()[0], relatom.position()[1], relatom.position()[2]
 				))
 		f.write("\n")
 	f.write(" T = ATOM BELONGING TO THE ASYMMETRIC UNIT\n")
@@ -121,7 +115,7 @@ def write_basis(co, f):
 	f.write(DIVIDER)
 	f.write(' LOCAL ATOMIC FUNCTIONS BASIS SET\n')
 	f.write(DIVIDER)
-	f.write('   ATOM   X(AU)   Y(AU)   Z(AU)  N. TYPE  EXPONENT  S COEF   P COEF   D/F/G COEF')
+	f.write('   ATOM   X(AU)   Y(AU)   Z(AU)  N. TYPE  EXPONENT  S COEF   P COEF   D/F/G COEF\n')
 	f.write(DIVIDER)
 	n = 1
 	norb = {}
