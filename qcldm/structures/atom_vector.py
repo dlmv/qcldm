@@ -31,3 +31,9 @@ class AtomVector:
 
 	def distance(self, other):
 		return self.position().dist(other.position())
+		
+	def __str__(self):
+		return "atom %s (%8.5f %8.5f %8.5f)" % (self.name(), self.position().x, self.position().y, self.position().z)
+
+	def __repr__(self):
+		return self.__str__()

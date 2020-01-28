@@ -1,6 +1,8 @@
 import math, logging
 from math3d import Vector
 import numpy as np
+import scipy.linalg as linalg
+from scipy.linalg import null_space
 
 from cell_neighbours import NeighbourCache
 from cluster_comparator import compare_clusters
@@ -58,7 +60,7 @@ class CellAtom:
 		return hash(self.tuple_data())
 
 	def __str__(self):
-		return "atom %s%d(cell %d %d %d)" % (self.name(), self.num, self.shifts[0], self.shifts[1], self.shifts[2])
+		return "cell_atom %s%d(cell %d %d %d)" % (self.name(), self.num, self.shifts[0], self.shifts[1], self.shifts[2])
 
 	def __repr__(self):
 		return self.__str__()
@@ -122,6 +124,36 @@ class Cell:
 #				return ca.relative()
 		return AtomVector(atom.name(), Vector(unrel), {})
 
+	def apply_symop(self, atom, symop):
+		rel = self.relative_atom(atom, False)
+		n,inv,rot_mat,translator = symop
+		new_vec = np.array(rot_mat).dot(rel.position()._data)
+		new_vec += np.array(translator)
+		new_vec = [x - 1 if x > 0.5 else x for x in new_vec]
+		new_vec = [x + 1 if x < -0.5 else x for x in new_vec]
+		return self.cartesian_atom(AtomVector(atom.name(), Vector(new_vec), {}), False)
+
+	def get_sym_vars(self, n):
+		atom = self.atoms[self.assym_n[n]]
+		atom = self.cartesian_atom(self.relative_atom(atom, False))
+		resmat = []
+		for symop in self.symops:
+			satom = self.apply_symop(atom, symop)
+			print atom, satom
+			if satom.distance(atom) < 1e-5:
+#				print '========='
+				n,inv,rot_mat,translator = symop
+				rm = np.array(rot_mat)
+				m = rm - np.identity(3)
+				for row in m:
+					nrow = [x if abs(x) > 1e-5 else 0 for x in row]
+					resmat.append(list(nrow))
+#				print m
+#				print linalg.orth(m)
+		resmat = np.array(resmat)
+		print resmat
+		print linalg.null_space(resmat)
+			
 	def shift(self, shifts):
 		assert self.vectors or shifts == [0, 0, 0], "Trying to shift non-periodic cell!"
 		atoms = []
