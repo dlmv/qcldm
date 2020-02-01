@@ -1,6 +1,7 @@
-import math, logging
+import math, logging, sys
 from math3d import Vector
 import numpy as np
+#np.set_printoptions(threshold=sys.maxsize)
 import scipy.linalg as linalg
 from scipy.linalg import null_space
 
@@ -86,6 +87,7 @@ class Cell:
 		self.symops = symops
 		self.assym_n = assym_n
 		self.atoms = atoms
+		self.param_mat = None
 		self.cell = self.shift([0,0,0])
 		if self.vectors:
 			self.bordered_cell = [a.real_atom() for a in self.shift([0,0,0])]
@@ -110,7 +112,7 @@ class Cell:
 			vector_basis = crysmat.dot(vector_basis)
 		rel = np.linalg.inv(np.transpose(vector_basis)).dot(atom.position()._data)
 		rel = [x - 1 if x > 0.5 else x for x in rel]
-		rel = [x + 1 if x < -0.5 else x for x in rel]
+		rel = [x + 1 if x <= -0.499999 else x for x in rel]
 		return AtomVector(atom.name(), Vector(rel), {})
 
 	def cartesian_atom(self, atom, cryst_cell=False):
@@ -124,36 +126,64 @@ class Cell:
 #				return ca.relative()
 		return AtomVector(atom.name(), Vector(unrel), {})
 
-	def apply_symop(self, atom, symop):
+	def apply_symop_cartesian(self, atom, symop):
 		rel = self.relative_atom(atom, False)
+		return self.cartesian_atom(self.apply_symop(rel), False)
+
+	def apply_symop(self, atom, symop):
 		n,inv,rot_mat,translator = symop
-		new_vec = np.array(rot_mat).dot(rel.position()._data)
+		new_vec = np.array(rot_mat).dot(atom.position()._data)
 		new_vec += np.array(translator)
 		new_vec = [x - 1 if x > 0.5 else x for x in new_vec]
-		new_vec = [x + 1 if x < -0.5 else x for x in new_vec]
-		return self.cartesian_atom(AtomVector(atom.name(), Vector(new_vec), {}), False)
+		new_vec = [x + 1 if x <= -0.499999 else x for x in new_vec]
+		return AtomVector(atom.name(), Vector(new_vec), {})
 
-	def get_sym_vars(self, n):
-		atom = self.atoms[self.assym_n[n]]
-		atom = self.cartesian_atom(self.relative_atom(atom, False))
-		resmat = []
-		for symop in self.symops:
-			satom = self.apply_symop(atom, symop)
-			print atom, satom
-			if satom.distance(atom) < 1e-5:
-#				print '========='
+	def number_in_cell(self, atom):
+		for i, a in enumerate(self.atoms):
+			if self.relative_atom(atom).distance(self.relative_atom(a)) < 1e-5:
+				return i
+		return -1
+
+	def build_parameters(self):
+		matrix = []
+		for i in range(len(self.atoms) * len(self.symops) * 3):
+			matrix.append([0] * len(self.atoms) * 3)
+		for i, a1 in enumerate(self.atoms):
+			rela1 = self.relative_atom(a1)
+			for k, symop in enumerate(self.symops):
+				rela2 = self.apply_symop(rela1, symop)
 				n,inv,rot_mat,translator = symop
-				rm = np.array(rot_mat)
-				m = rm - np.identity(3)
-				for row in m:
-					nrow = [x if abs(x) > 1e-5 else 0 for x in row]
-					resmat.append(list(nrow))
-#				print m
-#				print linalg.orth(m)
-		resmat = np.array(resmat)
-		print resmat
-		print linalg.null_space(resmat)
-			
+				j = self.number_in_cell(self.cartesian_atom(rela2))
+				assert j >= 0, "symop resulted in foreign atom"
+				for row in range(3):
+					for col in range(3):
+						matrix[i * len(self.symops) * 3 + k * 3 + row][i * 3 + col] += rot_mat[row][col]
+				for d in range(3):
+					matrix[i * len(self.symops) * 3 + k * 3 + d][j * 3 + d] -= 1
+		return linalg.null_space(matrix)
+
+	def cut_vector_by_symmetry(self, vector):
+		self.param_mat = self.build_parameters()
+		c = np.array(vector)
+		c_bas = linalg.pinv(self.param_mat).dot(c)
+		c_cut = self.param_mat.dot(c_bas)
+		return c_cut
+
+	def get_coord_basis(self):
+		full_coords = []
+		for atom in self.atoms:
+			for k in self.relative_atom(atom).position()._data:
+				full_coords.append(k)
+		return full_coords
+
+	def set_coord_basis(self, n_coords):
+		disps = [n - o for n, o in zip(n_coords, self.get_coord_basis())]
+		disps = list(self.cut_vector_by_symmetry(disps))
+		coords = [n + o for n, o in zip(disps, self.get_coord_basis())]
+		for i, atom in enumerate(self.atoms):
+			tmp = AtomVector(atom.name(), Vector(coords[i*3:i*3+3]), atom.data())
+			atom.set_position(self.cartesian_atom(tmp).position())
+				
 	def shift(self, shifts):
 		assert self.vectors or shifts == [0, 0, 0], "Trying to shift non-periodic cell!"
 		atoms = []

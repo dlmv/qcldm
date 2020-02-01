@@ -26,6 +26,9 @@ class AtomVector:
 	def data(self):
 		return self._data
 
+	def set_position(self, vector):
+		self._vector = vector
+
 	def relative(self, center):
 		return AtomVector(self._name, self._vector - center._vector, self._data)
 

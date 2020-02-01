@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import re, sys, math, logging
+import re, sys, math, logging, random
 sys.dont_write_bytecode = True
 
 from qcldm.crystal_format.crystal_out import CrystalOut
@@ -22,11 +22,17 @@ write_xyz(co.cell.cell, 'cell.xyz')
 write_xyz(co.cell.bordered_cell, 'cell_b.xyz')
 write_xyz(co.cell.supercell, 'supercell.xyz')
 
-co.cell.get_sym_vars(int(sys.argv[1]))
-
-
 write_crystal_part(co, 'tmp')
-co = CrystalOut.from_file('tmp')
+
+bas = list(co.cell.get_coord_basis())
+#co.cell.set_coord_basis(bas)
+
 write_crystal_part(co, 'tmp1')
+bas = [x + random.random() for x in bas]
+co.cell.set_coord_basis(bas)
+write_crystal_part(co, 'tmp2')
+
+#co = CrystalOut.from_file('tmp')
+#write_crystal_part(co, 'tmp1')
 
 
