@@ -2,12 +2,15 @@ import math, logging, sys
 from math3d import Vector
 import numpy as np
 #np.set_printoptions(threshold=sys.maxsize)
+np.set_printoptions(suppress=True)
 import scipy.linalg as linalg
 from scipy.linalg import null_space
 
 from cell_neighbours import NeighbourCache
 from cluster_comparator import compare_clusters
 from atom_vector import AtomVector
+
+
 
 def compare_cell_atoms(c1, c2):
 	if c1.num != c2.num:
@@ -87,7 +90,7 @@ class Cell:
 		self.symops = symops
 		self.assym_n = assym_n
 		self.atoms = atoms
-		self.param_mat = None
+		self.coord_param_mat = None
 		self.cell = self.shift([0,0,0])
 		if self.vectors:
 			self.bordered_cell = [a.real_atom() for a in self.shift([0,0,0])]
@@ -144,7 +147,7 @@ class Cell:
 				return i
 		return -1
 
-	def build_parameters(self):
+	def build_coord_parameters(self):
 		matrix = []
 		for i in range(len(self.atoms) * len(self.symops) * 3):
 			matrix.append([0] * len(self.atoms) * 3)
@@ -162,11 +165,90 @@ class Cell:
 					matrix[i * len(self.symops) * 3 + k * 3 + d][j * 3 + d] -= 1
 		return linalg.null_space(matrix)
 
+	def build_vector_parameters(self):
+#		n,inv,rot_mat,translator = self.symops[1]
+#		vector_mat = np.transpose(np.array([v._data for v in self.vectors]))
+#		rot_mat = np.array(rot_mat)
+#		cartesian_rot_mat = vector_mat.dot(rot_mat.dot(linalg.inv(vector_mat)))
+#		print vector_mat
+#		print linalg.inv(vector_mat).dot(vector_mat)
+#		print rot_mat.dot(linalg.inv(vector_mat).dot(vector_mat))
+#		print vector_mat.dot(rot_mat.dot(linalg.inv(vector_mat).dot(vector_mat)))
+#		print vector_mat.dot(rot_mat.dot(linalg.inv(vector_mat)))
+#		print vector_mat.dot(rot_mat.dot(linalg.inv(vector_mat))).dot(vector_mat)
+		
+		matrix = []
+		vector_mat = np.transpose(np.array([v._data for v in self.vectors]))
+		for i in range(9 * len(self.symops)):
+			matrix.append([0] * 9)
+		for s, symop in enumerate(self.symops):
+			n,inv,rot_mat,translator = symop
+			rot_mat = np.array(rot_mat)
+			cartesian_rot_mat = vector_mat.dot(rot_mat.dot(linalg.inv(vector_mat)))
+			for i in range(3):
+				for j in range(3):
+					for k in range(3):
+						matrix[s * 9 + i * 3 + j][3 * i + k] += rot_mat[k][j]
+						matrix[s * 9 + i * 3 + j][3 * k + j] -= cartesian_rot_mat[i][k]
+		matrix = np.array(matrix)
+#		print matrix
+#		print linalg.null_space(matrix)
+		kernel = linalg.null_space(matrix)
+		print np.array(self.cryst_mat).dot(vector_mat)
+		for i in range(len(kernel[0])):
+			tmp = [[0,0,0],[0,0,0],[0,0,0]]
+			for j in range(len(kernel)):
+				tmp[j % 3][j / 3] = kernel[j][i]
+#			print np.array(tmp)
+			print np.array(self.cryst_mat).dot(tmp)
+		
+#		matrix = []
+#		for i in range(9):
+#			matrix.append([0] * 10)
+#		for i in range(3):
+#			for j in range(3):
+#				
+#				rv = np.linalg.inv(np.transpose(vector_mat)).dot(self.vectors[i]._data)
+#				rvs = np.array(rot_mat).dot(rv)
+#				for row in range(3):
+#					for col in range(3):
+#						matrix[i * 3 + row][i * 4 + col] += rot_mat[row][col]
+#						matrix[i * 3 + row][i * 4 + 3] -= rot_mat[row][col] * rvs[col]
+#				print rv, rvs
+#		print np.array(matrix)
+#		print linalg.null_space(matrix)
+							
+#		test = np.array([0,0,1])
+#		print test, np.transpose(vector_mat).dot(test)
+#		test1 = np.array(rot_mat).dot(test)
+#		print test1, np.transpose(vector_mat).dot(test1)
+#		matrix = []
+#		for i in range(len(self.symops) * 9):
+#			matrix.append([0] * 3)
+#		for k, symop in enumerate(self.symops):
+#			n,inv,rot_mat,translator = symop
+#			for iv, vector in enumerate(self.vectors):
+#				for jv, x in enumerate(vector._data):
+					
+#				
+#				vector_mat = np.array([v._data for v in self.vectors])
+#	#			print vector_mat
+#				mat1 = np.array(vector_mat).dot(np.identity(3))
+#				mat2 = np.array(vector_mat).dot(np.array(rot_mat))
+#				print mat2
+#				for row in range(3):
+#					for col in range(3):
+#						matrix[k * 3 + row][col] += (mat2[row][col] - mat1[row][col])
+#					
+#		matrix = np.array(matrix)
+#		print matrix
+#		print linalg.null_space(matrix)
+
 	def cut_vector_by_symmetry(self, vector):
-		self.param_mat = self.build_parameters()
+		self.coord_param_mat = self.build_coord_parameters()
 		c = np.array(vector)
 		c_bas = linalg.pinv(self.param_mat).dot(c)
-		c_cut = self.param_mat.dot(c_bas)
+		c_cut = self.coord_param_mat.dot(c_bas)
 		return c_cut
 
 	def get_coord_basis(self):

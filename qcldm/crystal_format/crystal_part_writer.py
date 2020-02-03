@@ -24,7 +24,7 @@ def write_structure(cell, f):
 	f.write(' ATOMS IN THE ASYMMETRIC UNIT    %d - ATOMS IN THE UNIT CELL:   %d\n' % (len(cell.assym_n), len(cell.atoms)))
 	f.write('     ATOM                 X/A                 Y/B                 Z/C    \n')
 	f.write(DIVIDER)
-	crysmat = np.array(cell.cryst_mat)
+	crysmat = np.transpose(np.array(cell.cryst_mat))
 	primbas = np.array([v._data for v in cell.vectors])
 	crysbas = crysmat.dot(primbas)
 	for i, atom in enumerate(cell.atoms):
