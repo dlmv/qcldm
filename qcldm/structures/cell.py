@@ -194,13 +194,13 @@ class Cell:
 #		print matrix
 #		print linalg.null_space(matrix)
 		kernel = linalg.null_space(matrix)
-		print np.array(self.cryst_mat).dot(vector_mat)
+#		print np.array(np.transpose(self.cryst_mat)).dot(np.transpose(vector_mat))
 		for i in range(len(kernel[0])):
 			tmp = [[0,0,0],[0,0,0],[0,0,0]]
 			for j in range(len(kernel)):
 				tmp[j % 3][j / 3] = kernel[j][i]
 #			print np.array(tmp)
-			print np.array(self.cryst_mat).dot(tmp)
+			print np.array(np.transpose(self.cryst_mat)).dot(tmp)
 		
 #		matrix = []
 #		for i in range(9):
