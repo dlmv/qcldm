@@ -91,6 +91,7 @@ class Cell:
 		self.assym_n = assym_n
 		self.atoms = atoms
 		self.coord_param_mat = None
+		self.vector_param_mat = None
 		self.cell = self.shift([0,0,0])
 		if self.vectors:
 			self.bordered_cell = [a.real_atom() for a in self.shift([0,0,0])]
@@ -112,7 +113,7 @@ class Cell:
 		vector_basis = np.array([v._data for v in self.vectors])
 		if (cryst_cell):
 			crysmat = np.array(self.cryst_mat)
-			vector_basis = crysmat.dot(vector_basis)
+			vector_basis = np.transpose(crysmat).dot(vector_basis)
 		rel = np.linalg.inv(np.transpose(vector_basis)).dot(atom.position()._data)
 		rel = [x - 1 if x > 0.5 else x for x in rel]
 		rel = [x + 1 if x <= -0.499999 else x for x in rel]
@@ -122,11 +123,8 @@ class Cell:
 		vector_basis = np.array([v._data for v in self.vectors])
 		if (cryst_cell):
 			crysmat = np.array(self.cryst_mat)
-			vector_basis = crysmat.dot(vector_basis)
+			vector_basis = np.transpose(crysmat).dot(vector_basis)
 		unrel = np.transpose(vector_basis).dot(atom.position()._data)
-#		for ca in self.supercell:
-#			if abs(ca.position()[0] - unrel[0]) < 1e-5 and abs(ca.position()[1] - unrel[1]) < 1e-5 and abs(ca.position()[2] - unrel[2]) < 1e-5:
-#				return ca.relative()
 		return AtomVector(atom.name(), Vector(unrel), {})
 
 	def apply_symop_cartesian(self, atom, symop):
@@ -166,19 +164,8 @@ class Cell:
 		return linalg.null_space(matrix)
 
 	def build_vector_parameters(self):
-#		n,inv,rot_mat,translator = self.symops[1]
-#		vector_mat = np.transpose(np.array([v._data for v in self.vectors]))
-#		rot_mat = np.array(rot_mat)
-#		cartesian_rot_mat = vector_mat.dot(rot_mat.dot(linalg.inv(vector_mat)))
-#		print vector_mat
-#		print linalg.inv(vector_mat).dot(vector_mat)
-#		print rot_mat.dot(linalg.inv(vector_mat).dot(vector_mat))
-#		print vector_mat.dot(rot_mat.dot(linalg.inv(vector_mat).dot(vector_mat)))
-#		print vector_mat.dot(rot_mat.dot(linalg.inv(vector_mat)))
-#		print vector_mat.dot(rot_mat.dot(linalg.inv(vector_mat))).dot(vector_mat)
-		
 		matrix = []
-		vector_mat = np.transpose(np.array([v._data for v in self.vectors]))
+		vector_mat = np.transpose([v._data for v in self.vectors])
 		for i in range(9 * len(self.symops)):
 			matrix.append([0] * 9)
 		for s, symop in enumerate(self.symops):
@@ -190,66 +177,41 @@ class Cell:
 					for k in range(3):
 						matrix[s * 9 + i * 3 + j][3 * i + k] += rot_mat[k][j]
 						matrix[s * 9 + i * 3 + j][3 * k + j] -= cartesian_rot_mat[i][k]
+		crysmat = np.transpose(self.cryst_mat)
+		for i in range(2):
+			for j in range(i+1,3):
+				m_add = [0] * 9
+				for k in range(3):
+					m_add[3 * j + k] += crysmat[i][k]
+				matrix.append(m_add)
 		matrix = np.array(matrix)
-#		print matrix
-#		print linalg.null_space(matrix)
-		kernel = linalg.null_space(matrix)
-#		print np.array(np.transpose(self.cryst_mat)).dot(np.transpose(vector_mat))
-		for i in range(len(kernel[0])):
-			tmp = [[0,0,0],[0,0,0],[0,0,0]]
-			for j in range(len(kernel)):
-				tmp[j % 3][j / 3] = kernel[j][i]
-#			print np.array(tmp)
-			print np.array(np.transpose(self.cryst_mat)).dot(tmp)
+		return linalg.null_space(matrix)
+#		for i in range(len(kernel[0])):
+#			tmp = [[0,0,0],[0,0,0],[0,0,0]]
+#			for j in range(len(kernel)):
+#				tmp[j % 3][j / 3] = kernel[j][i]#transposed!
+#			print np.transpose(self.cryst_mat).dot(tmp)
 		
-#		matrix = []
-#		for i in range(9):
-#			matrix.append([0] * 10)
-#		for i in range(3):
-#			for j in range(3):
-#				
-#				rv = np.linalg.inv(np.transpose(vector_mat)).dot(self.vectors[i]._data)
-#				rvs = np.array(rot_mat).dot(rv)
-#				for row in range(3):
-#					for col in range(3):
-#						matrix[i * 3 + row][i * 4 + col] += rot_mat[row][col]
-#						matrix[i * 3 + row][i * 4 + 3] -= rot_mat[row][col] * rvs[col]
-#				print rv, rvs
-#		print np.array(matrix)
-#		print linalg.null_space(matrix)
-							
-#		test = np.array([0,0,1])
-#		print test, np.transpose(vector_mat).dot(test)
-#		test1 = np.array(rot_mat).dot(test)
-#		print test1, np.transpose(vector_mat).dot(test1)
-#		matrix = []
-#		for i in range(len(self.symops) * 9):
-#			matrix.append([0] * 3)
-#		for k, symop in enumerate(self.symops):
-#			n,inv,rot_mat,translator = symop
-#			for iv, vector in enumerate(self.vectors):
-#				for jv, x in enumerate(vector._data):
-					
-#				
-#				vector_mat = np.array([v._data for v in self.vectors])
-#	#			print vector_mat
-#				mat1 = np.array(vector_mat).dot(np.identity(3))
-#				mat2 = np.array(vector_mat).dot(np.array(rot_mat))
-#				print mat2
-#				for row in range(3):
-#					for col in range(3):
-#						matrix[k * 3 + row][col] += (mat2[row][col] - mat1[row][col])
-#					
-#		matrix = np.array(matrix)
-#		print matrix
-#		print linalg.null_space(matrix)
-
-	def cut_vector_by_symmetry(self, vector):
+	def cut_by_symmetry(self, vector):
 		self.coord_param_mat = self.build_coord_parameters()
 		c = np.array(vector)
-		c_bas = linalg.pinv(self.param_mat).dot(c)
+		c_bas = linalg.pinv(self.coord_param_mat).dot(c)
 		c_cut = self.coord_param_mat.dot(c_bas)
 		return c_cut
+
+	def cut_by_vectors_symmetry(self, vector):
+		self.vector_param_mat = self.build_vector_parameters()
+		c = np.array(vector)
+		c_bas = linalg.pinv(self.vector_param_mat).dot(c)
+		c_cut = self.vector_param_mat.dot(c_bas)
+		return c_cut
+
+	def get_vector_basis(self):
+		basis = []
+		for i in range(3):
+			for j in range(3):
+				basis.append(self.vectors[j, i])
+		return basis
 
 	def get_coord_basis(self):
 		full_coords = []

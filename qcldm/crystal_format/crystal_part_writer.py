@@ -13,20 +13,31 @@ from ..atom.shells import Shells
 DIVIDER = ' *******************************************************************************\n'
 PARAMS_HEADER = '         A              B              C           ALPHA      BETA       GAMMA \n'
 
+def unit_vector(vector):
+	return vector / np.linalg.norm(vector)
+
+def angle_between(v1, v2):
+	v1_u = unit_vector(v1)
+	v2_u = unit_vector(v2)
+	return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+
+def angle_list(vectors):
+	return [180. / math.pi * angle_between(v1, v2) for v1, v2 in zip([vectors[-1]] + list(vectors)[:-1], list(vectors)[1:] + [vectors[0]])]
+
 def write_structure(cell, f):
+	crysmat = np.array(cell.cryst_mat)
+	primbas = np.array([v._data for v in cell.vectors])
+	crysbas = np.transpose(crysmat).dot(primbas)
 	f.write(' (NON PERIODIC DIRECTION: LATTICE PARAMETER FORMALLY SET TO 500)\n')
 	f.write(DIVIDER)
 	f.write(' LATTICE PARAMETERS (ANGSTROMS AND DEGREES) - BOHR = 0.5291772083 ANGSTROM\n')
-	f.write(' PRIMITIVE CELL ...\n')
+	f.write(' PRIMITIVE CELL - CENTRING CODE 0/0 VOLUME= %12.6f - DENSITY %6.3f g/cm^3\n' % ((np.cross(primbas[0], primbas[1])).dot(primbas[2]), 0))
 	f.write(PARAMS_HEADER)
-	f.write(' %14.8f %14.8f %14.8f   %9.6f %9.6f %9.6f\n' % tuple([v.get_length() for v in cell.vectors] + [0.]*3))#todo
+	f.write(' %14.8f %14.8f %14.8f   %9.6f %9.6f %9.6f\n' % tuple([np.linalg.norm(v) for v in primbas] + angle_list(list(primbas))))
 	f.write(DIVIDER)
 	f.write(' ATOMS IN THE ASYMMETRIC UNIT    %d - ATOMS IN THE UNIT CELL:   %d\n' % (len(cell.assym_n), len(cell.atoms)))
 	f.write('     ATOM                 X/A                 Y/B                 Z/C    \n')
-	f.write(DIVIDER)
-	crysmat = np.array(cell.cryst_mat)
-	primbas = np.array([v._data for v in cell.vectors])
-	crysbas = crysmat.dot(primbas)
+	f.write(DIVIDER)	
 	for i, atom in enumerate(cell.atoms):
 		relatom = cell.relative_atom(atom, False)
 		f.write('    %3d %s %3d %2s   %19.12e %19.12e %19.12e\n' % (i+1,
@@ -42,9 +53,9 @@ def write_structure(cell, f):
 		f.write(fs % tuple([v for row in cell.cryst_mat for v in row]))
 		f.write("\n")
 		f.write(DIVIDER)
-		f.write(' CRYSTALLOGRAPHIC CELL ...\n')
+		f.write(' CRYSTALLOGRAPHIC CELL (VOLUME=     %15.8f)\n' %  (np.cross(crysbas[0], crysbas[1])).dot(crysbas[2]))
 		f.write(PARAMS_HEADER)
-		f.write(' %14.8f %14.8f %14.8f   %9.6f %9.6f %9.6f\n' % tuple([np.linalg.norm(v) for v in crysbas] + [0.]*3))#todo
+		f.write(' %14.8f %14.8f %14.8f   %9.6f %9.6f %9.6f\n' % tuple([np.linalg.norm(v) for v in crysbas] + angle_list(list(crysbas))))
 		f.write("\n")
 		f.write(' COORDINATES IN THE CRYSTALLOGRAPHIC CELL\n')
 		f.write('     ATOM                 X/A                 Y/B                 Z/C    \n')

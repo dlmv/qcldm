@@ -24,6 +24,11 @@ write_xyz(co.cell.supercell, 'supercell.xyz')
 
 co.cell.build_vector_parameters()
 
+b = [random.random() for x in range(9)]
+
+#print b
+#print co.cell.cut_by_vectors_symmetry(b)
+
 write_crystal_part(co, 'tmp')
 
 #co.cell.set_coord_basis(bas)
