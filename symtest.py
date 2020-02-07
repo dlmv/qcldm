@@ -22,26 +22,12 @@ write_xyz(co.cell.cell, 'cell.xyz')
 write_xyz(co.cell.bordered_cell, 'cell_b.xyz')
 write_xyz(co.cell.supercell, 'supercell.xyz')
 
-co.cell.build_vector_parameters()
-
-b = [random.random() for x in range(9)]
-
-#print b
-#print co.cell.cut_by_vectors_symmetry(b)
-
 write_crystal_part(co, 'tmp')
 
-#co.cell.set_coord_basis(bas)
+b = [random.random() for x in range(len(co.cell.atoms) * 3)]
+co.cell.modify_by_coords(b, co.cell.atoms)
 
-#bas = list(co.cell.get_coord_basis())
-#co.cell.set_coord_basis(bas)
+write_crystal_part(co, 'tmp1')
 
-#write_crystal_part(co, 'tmp1')
-#bas = [x + random.random() for x in bas]
-#co.cell.set_coord_basis(bas)
-#write_crystal_part(co, 'tmp2')
-
-#co = CrystalOut.from_file('tmp')
-#write_crystal_part(co, 'tmp1')
 
 

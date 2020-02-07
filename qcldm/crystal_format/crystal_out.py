@@ -379,7 +379,6 @@ class CrystalOut:
 
 	@staticmethod
 	def get_mulliken_pop(lines, cell):
-		pop = {}
 		for n in xrange(len(lines)):
 			if ATOMS_POP in lines[n]:
 				break
@@ -392,9 +391,9 @@ class CrystalOut:
 			m = re.match(pop_regex, lines[k])
 			
 			if m:
-				pop[CrystalOut.get_normal_name(m.group(2))] = float(m.group(3))
-		for a in cell.atoms:
-			a.data()[AtomKeys.MULLIKEN_CHARGE] = a.data()[AtomKeys.FULL_VALENCE] - pop[a.name()]
+				atomnum = int(m.group(1)) - 1
+				a = cell.atoms[atomnum]
+				a.data()[AtomKeys.MULLIKEN_CHARGE] = a.data()[AtomKeys.FULL_VALENCE] - float(m.group(3))
 		
 		
 	@staticmethod

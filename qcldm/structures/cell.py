@@ -1,8 +1,10 @@
 import math, logging, sys
 from math3d import Vector
 import numpy as np
-#np.set_printoptions(threshold=sys.maxsize)
+np.set_printoptions(threshold=sys.maxsize)
 np.set_printoptions(suppress=True)
+np.core.arrayprint._line_width = 180
+np.set_printoptions(edgeitems=10, linewidth=100000)
 import scipy.linalg as linalg
 from scipy.linalg import null_space
 
@@ -119,6 +121,14 @@ class Cell:
 		rel = [x + 1 if x <= -0.499999 else x for x in rel]
 		return AtomVector(atom.name(), Vector(rel), {})
 
+	def true_relative_atom(self, atom, cryst_cell=False):
+		vector_basis = np.array([v._data for v in self.vectors])
+		if (cryst_cell):
+			crysmat = np.array(self.cryst_mat)
+			vector_basis = np.transpose(crysmat).dot(vector_basis)
+		rel = np.linalg.inv(np.transpose(vector_basis)).dot(atom.position()._data)
+		return AtomVector(atom.name(), Vector(rel), {})
+
 	def cartesian_atom(self, atom, cryst_cell=False):
 		vector_basis = np.array([v._data for v in self.vectors])
 		if (cryst_cell):
@@ -129,7 +139,7 @@ class Cell:
 
 	def apply_symop_cartesian(self, atom, symop):
 		rel = self.relative_atom(atom, False)
-		return self.cartesian_atom(self.apply_symop(rel), False)
+		return self.cartesian_atom(self.apply_symop(rel, symop), False)
 
 	def apply_symop(self, atom, symop):
 		n,inv,rot_mat,translator = symop
@@ -145,25 +155,50 @@ class Cell:
 				return i
 		return -1
 
-	def build_coord_parameters(self):
+	def coord_kernel_matrix(self):
 		matrix = []
-		for i in range(len(self.atoms) * len(self.symops) * 3):
-			matrix.append([0] * len(self.atoms) * 3)
-		for i, a1 in enumerate(self.atoms):
-			rela1 = self.relative_atom(a1)
-			for k, symop in enumerate(self.symops):
-				rela2 = self.apply_symop(rela1, symop)
+		for i, k in enumerate(self.assym_n):
+			for symop in self.symops:
 				n,inv,rot_mat,translator = symop
-				j = self.number_in_cell(self.cartesian_atom(rela2))
-				assert j >= 0, "symop resulted in foreign atom"
-				for row in range(3):
-					for col in range(3):
-						matrix[i * len(self.symops) * 3 + k * 3 + row][i * 3 + col] += rot_mat[row][col]
-				for d in range(3):
-					matrix[i * len(self.symops) * 3 + k * 3 + d][j * 3 + d] -= 1
+				a1 = self.apply_symop_cartesian(self.atoms[k], symop)
+				l = self.number_in_cell(a1)
+				assert l >= 0, "symop resulted in foreign atom"
+				if l == k:
+					mat = [[0 for xx in range(len(self.assym_n)*3)] for yy in range(3)]
+					for row in range(3):
+						for col in range(3):
+							mat[row][i * 3 + col] += rot_mat[row][col]
+						mat[row][i * 3 + row] -= 1
+					matrix.extend(mat)
 		return linalg.null_space(matrix)
+	
+	def find_assym(self, atom):
+		n = self.number_in_cell(atom)
+		assert n >= 0
+		for an in self.assym_n:
+			for symop in self.symops:
+				atom1 = self.apply_symop_cartesian(self.atoms[an], symop)
+				l = self.number_in_cell(atom1)
+				if l == n:
+					return an, symop
+		return -1, None
 
-	def build_vector_parameters(self):
+	def coord_basis_matrix(self, atoms):
+		matrix = []
+		vector_mat = np.transpose([v._data for v in self.vectors])
+		for atom in atoms:
+			an, symop = self.find_assym(atom)
+			n,inv,rot_mat,translator = symop
+			assert an >= 0
+			mat = [[0 for xx in range(len(self.assym_n)*3)] for yy in range(3)]
+			for row in range(3):
+				for col in range(3):
+					mat[row][self.assym_n.index(an) * 3 + col] += vector_mat.dot(rot_mat)[row][col]
+			matrix.extend(mat)
+		return np.array(matrix)
+
+
+	def vector_kernel_matrix(self):
 		matrix = []
 		vector_mat = np.transpose([v._data for v in self.vectors])
 		for i in range(9 * len(self.symops)):
@@ -191,42 +226,55 @@ class Cell:
 #			for j in range(len(kernel)):
 #				tmp[j % 3][j / 3] = kernel[j][i]#transposed!
 #			print np.transpose(self.cryst_mat).dot(tmp)
-		
-	def cut_by_symmetry(self, vector):
-		self.coord_param_mat = self.build_coord_parameters()
-		c = np.array(vector)
-		c_bas = linalg.pinv(self.coord_param_mat).dot(c)
-		c_cut = self.coord_param_mat.dot(c_bas)
-		return c_cut
 
-	def cut_by_vectors_symmetry(self, vector):
-		self.vector_param_mat = self.build_vector_parameters()
-		c = np.array(vector)
-		c_bas = linalg.pinv(self.vector_param_mat).dot(c)
-		c_cut = self.vector_param_mat.dot(c_bas)
-		return c_cut
+	def vector_basis_matrix(self, atoms):
+		matrix = []
+		for i in range(3 * len(atoms)):
+			matrix.append([0] * 9)
+		for n, atom in enumerate(atoms):
+			ra = self.true_relative_atom(atom)
+			for i in range(3):
+				for j in range(3):
+					matrix[3 * n + i][3 * i + j] += ra.position()._data[j]
+		return np.array(matrix)
+			
+	def cut_by_coords(self, x, atoms):
+		k2b = self.coord_kernel_matrix()
+		b2x = self.coord_basis_matrix(atoms)
+		k = linalg.pinv(k2b).dot(linalg.pinv(b2x).dot(x))
+		kb = k2b.dot(k)
+		xs = b2x.dot(kb)
+		return xs, kb
 
-	def get_vector_basis(self):
-		basis = []
+	def cut_by_vectors(self, x, atoms):
+		k2b = self.vector_kernel_matrix()
+		b2x = self.vector_basis_matrix(atoms)
+		k = linalg.pinv(k2b).dot(linalg.pinv(b2x).dot(x))
+		bx = k2b.dot(k)
+		x = b2x.dot(bx)
+		return x, bx
+
+	def modify_by_coords(self, x, atoms):
+		x, bx = list(self.cut_by_coords(x, atoms))
+		b2x = self.coord_basis_matrix(atoms)
+		b2a = self.coord_basis_matrix(self.atoms)
+		ax = b2a.dot(bx)
+		for i, atom in enumerate(self.atoms):
+			v = Vector(np.array(ax[i*3:i*3+3]) + atom.position()._data)
+			atom.set_position(v)
+
+	def modify_by_vectors(self, x, atoms):
+		x, bx = list(self.cut_by_vectors(x, atoms))
+		b2a = self.vector_basis_matrix(self.atoms) # maybe make cell_atoms relative??
+		ax = b2a.dot(bx)
+		for i, atom in enumerate(self.atoms):
+			v = Vector(np.array(ax[i*3:i*3+3]) + atom.position()._data)
+			atom.set_position(v)
 		for i in range(3):
 			for j in range(3):
-				basis.append(self.vectors[j, i])
-		return basis
+				self.vectors[j]._data[i] += bx[i * 3 + j]
 
-	def get_coord_basis(self):
-		full_coords = []
-		for atom in self.atoms:
-			for k in self.relative_atom(atom).position()._data:
-				full_coords.append(k)
-		return full_coords
-
-	def set_coord_basis(self, n_coords):
-		disps = [n - o for n, o in zip(n_coords, self.get_coord_basis())]
-		disps = list(self.cut_vector_by_symmetry(disps))
-		coords = [n + o for n, o in zip(disps, self.get_coord_basis())]
-		for i, atom in enumerate(self.atoms):
-			tmp = AtomVector(atom.name(), Vector(coords[i*3:i*3+3]), atom.data())
-			atom.set_position(self.cartesian_atom(tmp).position())
+		
 				
 	def shift(self, shifts):
 		assert self.vectors or shifts == [0, 0, 0], "Trying to shift non-periodic cell!"
