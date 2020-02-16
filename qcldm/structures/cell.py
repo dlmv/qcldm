@@ -13,7 +13,6 @@ from cluster_comparator import compare_clusters
 from atom_vector import AtomVector
 
 
-
 def compare_cell_atoms(c1, c2):
 	if c1.num != c2.num:
 		return -1 if c1.num < c2.num else 1
@@ -111,14 +110,23 @@ class Cell:
 		self.neighbours = NeighbourCache(self)
 #		self.group_atoms()
 
+	def validate_rel(self, rel):
+		changed = True
+		while changed:
+			oldrel = rel
+			oldrel = [x - 1 if x > 0.5 else x for x in oldrel]
+			oldrel = [x + 1 if x <= -0.499999 else x for x in oldrel]
+			changed = list(oldrel) != list(rel)
+			rel = oldrel
+		return rel
+
 	def relative_atom(self, atom, cryst_cell=False):
 		vector_basis = np.array([v._data for v in self.vectors])
 		if (cryst_cell):
 			crysmat = np.array(self.cryst_mat)
 			vector_basis = np.transpose(crysmat).dot(vector_basis)
 		rel = np.linalg.inv(np.transpose(vector_basis)).dot(atom.position()._data)
-		rel = [x - 1 if x > 0.5 else x for x in rel]
-		rel = [x + 1 if x <= -0.499999 else x for x in rel]
+		rel = self.validate_rel(rel)
 		return AtomVector(atom.name(), Vector(rel), {})
 
 	def true_relative_atom(self, atom, cryst_cell=False):
@@ -145,13 +153,15 @@ class Cell:
 		n,inv,rot_mat,translator = symop
 		new_vec = np.array(rot_mat).dot(atom.position()._data)
 		new_vec += np.array(translator)
-		new_vec = [x - 1 if x > 0.5 else x for x in new_vec]
-		new_vec = [x + 1 if x <= -0.499999 else x for x in new_vec]
+		new_vec = self.validate_rel(new_vec)
 		return AtomVector(atom.name(), Vector(new_vec), {})
 
 	def number_in_cell(self, atom):
+#		print '===', atom
+#		print self.relative_atom(atom)
 		for i, a in enumerate(self.atoms):
-			if self.relative_atom(atom).distance(self.relative_atom(a)) < 1e-5:
+#			print self.relative_atom(a)
+			if self.relative_atom(atom).distance(self.relative_atom(a)) < 1e-4:
 				return i
 		return -1
 
@@ -246,13 +256,31 @@ class Cell:
 		xs = b2x.dot(kb)
 		return xs, kb
 
+	def cut_and_expand_by_coords(self, x, atoms, atoms1):
+		k2b = self.coord_kernel_matrix()
+		b2x = self.coord_basis_matrix(atoms)
+		b2x1 = self.coord_basis_matrix(atoms1)
+		k = linalg.pinv(k2b).dot(linalg.pinv(b2x).dot(x))
+		kb = k2b.dot(k)
+		xs1 = b2x1.dot(kb)
+		return xs1, kb
+
 	def cut_by_vectors(self, x, atoms):
 		k2b = self.vector_kernel_matrix()
 		b2x = self.vector_basis_matrix(atoms)
 		k = linalg.pinv(k2b).dot(linalg.pinv(b2x).dot(x))
-		bx = k2b.dot(k)
-		x = b2x.dot(bx)
-		return x, bx
+		kb = k2b.dot(k)
+		xs = b2x.dot(kb)
+		return xs, kb
+
+	def cut_and_expand_by_vectors(self, x, atoms, atoms1):
+		k2b = self.vector_kernel_matrix()
+		b2x = self.vector_basis_matrix(atoms)
+		b2x1 = self.vector_basis_matrix(atoms1)
+		k = linalg.pinv(k2b).dot(linalg.pinv(b2x).dot(x))
+		kb = k2b.dot(k)
+		xs1 = b2x1.dot(kb)
+		return xs1, kb
 
 	def modify_by_coords(self, x, atoms):
 		x, bx = list(self.cut_by_coords(x, atoms))

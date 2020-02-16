@@ -11,23 +11,36 @@ from qcldm.embedding.cluster import Cluster
 from qcldm.embedding.embedding_settings import EmbeddingSettings
 from qcldm.structures.bader_reader import read_baders
 from qcldm.structures.atom_vector import AtomKeys
+from qcldm.applications.turbo_cell_opt import OptData
 
 init_log(sys.argv)
 
-c = CrystalMeta()
-c.load('.')
+eps = float(sys.argv[1])
+d = OptData()
+d.optimize(eps)
 
-co = CrystalOut.from_file(c.out_file)
-write_xyz(co.cell.cell, 'cell.xyz')
-write_xyz(co.cell.bordered_cell, 'cell_b.xyz')
-write_xyz(co.cell.supercell, 'supercell.xyz')
+#c = CrystalMeta()
+#c.load('.')
 
-write_crystal_part(co, 'tmp')
+#co = CrystalOut.from_file(c.out_file)
+#write_xyz(co.cell.cell, 'cell.xyz')
+#write_xyz(co.cell.bordered_cell, 'cell_b.xyz')
+#write_xyz(co.cell.supercell, 'supercell.xyz')
 
-b = [random.random() for x in range(len(co.cell.atoms) * 3)]
-co.cell.modify_by_coords(b, co.cell.atoms)
+#write_crystal_part(co, 'tmp')
 
-write_crystal_part(co, 'tmp1')
+#b = [random.random() for x in range(len(co.cell.atoms) * 3)]
+#co.cell.modify_by_coords(b, co.cell.atoms)
+
+#write_crystal_part(co, 'tmp1')
+#atoms = read_atoms('coord')
+#x = read_grad(len(atoms))
+#write_grad(x)
+
+
+
+
+
 
 
 
