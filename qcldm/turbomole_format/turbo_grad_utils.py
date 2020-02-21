@@ -62,7 +62,20 @@ def write_grad(x):
 		c.write(newdata)
 
 
-
+def clear_relax():
+	newdata = ''
+	with open("control") as c:
+		lines = c.read().splitlines()
+		in_relax = False
+		for line in lines:
+			if '$forceapprox  ' in line:
+				in_relax = True
+			elif in_relax and '$' in line:
+				in_relax = False	
+			if not in_relax:
+				newdata += line + "\n"
+	with open("control", 'w') as c:
+		c.write(newdata)
 
 
 
