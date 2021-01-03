@@ -41,7 +41,7 @@ def read_xyz(name):
 			atoms.append(a)
 			n += 1
 			nat -= 1
-		cell = Cell(atoms, [])
+		cell = Cell(atoms, [], None, None, None)
 		return cell
 			
 		

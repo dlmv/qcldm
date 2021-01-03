@@ -1,0 +1,100 @@
+#!/usr/bin/perl -w
+use strict;
+use Getopt::Long;
+my $ecp_file = '';
+
+GetOptions ( "help" => \&help,
+	     "ecp=s"   => \$ecp_file);
+
+convert_ecp_file ($ecp_file) if $ecp_file;
+help();
+
+sub help {
+	print <<END;
+TARGET
+
+This script rewrite ecp file into wullen format
+
+USAGE:
+
+$0 --ecp ecp_file
+ecp_file - file with ecp by N. Mosyagin
+
+EXAMPLE
+$0 --ecp Ra10val.inp
+END
+	exit 2;
+}
+sub convert_ecp_file {
+	my $ecp_file = shift;
+	my $orbital = '';
+	my @orb_list =();
+	my @so_list = ();
+	my $orb_str = '';
+	my $so_str = '';
+	print "file with esp: ", $ecp_file, "\n";
+	open  my $in, "<", $ecp_file or die "Can't open file with ecp!";
+	while (my $str = <$in>) {
+		chomp $str;
+	       	if ( $str =~ m/(\d+\w+-AREP)/i ) { # нашел заголовок
+			$str = lc $1;
+			if ($orb_str ne '') {
+				push @orb_list, $orb_str;
+				$orb_str = '';
+			}
+                       if ($so_str ne '') {
+			       push @so_list, $so_str;
+			       $so_str = '';
+		       }
+			$orbital = $1 if $str =~ /^\d+(\w+)-arep/; # буква орбитали 
+			$orb_str = $orbital."   #    ".$str."\n";
+			$so_str = $orbital."-SpinOrbit   #    ".$str."\n";
+			$so_str =~s/arep/esop/g;
+			$so_str = '' if $orbital eq 's'; # заголовки для спинорбиты
+		}
+		elsif ($str =~ m/^(\s+)(\d+\s+[\d\.ED\+-]+)(\s+)([\d\.ED\+-]+)(\s+)([\d\.ED\+-]+)\s*$/) {
+			my ($spaces0,$first,$spaces1, $second, $spaces, $so)  = ($1, $2, $3, $4,$5,$6);
+			$first =~ s/D/E/;
+			$second =~ s/D/E/;
+			$so =~ s/D/E/;
+			$orb_str.=$spaces0.$second.$spaces1.$first."\n";
+			my $fac = -1;
+			# fac for l equal 2/(2l+1)
+			# http://rel.kintechlab.com/SO_rules.txt
+			# DEFINITIONS
+			# ------------
+			$fac = 0 if $orbital eq "s"; # s no use
+			$fac = 2/3 if $orbital eq "p";
+			$fac = 2/5 if $orbital eq "d";
+			$fac = 2/7 if $orbital eq "f";
+			$fac = 2/9 if $orbital eq "g";
+			#-------------
+			if( $fac == -1 ) {
+				print "Error\nFactor for ", $orbital, " no defined\n";
+				exit 2;
+			}
+			$so *=$fac;
+			#$so = sprintf("%.14f", $so);
+			my $tmp_str = $spaces0.$so.$spaces.$first."\n";
+			unless ($first =~ m/^0/) {
+				$so_str.= $tmp_str if $orbital ne 's';
+			}
+		}
+	}
+	print "*\n";
+	print $orb_str;
+	my $name_last_orb = $1 if $orb_str =~/^(\w)/;
+	push @so_list, $so_str;
+	$orb_str ='';
+	$so_str='';
+	foreach my $str ( @orb_list ) {
+		$str =~s/^(\w)\s+\#/$1-$name_last_orb   \#/g;
+		print $str;
+	}
+	print "*\n";
+	foreach my $str ( @so_list ) {
+		print $str;
+	}
+	print  "*\n";
+	exit 1;
+}

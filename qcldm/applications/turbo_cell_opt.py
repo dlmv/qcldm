@@ -126,7 +126,7 @@ class OptData:
 		grad, grad_v, grad_c = self.read_grads()
 		self.write_result(grad, grad_v, grad_c, vector_step, damp)
 		return grad_v if vector_step else grad_c
-		
+
 	def step(self, damp):
 		grad_c = self.semistep(damp, False)
 		clear_relax()
@@ -141,7 +141,7 @@ class OptData:
 			grad1 = self.step(damp)
 			if abs(grad1-grad) < eps:
 				break
-				grad = grad1
+			grad = grad1
 		
 	def optimize_longrun(self, eps):
 		grad = 999999999999
@@ -149,9 +149,9 @@ class OptData:
 		while True:
 			while True:
 				grad1 = self.semistep(damp, False)
-			if abs(grad1-grad) < eps:
-				break
-			grad = grad1
+				if abs(grad1-grad) < eps:
+					break
+				grad = grad1
 			clear_relax()
 			while True:
 				grad1 = self.semistep(damp, True)
