@@ -1,16 +1,23 @@
 import re, os, logging
 
 from ..atom.shells import Shells
-from ..gauss_functions.gauss_function import GaussFunctionNormed, GaussFunctionContracted
+from ..gauss_functions.gauss_function import GaussFunction, GaussFunctionNormed, GaussFunctionContracted
 
 from turbo_format import TurboTemplate
 
 class TurboBasis:
 
+	class EcpPart:
+		def __init__(self, functions):
+			self.functions = functions
+
 	class TurboEcp:
-		def __init__(self, name, ncore):
+		def __init__(self, name, ncore, local, semilocal, spinorbit):
 			self.name = name
 			self.ncore = ncore
+			self.local = local
+			self.semilocal = semilocal
+			self.spinorbit = spinorbit
 
 	def __init__(self, name, functions):
 		self.name = name
@@ -58,9 +65,9 @@ class TurboBasis:
 					break
 				name = lines[n].strip()
 				n += 1
-				basis_def = lines[n].split()
-				ls = basis_def[-1][1:-1].split('/')
-				n += 2
+				while '#' == lines[n][0]:
+					n += 1
+				n += 1
 				functions = []
 				while n < len(lines) and lines[n].strip() != '*':
 					gc = GaussFunctionContracted()
@@ -93,16 +100,50 @@ class TurboBasis:
 				ecp_def_map = {}
 				for m in re.finditer('(\\w+)=\s+(\d+)', ecp_def):
 					ecp_def_map[m.group(1)] = int(m.group(2))
-				te = TurboBasis.TurboEcp(name, ecp_def_map['ncore'])
-				ecps[name] = te
 
-				
-				while n < len(lines) and lines[n].strip() != '*':
+				n += 1
+				while '#' == lines[n][0]:
 					n += 1
+				lmax = ecp_def_map['lmax']
+				assert lines[n].strip() == Shells.SHELLS[lmax].lower(), 'wrong lmax for %s' % name
+				n += 1
+				tmpfuncs = []
+				while len(lines[n].split()) == 3:
+					ls = lines[n].split()
+					c, l, a = float(ls[0]), int(ls[1]), float(ls[2])
+					tmpfuncs.append([c, GaussFunction(a, l)])
+					n += 1
+				local = TurboBasis.EcpPart(tmpfuncs)
+				semilocal = []
+				
+				for l in range(ecp_def_map['lmax']):
+					assert lines[n].strip() == '%s-%s' % (Shells.SHELLS[l].lower(), Shells.SHELLS[lmax].lower()), 'wrong l for %s' % name
+					n += 1
+					tmpfuncs = []
+					while len(lines[n].split()) == 3:
+						ls = lines[n].split()
+						c, l, a = float(ls[0]), int(ls[1]), float(ls[2])
+						tmpfuncs.append([c, GaussFunction(a, l)])
+						n += 1
+					semilocal.append(TurboBasis.EcpPart(tmpfuncs))
+				assert lines[n].strip() == '*'
+				spinorbit = []
 				if 'lsomax' in ecp_def_map.keys():
 					n += 1
-					while n < len(lines) and lines[n].strip() != '*':
+					for l in range(1, ecp_def_map['lsomax'] + 1):
+						assert lines[n].strip() == '%s-SpinOrbit' % Shells.SHELLS[l].lower(), 'wrong so for %s' % name
 						n += 1
+						tmpfuncs = []
+						while len(lines[n].split()) == 3:
+							ls = lines[n].split()
+							c, l, a = float(ls[0]), int(ls[1]), float(ls[2])
+							tmpfuncs.append([c, GaussFunction(a, l)])
+							n += 1
+						spinorbit.append(TurboBasis.EcpPart(tmpfuncs))	
+				assert lines[n].strip() == '*'
+					
+				te = TurboBasis.TurboEcp(name, ecp_def_map['ncore'], local, semilocal, spinorbit)
+				ecps[name] = te
 		return bases, ecps
 
 

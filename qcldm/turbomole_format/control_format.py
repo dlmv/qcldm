@@ -103,7 +103,12 @@ class ControlFormat:
 				embedded = True
 				empos += 1
 			
-			nelec = ELEMENTS[name].number
+			name = name[0].upper() + name[1:].lower()
+			
+			if name == 'Q':
+				nelec = 0
+			else:
+				nelec = ELEMENTS[name].number
 			
 			a = AtomVector(name, v)
 			
@@ -111,8 +116,9 @@ class ControlFormat:
 				if name in embmap.keys():
 					name = embmap[name]
 					a = AtomVector(name, v)
+				ncore = self.ecps[smap[n + 1][1]].ncore if smap[n + 1][1] else 0
 #				a.data()[AtomKeys.ESTIMATED_VALENCE] = emcharge - self.ecps[smap[n + 1][1]].ncore
-				a.data()[AtomKeys.ESTIMATED_CHARGE] = emcharge - self.ecps[smap[n + 1][1]].ncore
+				a.data()[AtomKeys.ESTIMATED_CHARGE] = emcharge - ncore
 				a.data()[AtomKeys.FULL_VALENCE] = 0
 			else:
 				a.data()[AtomKeys.FULL_VALENCE] = nelec - self.ecps[smap[n + 1][1]].ncore if smap[n + 1][1] else nelec
@@ -120,7 +126,6 @@ class ControlFormat:
 			
 			a.data()[AtomKeys.ORBITAL_COUNT] = self.bases[smap[n + 1][0]].orbnum() if smap[n + 1][0] != 'none' else 0
 			a.data()[AtomKeys.ORBITAL_ARRAY] = self.bases[smap[n + 1][0]].orbarray() if smap[n + 1][0] != 'none' else []
-			
 			
 			
 			atoms.append(a)
