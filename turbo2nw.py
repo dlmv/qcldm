@@ -10,8 +10,8 @@ from qcldm.util.units import Units
 from qcldm.structures.atom_vector import AtomKeys
 from qcldm.atom.shells import Shells
 
-TEMPLATE = '''start ypo4 
-title "xenotime minimal cluster" 
+TEMPLATE = '''start cluster 
+title "cluster" 
 geometry "full-cluster" units au 
 %%COORD%%
 end  
@@ -25,18 +25,19 @@ ecp
 %%ECP%%
 end
 
-set geometry "full-cluster" 
+set geometry "full-cluster"
+charge %%CHARGE%%
 dft  
  XC pbe0
  vectors input hcore
- vectors output ./ypo4_min.movecs
- iterations  2
+ vectors output ./cluster.movecs
+ iterations 200
 grid xfine
 tolerances accCoul 20 tol_rho 20
 end  
 
 task dft
-end'''
+'''
 
 def dummy_basis():
 	gc = GaussFunctionContracted()
@@ -116,6 +117,7 @@ c = ControlFormat.from_file('control')
 with open('test.nw', 'w') as f:
 	coord_block = ''
 	specs = set()
+	charge = 0.
 	embcount = {}
 	for i, a in enumerate(c.cell.atoms):
 		embedded = AtomKeys.ESTIMATED_CHARGE in a.data().keys()
@@ -126,16 +128,21 @@ with open('test.nw', 'w') as f:
 			if name not in embcount.keys():
 				embcount[name] = 0
 			embcount[name] = embcount[name] + 1
-			name += str(embcount[name])
+			if name != 'bq':
+				name += str(embcount[name])
 		coord_block += "%3s %15.10f %15.10f %15.10f" % (name, a.position()[0] / Units.BOHR, a.position()[1] / Units.BOHR, a.position()[2] / Units.BOHR)
 		if embedded:
 			ncore = c.ecps[c.species_map()[i + 1][1]].ncore if c.species_map()[i + 1][1] else 0
 			emcharge = a.data()[AtomKeys.ESTIMATED_CHARGE] + ncore
+			charge += emcharge
 			coord_block += ' charge %13.8f' % emcharge
 		coord_block += "\n"
 		specs.add(c.species_map()[i + 1])
+	charge =  charge - round(charge)
+	print charge	
+	chargestr = "%13.8f" % charge
 	basis_block, ecp_block = build_basis(c, specs)
-	f.write(TEMPLATE.replace('%%COORD%%', coord_block[:-1]).replace('%%BASIS%%', basis_block[:-1]).replace('%%ECP%%', ecp_block[:-1]))
+	f.write(TEMPLATE.replace('%%COORD%%', coord_block[:-1]).replace('%%BASIS%%', basis_block[:-1]).replace('%%ECP%%', ecp_block[:-1]).replace('%%CHARGE%%', chargestr))
 
 
 
