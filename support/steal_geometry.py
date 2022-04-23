@@ -5,6 +5,8 @@ import os, sys, re, numpy as np
 
 path1 = '.'
 path2 = sys.argv[1]
+coord_def = 'coord'
+coord_alt = sys.argv[2]
 
 class Atom:
 	def __init__(self, name, coords):
@@ -62,9 +64,9 @@ def steal_coords(as1, as2):
 	return deleted_atoms
 
 
-def read_coord_and_embedding(path):
+def read_coord_and_embedding(path, coord_name):
 	atoms = []
-	with open(os.path.join(path, 'coord')) as coord:
+	with open(os.path.join(path, coord_name)) as coord:
 		lines = coord.read().splitlines()
 		assert lines[0] == '$coord'
 		assert lines[-1] == '$end'
@@ -234,8 +236,8 @@ def write_coord_and_embedding(path, atoms, atomsd):
 				embedding.write("{:3}  {:9.5f}  {:9.5f}  {:9.5f} {}\n".format(a.emb_name, a.emb_charge, a.emb_min, a.emb_max, a.emb_group))
 				
 				
-atoms = read_coord_and_embedding(path1)
-atoms2 = read_coord_and_embedding(path2)
+atoms = read_coord_and_embedding(path1, coord_def)
+atoms2 = read_coord_and_embedding(path2, coord_alt)
 
 newlines = read_control_new(path1, atoms)
 
