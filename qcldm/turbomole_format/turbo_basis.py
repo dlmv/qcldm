@@ -95,7 +95,10 @@ class TurboBasis:
 				if n >= len(lines):
 					break
 				name = lines[n].strip()
-				n += 2
+				n += 1
+				while '#' in lines[n]:
+					n += 1
+				n += 1
 				ecp_def = lines[n].strip()
 				ecp_def_map = {}
 				for m in re.finditer('(\\w+)=\s+(\d+)', ecp_def):
@@ -105,10 +108,10 @@ class TurboBasis:
 				while '#' == lines[n][0]:
 					n += 1
 				lmax = ecp_def_map['lmax']
-				assert lines[n].strip() == Shells.SHELLS[lmax].lower(), 'wrong lmax for %s' % name
+				assert lines[n].strip().split()[0] == Shells.SHELLS[lmax].lower(), 'wrong lmax for %s' % name
 				n += 1
 				tmpfuncs = []
-				while len(lines[n].split()) == 3:
+				while len(lines[n].split()) == 3 and lines[n].split()[1] in ['0', '1', '2']:
 					ls = lines[n].split()
 					c, l, a = float(ls[0]), int(ls[1]), float(ls[2])
 					tmpfuncs.append([c, GaussFunction(a, l)])
@@ -117,10 +120,10 @@ class TurboBasis:
 				semilocal = []
 				
 				for l in range(ecp_def_map['lmax']):
-					assert lines[n].strip() == '%s-%s' % (Shells.SHELLS[l].lower(), Shells.SHELLS[lmax].lower()), 'wrong l for %s' % name
+					assert lines[n].strip().split()[0] == '%s-%s' % (Shells.SHELLS[l].lower(), Shells.SHELLS[lmax].lower()), 'wrong l for %s' % name
 					n += 1
 					tmpfuncs = []
-					while len(lines[n].split()) == 3:
+					while len(lines[n].split()) == 3 and lines[n].split()[1] in ['0', '1', '2']:
 						ls = lines[n].split()
 						c, l, a = float(ls[0]), int(ls[1]), float(ls[2])
 						tmpfuncs.append([c, GaussFunction(a, l)])
@@ -131,10 +134,10 @@ class TurboBasis:
 				if 'lsomax' in ecp_def_map.keys():
 					n += 1
 					for l in range(1, ecp_def_map['lsomax'] + 1):
-						assert lines[n].strip() == '%s-SpinOrbit' % Shells.SHELLS[l].lower(), 'wrong so for %s' % name
+						assert lines[n].strip().split()[0] == '%s-SpinOrbit' % Shells.SHELLS[l].lower(), 'wrong so for %s' % name
 						n += 1
 						tmpfuncs = []
-						while len(lines[n].split()) == 3:
+						while len(lines[n].split()) == 3 and lines[n].split()[1] in ['0', '1', '2']:
 							ls = lines[n].split()
 							c, l, a = float(ls[0]), int(ls[1]), float(ls[2])
 							tmpfuncs.append([c, GaussFunction(a, l)])

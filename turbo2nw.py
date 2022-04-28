@@ -64,7 +64,7 @@ def build_basis(c, specs):
 			el = spec[0].split()[0]
 			bas = c.bases[spec[0]]
 		el = el[0].upper() + el[1:].lower()
-		assert el not in elbasmap.keys(), 'multiple bases for %s' % el
+		assert el not in elbasmap.keys(), 'multiple bases for %s: %s AND ' % (el, bas.name, elbasmap[el])
 		elbasmap[el] = bas
 		if spec[1] != None:
 			assert el not in elecpmap.keys(), 'multiple ecps for %s' % el
