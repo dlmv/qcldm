@@ -25,10 +25,15 @@ ecp
 %%ECP%%
 end
 
+so
+%%SOECP%%
+end
+
 set geometry "full-cluster"
 charge %%CHARGE%%
 dft  
  XC pbe0
+ CONVERGENCE fast
  vectors input hcore
  vectors output ./cluster.movecs
  iterations 200
@@ -36,7 +41,7 @@ grid xfine
 tolerances accCoul 20 tol_rho 20
 end  
 
-task dft
+task sodft
 '''
 
 def dummy_basis():
@@ -48,6 +53,7 @@ def dummy_basis():
 def build_basis(c, specs):
 	basis_str = ''
 	ecp_str = ''
+	so_str = ''
 #	print specs
 	elbasmap = {}
 	elecpmap = {}
@@ -64,7 +70,7 @@ def build_basis(c, specs):
 			el = spec[0].split()[0]
 			bas = c.bases[spec[0]]
 		el = el[0].upper() + el[1:].lower()
-		assert el not in elbasmap.keys(), 'multiple bases for %s: %s AND ' % (el, bas.name, elbasmap[el])
+		assert el not in elbasmap.keys() or bas.name == elbasmap[el].name, 'multiple bases for %s: %s AND %s' % (el, bas.name, elbasmap[el].name)
 		elbasmap[el] = bas
 		if spec[1] != None:
 			assert el not in elecpmap.keys(), 'multiple ecps for %s' % el
@@ -89,20 +95,16 @@ def build_basis(c, specs):
 			for c, g in part.functions:
 				ecp_str += '    %2d %15.8f %15.8f\n' % (g.l, g.a, c)
 
-	return basis_str, ecp_str
-		
-#	for elm in sorted(elms):
-#		elm = elm[0].upper() + elm[1:].lower()
-#		found = False
-#		for bn in c.bases.keys():
-#			atomname = bn.split()[0]
-#			atomname = atomname[0].upper() + atomname[1:].lower() 
-#			if atomname == elm:
-#				assert found, 'multiple basis set for '
-#		b = c.bases[bn]
-#		for f in b.functions:
-#			print f
+	for el in sorted(elecpmap.keys()):
+		ecp = elecpmap[el]
+		if not ecp.spinorbit:
+			continue
+		for l, part in enumerate(ecp.spinorbit):
+			so_str += el + ' ' * (2 - len(el)) + ' ' + Shells.SHELLS[l] + '\n'
+			for c, g in part.functions:
+				so_str += '    %2d %15.8f %15.8f\n' % (g.l, g.a, c)
 
+	return basis_str, ecp_str, so_str
 
 
 
@@ -119,7 +121,10 @@ with open('test.nw', 'w') as f:
 	specs = set()
 	charge = 0.
 	embcount = {}
+	bqbases = []
+	smap = c.species_map()
 	for i, a in enumerate(c.cell.atoms):
+		print a.name(), smap[i + 1]
 		embedded = AtomKeys.ESTIMATED_CHARGE in a.data().keys()
 		name = a.name()
 		if name.lower() == 'q':
@@ -130,19 +135,37 @@ with open('test.nw', 'w') as f:
 			embcount[name] = embcount[name] + 1
 			if name != 'bq':
 				name += str(embcount[name])
+			real_basisname = smap[i + 1][0]
+			if name == 'bq' and real_basisname != 'none':
+				bas_to_copy = c.bases[real_basisname]
+				if real_basisname not in bqbases:
+					bqbases.append(real_basisname)
+					bqbasisname = 'bq%d %s' % (bqbases.index(real_basisname) + 1, real_basisname.split()[1])
+					bqbasis = TurboBasis(bqbasisname, bas_to_copy.functions)
+					c.bases[bqbasisname] = bqbasis
+					smap[i + 1] = bqbasisname, smap[i + 1][1]
+				name = 'bq%d' % (bqbases.index(real_basisname) + 1)
+
 		coord_block += "%3s %15.10f %15.10f %15.10f" % (name, a.position()[0] / Units.BOHR, a.position()[1] / Units.BOHR, a.position()[2] / Units.BOHR)
+
 		if embedded:
-			ncore = c.ecps[c.species_map()[i + 1][1]].ncore if c.species_map()[i + 1][1] else 0
+			ncore = c.ecps[smap[i + 1][1]].ncore if smap[i + 1][1] else 0
 			emcharge = a.data()[AtomKeys.ESTIMATED_CHARGE] + ncore
+			real_basisname = smap[i + 1][0]
+			if 'bq' in name and real_basisname != 'none':
+				print '????'
+				if emcharge == 0:
+					emcharge = 1e-8
 			charge += emcharge
 			coord_block += ' charge %13.8f' % emcharge
 		coord_block += "\n"
-		specs.add(c.species_map()[i + 1])
+		print '  ', smap[i + 1]
+		specs.add(smap[i + 1])
 	charge =  charge - round(charge)
 	print charge	
 	chargestr = "%13.8f" % charge
-	basis_block, ecp_block = build_basis(c, specs)
-	f.write(TEMPLATE.replace('%%COORD%%', coord_block[:-1]).replace('%%BASIS%%', basis_block[:-1]).replace('%%ECP%%', ecp_block[:-1]).replace('%%CHARGE%%', chargestr))
+	basis_block, ecp_block, so_block = build_basis(c, specs)
+	f.write(TEMPLATE.replace('%%COORD%%', coord_block[:-1]).replace('%%BASIS%%', basis_block[:-1]).replace('%%ECP%%', ecp_block[:-1]).replace('%%SOECP%%', so_block[:-1]).replace('%%CHARGE%%', chargestr))
 
 
 
