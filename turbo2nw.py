@@ -124,7 +124,6 @@ with open('test.nw', 'w') as f:
 	bqbases = []
 	smap = c.species_map()
 	for i, a in enumerate(c.cell.atoms):
-		print a.name(), smap[i + 1]
 		embedded = AtomKeys.ESTIMATED_CHARGE in a.data().keys()
 		name = a.name()
 		if name.lower() == 'q':
@@ -153,13 +152,11 @@ with open('test.nw', 'w') as f:
 			emcharge = a.data()[AtomKeys.ESTIMATED_CHARGE] + ncore
 			real_basisname = smap[i + 1][0]
 			if 'bq' in name and real_basisname != 'none':
-				print '????'
 				if emcharge == 0:
 					emcharge = 1e-8
 			charge += emcharge
 			coord_block += ' charge %13.8f' % emcharge
 		coord_block += "\n"
-		print '  ', smap[i + 1]
 		specs.add(smap[i + 1])
 	charge =  charge - round(charge)
 	print charge	
