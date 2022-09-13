@@ -31,7 +31,7 @@ center = co.cell.cell[num - 1]
 centers = [center]
 
 tmpshells = co.cell.neighbours.neighbours_cluster(centers, 2)
-cas = filter(lambda x: x.name() == center.name(), tmpshells[-1])
+cas = [x for x in tmpshells[-1] if x.name() == center.name()]
 for a in cas:
 	if a.distance(center) < 4:
 		centers.append(a)

@@ -1,6 +1,7 @@
 import re, os, sys, math, logging
 import numpy as np
 from scipy.spatial import Delaunay
+from functools import reduce
 
 def tetrahedron_volume(a, b, c, d):
 	return np.abs(np.einsum('ij,ij->i', a-d, np.cross(b-d, c-d))) / 6
@@ -183,7 +184,7 @@ class PlaneCut:
 					if p is None or p in self.vertices:
 						continue
 					ok = True
-					for k in range(i) + range(i + 1, j) + range(j + 1, len(self.planes)):
+					for k in list(range(i)) + list(range(i + 1, j)) + list(range(j + 1, len(self.planes))):
 						plane3 = self.planes[k]
 						if not same_side(p, plane3.inner, plane3.plane):
 							ok = False

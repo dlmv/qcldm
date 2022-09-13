@@ -8,13 +8,14 @@ from ..crystal_format.crystal_out import CrystalOut
 from ..crystal_format.crystal_part_writer import write_crystal_part
 from ..turbomole_format.turbo_grad_utils import read_atoms, write_atoms, read_grad, write_grad, clear_relax
 from ..util.xyz_format import write_xyz
+from functools import reduce
 
 class OptData:
 	def __init__(self):
 		cell_file = 'cell.start'
 		coord_file = 'coord.start'
 		if os.path.exists('cell.restart') and os.path.exists('coord.restart'):
-			print 'restarting'
+			print('restarting')
 			cell_file = 'cell.restart'
 			coord_file = 'coord.restart'
 		self.co = CrystalOut.from_file(cell_file)

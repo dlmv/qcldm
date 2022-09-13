@@ -28,7 +28,7 @@ def read_record_text(lines, n):
 		return None, n
 	n += 1
 	while n < len(lines) and 'RECORD' not in lines[n]:
-		ls = filter(None, re.split('\s*', lines[n]))
+		ls = [_f for _f in re.split('\s*', lines[n]) if _f]
 		record[0].append(float(ls[1]))
 		record[1].append(float(ls[2]))
 		n += 1
@@ -48,11 +48,11 @@ def read_records_text(name):
 def read_records_binary(name):
 	records = np.fromfile(name)
 	assert len(records) % (RECORD_SIZE*2) == 0, 'non integer number of records'
-	records = [[records[x:x+RECORD_SIZE], records[x+RECORD_SIZE:x+RECORD_SIZE*2]] for x in xrange(0, len(records), RECORD_SIZE*2)]
+	records = [[records[x:x+RECORD_SIZE], records[x+RECORD_SIZE:x+RECORD_SIZE*2]] for x in range(0, len(records), RECORD_SIZE*2)]
 	return records
 
 def write_records_binary(records, name):
-	records = [records[i][j][k] for i in xrange(0, len(records)) for j in xrange(2) for k in xrange(RECORD_SIZE)]
+	records = [records[i][j][k] for i in range(0, len(records)) for j in range(2) for k in range(RECORD_SIZE)]
 	np.array(records).tofile(name)
 
 def write_records_text(records, name):

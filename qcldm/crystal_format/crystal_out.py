@@ -49,7 +49,7 @@ class CrystalOut:
 	def get_cutoffs(self, prec=0.0001):
 		cut = 0
 		for a in self.cell.atoms:
-			for l in self.basis[a.name()].keys():
+			for l in list(self.basis[a.name()].keys()):
 				for cg in self.basis[a.name()][l]:
 					cut = max(cut, cg.get_cutoff(prec))
 			a.data()[AtomKeys.CUTOFF] = cut * Units.BOHR / Units.UNIT
@@ -57,11 +57,11 @@ class CrystalOut:
 	@staticmethod
 	def get_charge_map(lines):
 		vm = {}
-		for n in xrange(len(lines)):
+		for n in range(len(lines)):
 			if DFT_PARAMS in lines[n]:
 				break
 		n += 3
-		for k in xrange(n, len(lines)):
+		for k in range(n, len(lines)):
 			if not lines[k]:
 				break
 			m = re.match(dft_regex, lines[k])
@@ -71,7 +71,7 @@ class CrystalOut:
 
 	@staticmethod
 	def get_geom_start(lines):
-		for n in xrange(len(lines)):
+		for n in range(len(lines)):
 			if GEOM_OUT in lines[n]:
 				return n
 		return 0
@@ -79,14 +79,14 @@ class CrystalOut:
 	@staticmethod
 	def get_last_geom(lines):
 		n = 0
-		for k in xrange(len(lines)):
+		for k in range(len(lines)):
 			if NOLATTICE in lines[k]:
 				n = k
 		return n
 
 	@staticmethod
 	def get_first_geom(lines):
-		for k in xrange(len(lines)):
+		for k in range(len(lines)):
 			if NOLATTICE in lines[k]:
 				return k
 		return 0
@@ -99,8 +99,8 @@ class CrystalOut:
 		start = CrystalOut.get_first_geom(lines)
 		if ASSYM in lines[start + 2]:
 			atoms = []
-			logging.debug(u'NON-PERIODIC SYSTEM')
-			for n in xrange(start+5, len(lines)):
+			logging.debug('NON-PERIODIC SYSTEM')
+			for n in range(start+5, len(lines)):
 				m = re.match(atom1_regex, lines[n])
 			
 				if m:
@@ -108,20 +108,20 @@ class CrystalOut:
 					name = CrystalOut.get_normal_name(m.group(1))
 					a = AtomVector(name, v)
 					numorb = 0
-					for l in basis[a.name()].keys():
+					for l in list(basis[a.name()].keys()):
 						for cg in basis[a.name()][l]:
 							numorb += cg.fs[0][1].l * 2 + 1
 					a.data()[AtomKeys.ORBITAL_COUNT] = numorb
 					a.data()[AtomKeys.FULL_VALENCE] = vm[a.name()]
 					atoms.append(a)
 			
-			return Cell(atoms, [], None, [], range(len(atoms)))
+			return Cell(atoms, [], None, [], list(range(len(atoms))))
 		elif LATTICE_DEG in lines[start + 2]:
 			atoms = []
 			vectors = []
 			assym_n = []
 			trans_mat = [[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]]
-			logging.debug(u'PERIODIC SYSTEM')
+			logging.debug('PERIODIC SYSTEM')
 			m = re.match('\s*ATOMS IN THE ASYMMETRIC UNIT\s+([0-9]+)\s+- ATOMS IN THE UNIT CELL:\s+([0-9]+)', lines[start+7])
 			ass, tot = [int(x) for x in m.groups()]
 			for n in range(tot):
@@ -129,12 +129,12 @@ class CrystalOut:
 					assym_n.append(n)
 			symstart = 0
 			if TRANS_MATRIX in lines[start + tot + 11]:
-				logging.debug(u'PRIMITIVE CELL IS DIFFERENT FROM CRYSTALLOGRAPHIC')
+				logging.debug('PRIMITIVE CELL IS DIFFERENT FROM CRYSTALLOGRAPHIC')
 				mat_raw = [float(i) for i in lines[start + tot + 12].split()]
-				trans_mat = map(lambda x: mat_raw[3*x:(x+1)*3], range(3))
+				trans_mat = [mat_raw[3*x:(x+1)*3] for x in range(3)]
 				symstart = start + 2*tot + 25
 			else:
-				logging.debug(u'PRIMITIVE CELL IS EQUAL TO CRYSTALLOGRAPHIC')
+				logging.debug('PRIMITIVE CELL IS EQUAL TO CRYSTALLOGRAPHIC')
 				symstart = start + tot + 13
 			m = re.match('\s+\*+\s+([0-9]+)\s+SYMMOPS - TRANSLATORS IN FRACTIONAL UNITS', lines[symstart])
 			nops = int(m.group(1))
@@ -143,7 +143,7 @@ class CrystalOut:
 				ls = lines[symstart + 3 + i].split()
 				n, inv = int(ls[0]), int(ls[1])
 				rot_raw = [float(i) for i in ls[2:11]]
-				rot_mat = map(lambda x: rot_raw[3*x:(x+1)*3], range(3))
+				rot_mat = [rot_raw[3*x:(x+1)*3] for x in range(3)]
 				translator = [float(i) for i in ls[11:14]]
 				symop = [n,inv,rot_mat,translator]
 				symops.append(symop)
@@ -160,7 +160,7 @@ class CrystalOut:
 					name = CrystalOut.get_normal_name(m.group(1))
 					a = AtomVector(name, v)
 					numorb = 0
-					for l in basis[a.name()].keys():
+					for l in list(basis[a.name()].keys()):
 						for cg in basis[a.name()][l]:
 							numorb += cg.fs[0][1].l * 2 + 1
 					a.data()[AtomKeys.ORBITAL_COUNT] = numorb
@@ -255,7 +255,7 @@ class CrystalOut:
 		last_n = -1
 		l = 0
 		l1 = -1
-		for n in xrange(len(lines)):
+		for n in range(len(lines)):
 			if BASIS in lines[n]:
 				break
 				
@@ -269,13 +269,13 @@ class CrystalOut:
 				if gs:
 					cg = GaussFunctionContracted()
 					cg.fs = gs
-					if gs[0][1].l not in basis.keys():
+					if gs[0][1].l not in list(basis.keys()):
 						basis[gs[0][1].l] = []
 					basis[gs[0][1].l].append(cg)
 				if gs1:
 					cg = GaussFunctionContracted()
 					cg.fs = gs1
-					if gs1[0][1].l not in basis.keys():
+					if gs1[0][1].l not in list(basis.keys()):
 						basis[gs1[0][1].l] = []
 					basis[gs1[0][1].l].append(cg)
 				gs = []
@@ -294,13 +294,13 @@ class CrystalOut:
 				if gs:
 					cg = GaussFunctionContracted()
 					cg.fs = gs
-					if gs[0][1].l not in basis.keys():
+					if gs[0][1].l not in list(basis.keys()):
 						basis[gs[0][1].l] = []
 					basis[gs[0][1].l].append(cg)
 				if gs1:
 					cg = GaussFunctionContracted()
 					cg.fs = gs1
-					if gs1[0][1].l not in basis.keys():
+					if gs1[0][1].l not in list(basis.keys()):
 						basis[gs1[0][1].l] = []
 					basis[gs1[0][1].l].append(cg)
 				gs = []
@@ -339,13 +339,13 @@ class CrystalOut:
 				if gs:
 					cg = GaussFunctionContracted()
 					cg.fs = gs
-					if gs[0][1].l not in basis.keys():
+					if gs[0][1].l not in list(basis.keys()):
 						basis[gs[0][1].l] = []
 					basis[gs[0][1].l].append(cg)
 				if gs1:
 					cg = GaussFunctionContracted()
 					cg.fs = gs1
-					if gs1[0][1].l not in basis.keys():
+					if gs1[0][1].l not in list(basis.keys()):
 						basis[gs1[0][1].l] = []
 					basis[gs1[0][1].l].append(cg)
 				gs = []
@@ -380,7 +380,7 @@ class CrystalOut:
 
 	@staticmethod
 	def get_mulliken_pop(lines, cell):
-		for n in xrange(len(lines)):
+		for n in range(len(lines)):
 			if ATOMS_POP in lines[n]:
 				break
 		n += 1
@@ -388,7 +388,7 @@ class CrystalOut:
 			return
 		while not lines[n]:
 			n += 1
-		for k in xrange(n, len(lines)):
+		for k in range(n, len(lines)):
 			if not lines[k]:
 				break
 			m = re.match(pop_regex, lines[k])
@@ -409,19 +409,19 @@ class CrystalOut:
 		co.cell = CrystalOut.get_cell_new(lines, co.valence_map, co.basis)
 #		co.cell = CrystalOut.get_cell(lines, co.valence_map, co.basis)
 		CrystalOut.get_mulliken_pop(lines, co.cell)
-		logging.debug(u'ATOM VALENCE:')
-		for k in co.valence_map.keys():
-			logging.debug(u'%s: %d' % (k, co.valence_map[k]))
+		logging.debug('ATOM VALENCE:')
+		for k in list(co.valence_map.keys()):
+			logging.debug('%s: %d' % (k, co.valence_map[k]))
 		return co
 			
 
 	@staticmethod
 	def from_file(name):
-		logging.info(u'')
-		logging.info(u'*********************************************')
-		logging.info(u'  Reading output from %s' % name)
-		logging.info(u'*********************************************')
-		logging.info(u'')
+		logging.info('')
+		logging.info('*********************************************')
+		logging.info('  Reading output from %s' % name)
+		logging.info('*********************************************')
+		logging.info('')
 		with open(name) as f:
 			return CrystalOut.from_string(f.read(), name)
 

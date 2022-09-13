@@ -113,7 +113,7 @@ class AtomData:
 		replacement = name
 		if not full and name != 'q':
 			replacement, core = cluster.settings.embedding_map[name]
-		if (name, full) in self.atoms.keys():
+		if (name, full) in list(self.atoms.keys()):
 			self.atoms[(name, full)].numbers.append(number)
 		else:
 			basis = cluster.settings.basis_map.get((name, full))
@@ -167,11 +167,11 @@ class TurboWriter:
 		
 			for ba in cluster.atoms[len(cluster.core_atoms):len(cluster.core_atoms) + len(cluster.border_atoms)]:
 				replacement, core = cluster.settings.embedding_map[ba.origin.name()]
-				g = '' if ba.origin.tuple_data() not in groups.keys() else groups[ba.origin.tuple_data()]
+				g = '' if ba.origin.tuple_data() not in list(groups.keys()) else groups[ba.origin.tuple_data()]
 				esf.write("{:3}  {:9.5f}  {:9.5f}  {:9.5f} {}\n".format(replacement, ba.charge + core, core, core + ba.origin.data()[AtomKeys.ESTIMATED_VALENCE], g))
 				
 			for ea in cluster.atoms[len(cluster.core_atoms) + len(cluster.border_atoms):len(cluster.core_atoms) + len(cluster.border_atoms) + len(cluster.electrostatic_atoms)]:
-				g = '' if ea.origin.tuple_data() not in groups.keys() else groups[ea.origin.tuple_data()]
+				g = '' if ea.origin.tuple_data() not in list(groups.keys()) else groups[ea.origin.tuple_data()]
 				cmin, cmax = min(0, ea.origin.data()[cluster.charge_key]), max(0, ea.origin.data()[cluster.charge_key])
 				esf.write("{:3}  {:9.5f}  {:9.5f}  {:9.5f} {}\n".format('q', ea.charge, cmin, cmax, g))
 				

@@ -21,7 +21,7 @@ ns = {}
 
 for g in gs:
 	l = g.fs[0][1].l
-	if l not in ns.keys():
+	if l not in list(ns.keys()):
 		ns[l] = 1
 	f = g.to_numeric(basis.grid)
 	f.l = l

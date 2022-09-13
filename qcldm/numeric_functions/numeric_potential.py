@@ -1,5 +1,6 @@
 import re, sys, math
-from numeric_function import NumericFunction
+from .numeric_function import NumericFunction
+from functools import reduce
 sys.dont_write_bytecode = True
 
 class Potential():

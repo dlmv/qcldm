@@ -50,7 +50,7 @@ def steal_coords(as1, as2):
 					if a2.emb_name == 'q':
 						copy = a1.copy()
 						deleted_atoms.append(copy)
-						print 'deleted %d %s %s' % (i1, a1.name, a1.emb_name)
+						print('deleted %d %s %s' % (i1, a1.name, a1.emb_name))
 						a1.name = 'zz'
 						a1.emb_name = 'q'
 						a1.ecp = None
@@ -134,7 +134,7 @@ def read_control_new(path, atoms):
 					for part in ls:
 						m = re.match('(\d+)-(\d+)', part)
 						if m:
-							cur_list.extend(range(int(m.group(1)), int(m.group(2)) + 1))
+							cur_list.extend(list(range(int(m.group(1)), int(m.group(2)) + 1)))
 							continue
 						m = re.match('(\d+)', part)
 						if m:
@@ -189,7 +189,7 @@ def write_control_new(path, atoms, lines):
 			species_map[specie] = []
 		species_map[specie].append(i + 1)
 	atompart = ''
-	for specie in sorted(species_map.keys(), key=lambda x: species_map[x][0]):
+	for specie in sorted(list(species_map.keys()), key=lambda x: species_map[x][0]):
 		ls = specie.split('#')
 		name, basis, ecp = ls if len(ls) == 3 else ls + [None]
 		line = '{:<3}'.format(name) + numstr(species_map[specie])

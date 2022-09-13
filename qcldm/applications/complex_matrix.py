@@ -77,7 +77,7 @@ def write_complex_matrix(filename, dm, oar, t):
 		for i in range(len(dm)):
 			tt, l, m = title(i, oar, t)
 			e = dm[i,i]
-			if (l, m) in lm_map.keys():
+			if (l, m) in list(lm_map.keys()):
 				lm_map[l, m] += e
 			else:
 				lm_map[l, m] = e

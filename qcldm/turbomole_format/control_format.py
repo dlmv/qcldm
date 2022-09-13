@@ -6,9 +6,9 @@ from math3d import Vector
 
 from ..structures.atom_vector import AtomVector, AtomKeys
 from ..structures.cell import Cell
-from turbo_format import TurboTemplate
-from turbo_basis import TurboBasis
-from mos_format import MosReader
+from .turbo_format import TurboTemplate
+from .turbo_basis import TurboBasis
+from .mos_format import MosReader
 
 from ..util.elements import ELEMENTS
 from ..util.units import Units
@@ -55,7 +55,7 @@ class ControlFormat:
 		for i in range(nb):
 			mat[i*2 + 1, i*2 + 1] = 1
 		for i in range(n):
-			print mat[i, i]
+			print((mat[i, i]))
 		return mat
 
 	@staticmethod
@@ -113,7 +113,7 @@ class ControlFormat:
 			a = AtomVector(name, v)
 			
 			if embedded:
-				if name in embmap.keys():
+				if name in list(embmap.keys()):
 					name = embmap[name]
 					a = AtomVector(name, v)
 				ncore = self.ecps[smap[n + 1][1]].ncore if smap[n + 1][1] else 0
@@ -141,7 +141,7 @@ class ControlFormat:
 		if twecp:
 			ts = self.base_format.param('twocomp')
 			ls = re.split("[\s\-]+", ts.multiparam[0].strip())
-			nocc = len(range(int(ls[1]), int(ls[2]) + 1))
+			nocc = len(list(range(int(ls[1]), int(ls[2]) + 1)))
 
 			rm = self.base_format.param('uhfmo_real')
 			im = self.base_format.param('uhfmo_imag')

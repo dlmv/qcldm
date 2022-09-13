@@ -10,7 +10,7 @@ def read_baders(cell, name='ACF.dat'):
 			n += 1
 		n += 1
 		while '------------------' not in lines[n]:
-			ls = filter(None, re.split('\s*', lines[n]))
+			ls = [_f for _f in re.split('\s*', lines[n]) if _f]
 			bc =float(ls[4])
 			bader_occs.append(bc)
 			n += 1

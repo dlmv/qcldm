@@ -104,7 +104,7 @@ def write_valence(co, f):
 	f.write(' DFT PARAMETERS\n')
 	f.write("\n")
 	f.write('     ATOM       ELECTRONS   NET CHARGE   R(ANGSTROM)\n')
-	for name in co.valence_map.keys():
+	for name in list(co.valence_map.keys()):
 		name2 = name + ' ' if len(name) == 1 else name
 		f.write('   0 %3d  %s   %9.4f      0.0000     0.00000000\n' % (ELEMENTS[name].number, name2, co.valence_map[name]))
 	f.write("\n")
@@ -135,7 +135,7 @@ def write_basis(co, f):
 		name2 = atom.name() + " " if len(atom.name()) == 1 else atom.name()
 		f.write(" %3d %2s  %6.3f  %6.3f  %6.3f\n" % (i+1, name2, atom.position().x / Units.BOHR, atom.position().y / Units.BOHR, atom.position().z / Units.BOHR))
 		basis = co.basis[atom.name()]
-		if atom.name() in norb.keys():
+		if atom.name() in list(norb.keys()):
 			n += norb[atom.name()]
 			continue
 		k = n

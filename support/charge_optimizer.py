@@ -2,6 +2,7 @@
 import os, sys, threading, time
 from scipy.optimize import minimize
 import numpy as np
+from functools import reduce
 
 
 last_xe = None
@@ -96,7 +97,7 @@ def read_start_embedding():
 	filename = "embedding.start"
 	if os.path.exists("embedding.restart"):
 		filename = "embedding.restart"
-		print "restarting"
+		print("restarting")
 	with open(filename) as es:
 		for i, l in enumerate(es):
 			ls = l.split()
@@ -198,7 +199,7 @@ def optimize_embedding(eps, ftol, maxit):
 	s = sum(e.apply_groups(x0))
 	cons = ({'type': 'eq', 'fun' : lambda x: sum(e.apply_groups(x)) - s})
 	f = lambda x: calculate(n, empos, e, x, eps)
-	limits = zip(e.lowlimits, e.highlimits)
+	limits = list(zip(e.lowlimits, e.highlimits))
 	res = minimize(f, x0, args=(), method='SLSQP', jac=None, 
 bounds=limits, constraints=cons, tol=None, callback=None, options={'disp': False, 'eps': eps, 'maxiter': maxit, 'ftol': ftol})
 	write_embedding(e, res.x)
@@ -213,7 +214,7 @@ if len(sys.argv) == 3:
 	optimize_embedding(eps, ftol, 9999)
 
 else:
-	print 'Usage: charge_optimizer.py [STEP] [PRECISION]\nExample: charge_optimizer.py 1e-2 1e-5'
+	print('Usage: charge_optimizer.py [STEP] [PRECISION]\nExample: charge_optimizer.py 1e-2 1e-5')
 
 
 

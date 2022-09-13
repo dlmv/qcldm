@@ -1,5 +1,6 @@
 #!/usr/bin/python 
 import os, sys
+from functools import reduce
 
 def read_embed_positions():
 	pos = []
@@ -52,8 +53,8 @@ def read_grad_from_control(num, pos, nepos):
 
 n, pos, nepos = read_embed_positions()
 grad_s, grad_a = read_grad_from_control(n, pos, nepos)
-print grad_s
-print grad_a
+print(grad_s)
+print(grad_a)
 
 
 

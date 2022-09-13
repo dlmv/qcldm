@@ -9,11 +9,11 @@ def corresponding_atom(a, cell2):
 
 def compare_cells(c1, c2):
 	if len(c1.cell) != len(c2.cell):
-		print 'different atom number!!'
+		print('different atom number!!')
 		return
 	for a1, a2 in zip(c1.cell, c2.cell):
 		if a1.name() != a2.name():
-			print 'different atom types!'
+			print('different atom types!')
 			return
 	c1.neighbours.load_all({})
 	c2.neighbours.load_all({})
@@ -37,7 +37,7 @@ def compare_cells(c1, c2):
 			if abs(r1-r2) > 2:
 				continue
 			if abs(r1-r2) > 0.01:
-				print "%7s%6.3f%6.3f" % ("%s%d" % (n1.name(), n1.num), r1, r2)
+				print("%7s%6.3f%6.3f" % ("%s%d" % (n1.name(), n1.num), r1, r2))
 			sd += d
 			if mxd < d and n1 in c1.cell:
 				mxd = d
@@ -54,7 +54,7 @@ def compare_cells(c1, c2):
 				if abs(an1-an2) > 15:
 					continue
 				if abs(an1-an2) > 3:
-					print "%7s%5s%8.3f%8.3f" % ("%s%d" % (n1.name(), n1.num), "%s%d" % (m1.name(), m1.num), an1, an2)
+					print("%7s%5s%8.3f%8.3f" % ("%s%d" % (n1.name(), n1.num), "%s%d" % (m1.name(), m1.num), an1, an2))
 	sd = (sd / n) ** 0.5
 	mxd = mxd ** 0.5
 	return sd, mxd, a, nb
@@ -62,11 +62,11 @@ def compare_cells(c1, c2):
 
 def compare_cells3(c1, c2, c3):
 	if len(c1.cell) != len(c2.cell) or len(c1.cell) != len(c3.cell):
-		print 'different atom number!!'
+		print('different atom number!!')
 		return
 	for a1, a2, a3 in zip(c1.cell, c2.cell, c3.cell):
 		if a1.name() != a2.name() or  a1.name() != a3.name():
-			print 'different atom types!'
+			print('different atom types!')
 			return
 	c1.neighbours.load_all({})
 	c2.neighbours.load_all({})
@@ -84,7 +84,7 @@ def compare_cells3(c1, c2, c3):
 			r2 = a2.distance(n2)
 			r3 = a3.distance(n3)
 			if abs(r1-r2) > 0.05 or abs(r1-r3) > 0.05 or abs(r3-r2) > 0.05:
-				print "%7s%6.3f%6.3f%6.3f" % ("%s%d" % (n1.name(), n1.num), r1, r2, r3)
+				print("%7s%6.3f%6.3f%6.3f" % ("%s%d" % (n1.name(), n1.num), r1, r2, r3))
 		for n1 in c1.neighbours.first_neighbours(a1, {}):
 			n2 = corresponding_atom(n1, c2)
 			n3 = corresponding_atom(n1, c3)
@@ -97,17 +97,17 @@ def compare_cells3(c1, c2, c3):
 				an2 = a2.angle(n2, m2)
 				an3 = a2.angle(n3, m3)
 				if abs(an1-an2) > 3 or abs(an1-an3) > 3 or abs(an3-an2) > 3:
-					print "%7s%5s%8.3f%8.3f%8.3f" % ("%s%d" % (n1.name(), n1.num), "%s%d" % (m1.name(), m1.num), an1, an2, an3)
+					print("%7s%5s%8.3f%8.3f%8.3f" % ("%s%d" % (n1.name(), n1.num), "%s%d" % (m1.name(), m1.num), an1, an2, an3))
 
 
 
 def get_dispacements(c1, c2):
 	if len(c1.cell) != len(c2.cell):
-		print 'different atom number!!'
+		print('different atom number!!')
 		return
 	for a1, a2 in zip(c1.cell, c2.cell):
 		if a1.name() != a2.name():
-			print 'different atom types!'
+			print('different atom types!')
 			return
 
 	sd = 0
@@ -126,7 +126,7 @@ def get_dispacements(c1, c2):
 			mxa = a1
 		if a1.name() != 'X':
 			n += 1
-	print n
+	print(n)
 	sd = (sd / n) ** 0.5
 	mxd = mxd ** 0.5
 	return sd, mxd, mxa

@@ -20,10 +20,10 @@ cell2 = read_xyz(name2)
 
 sd, mxd, a, nb = compare_cells(cell1, cell2)
 
-print "Standard deviation: %f" % sd
-print "Max deviation: %f" % mxd
-print a
-print nb
+print("Standard deviation: %f" % sd)
+print("Max deviation: %f" % mxd)
+print(a)
+print(nb)
 
 
 

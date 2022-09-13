@@ -63,11 +63,11 @@ class LinearSystemChargeTransferBondData(PreloadedBondData):
 
 	def __init__(self, cell, key, override_map):
 		PreloadedBondData.__init__(self, override_map)
-		logging.info(u'')
-		logging.info(u'*********************************************')
-		logging.info(u'  Estimating CT from linear system')
-		logging.info(u'*********************************************')
-		logging.info(u'')
+		logging.info('')
+		logging.info('*********************************************')
+		logging.info('  Estimating CT from linear system')
+		logging.info('*********************************************')
+		logging.info('')
 
 
 		bonds = self.load_bonds(cell)
@@ -98,7 +98,7 @@ class LinearSystemChargeTransferBondData(PreloadedBondData):
 		
 		#assert rank < len(b)
 
-		self.data = zip(bonds, xs)
+		self.data = list(zip(bonds, xs))
 
 
 

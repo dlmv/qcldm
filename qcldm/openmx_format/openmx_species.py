@@ -1,14 +1,14 @@
 import re, os, logging
 from ..util.units import Units
 from ..atom.shells import Shells
-from pao_format import PAO
-from vps_format import VPS
+from .pao_format import PAO
+from .vps_format import VPS
 
 class openmx_species:
 
 	def __init__(self, ls, data_path):
 		self.numorbs = {}
-		lsp = filter(None, re.split('-', ls[1]))
+		lsp = [_f for _f in re.split('-', ls[1]) if _f]
 		lso =  re.findall("[a-z]\d*", lsp[1])
 		for o in lso:
 			oname = o[0]
@@ -29,19 +29,19 @@ class openmx_species:
 			self.pp = VPS.from_file(vps_path)
 			self.basis = PAO.from_file(pao_path)
 		except IOError:
-			logging.warn(u'PAO or VPS file not found for {}'.format(self.name))
+			logging.warn('PAO or VPS file not found for {}'.format(self.name))
 
 	def orbnum(self):
 		res = 0
 		for s in Shells.SHELLS.lower():
-			if s in self.numorbs.keys():
+			if s in list(self.numorbs.keys()):
 				res += self.numorbs[s] * (2 * Shells.SHELLS.lower().index(s) + 1)
 		return res
 
 	def orbarray(self):
 		res = []
 		for s in Shells.SHELLS.lower():
-			if s in self.numorbs.keys():
+			if s in list(self.numorbs.keys()):
 				res.append(self.numorbs[s] * (2 * Shells.SHELLS.lower().index(s) + 1))
 			else:
 				res.append(0)
@@ -50,7 +50,7 @@ class openmx_species:
 	def fulllist(self, prefix=''):
 		orbstr = ''
 		for s in Shells.SHELLS.lower():
-			if s in self.numorbs.keys():
+			if s in list(self.numorbs.keys()):
 				orbstr += s + str(self.numorbs[s])
 		return [prefix + self.name,  prefix + self.pao + '-' + orbstr, prefix + self.vps]
 

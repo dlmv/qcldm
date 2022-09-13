@@ -1,5 +1,6 @@
 #!/usr/bin/python 
 import os, sys, threading, time
+from functools import reduce
 
 def read_embed_positions():
 	empos = []
@@ -133,7 +134,7 @@ damp = float(sys.argv[2]) if len(sys.argv) > 2 else 1
 
 coords = None
 if os.path.exists('coord.restart'):
-	print 'restarting'
+	print('restarting')
 	coords = read_coord('coord.restart')
 else:
 	if not os.path.exists('coord.start'):

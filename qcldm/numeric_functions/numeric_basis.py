@@ -29,7 +29,7 @@ class NumericBasis:
 	def estimate_full_vden(self): 
 		vden = 0 * self.functions[0][1]
 		pops = Shells.estimate_pf_pop(self.z, self.eval)
-		for n, l in pops.keys():
+		for n, l in list(pops.keys()):
 			f = self.functions[l][n]
 			occ = pops[(n,l)]
 			vden += occ * (f*f) / math.pi / 4
@@ -38,7 +38,7 @@ class NumericBasis:
 	def estimate_upper_vden(self):
 		vden = 0 * self.functions[0][1]
 		pops = Shells.estimate_pf_pop(self.z, Shells.estimate_valence(self.z))
-		for n, l in pops.keys():
+		for n, l in list(pops.keys()):
 			f = self.functions[l][n]
 			occ = pops[(n,l)]
 			vden += occ * (f*f) / math.pi / 4
@@ -54,7 +54,7 @@ class NumericBasis:
 
 	def shift_functions(self):
 		new_functions = {}
-		for l in self.functions.keys():
+		for l in list(self.functions.keys()):
 			new_functions[l] = {}
 			ns = sorted(self.functions[l].keys())
 			nn = l + 1
@@ -64,13 +64,13 @@ class NumericBasis:
 		self.functions = new_functions
 
 	def ortonorm(self):
-		logging.info(u'')
-		logging.info(u'*********************************************')
-		logging.info(u'  Ortonorming basis functions')
-		logging.info(u'*********************************************')
-		logging.info(u'')
+		logging.info('')
+		logging.info('*********************************************')
+		logging.info('  Ortonorming basis functions')
+		logging.info('*********************************************')
+		logging.info('')
 		for l in sorted(self.functions.keys()):
-			logging.debug(u'L=%d' % l)
+			logging.debug('L=%d' % l)
 			fs = []
 			for n in sorted(self.functions[l].keys()):
 				fs.append(self.functions[l][n])
@@ -81,7 +81,7 @@ class NumericBasis:
 					f.normalize()
 					self.functions[l][f.n] = f
 				else:
-					logging.warn(u" %d'th basis function for L=%d is linearly dependent" % (n, l))
+					logging.warn(" %d'th basis function for L=%d is linearly dependent" % (n, l))
 		self.shift_functions()
 
 	def align_functions(self, tol=0.7):
@@ -90,7 +90,7 @@ class NumericBasis:
 			if 1. * len(self.functions[l]) / n0 < tol:
 				break
 		lmax = l
-		n = sys.maxint
+		n = sys.maxsize
 		for l in sorted(self.functions.keys()):
 			if l <= lmax:
 				n = min(n, len(self.functions[l]))

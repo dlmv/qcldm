@@ -17,7 +17,7 @@ for nv, v in zip(nvs, c.vectors):
 	for v1 in c.vectors:
 		if v1 != v:
 			nv += v1/2
-print nvs
+print(nvs)
 c.rescale(c.origin, c.size, nvs)
 #c.rescale(c.origin, c.size, c.vectors)
 c.to_file('cube.cube')

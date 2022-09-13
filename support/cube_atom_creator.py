@@ -26,7 +26,7 @@ def rewrite_control(cube_input):
 	shutil.copy('control', 'control.bak')
 	with open('control.bak') as inp:
 		with open('control', 'w') as outp:
-			for line in inp.xreadlines():
+			for line in inp:
 				if skipping and line[0] == '$':
 					skipping = False
 				if line.startswith('$dft-functional') and not written:
@@ -43,7 +43,7 @@ i, r = int(sys.argv[1]), float(sys.argv[2])
 vectors = [0.05,0.05,0.05]
 			
 coords = read_center_coords(i)
-print coords
+print(coords)
 
 cube_input = create_cube_input(vectors, coords, r)
 

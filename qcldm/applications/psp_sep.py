@@ -5,7 +5,7 @@ sys.dont_write_bytecode = True
 from ..atom.basis import Basis
 from ..record_format.psp_format import read_psp
 from ..record_format.func_formats import read_hfj_dft
-from psp_preparer import BASIS_DIR, PROJ_DIR
+from .psp_preparer import BASIS_DIR, PROJ_DIR
 
 PROJ_E_LIMIT = 0.3
 

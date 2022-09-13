@@ -1,6 +1,7 @@
 #!/usr/bin/python 
 import re, os, sys, threading, math, time
 from scipy.optimize import minimize
+from functools import reduce
 
 SHELLS = "spdfgh"
 
@@ -34,7 +35,7 @@ class Ecp:
 		res = '*\n'
 		res += self.name + '\n*\n'
 		for k in ['ncore', 'lmax', 'lsomax']:
-			if k in self.ndict.keys():
+			if k in list(self.ndict.keys()):
 				res += '  %s=  %d  ' % (k, self.ndict[k])
 		res += '\n#        coefficient   r^n          exponent\n'
 		for c in self.components:
@@ -73,7 +74,7 @@ def read_ecp(lines, n):
 	while lines[n] != '*':
 		n, comp = read_component(lines, n)
 		res.components.append(comp)
-	if 'lsomax' in res.ndict.keys() and res.ndict['lsomax'] > 0:
+	if 'lsomax' in list(res.ndict.keys()) and res.ndict['lsomax'] > 0:
 		n += 1
 		while lines[n] != '*':
 			n, comp = read_component(lines, n)
@@ -206,7 +207,7 @@ if len(sys.argv) == 3:
 		emb.write("OPTIMIZATION START: eps=%.2e, ftol=%.2e\n" % (eps, ftol))
 	optimize_ecp(eps, ftol, 9999)
 else:
-	print 'Usage: charge_optimizer.py [STEP] [PRECISION]\nExample: charge_optimizer.py 1e-2 1e-5'
+	print('Usage: charge_optimizer.py [STEP] [PRECISION]\nExample: charge_optimizer.py 1e-2 1e-5')
 
 
 

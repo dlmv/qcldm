@@ -5,7 +5,7 @@ from ..util.elements import ELEMENTS
 from ..structures.cell import Cell
 from ..structures.atom_vector import AtomVector, AtomKeys
 from ..atom.shells import Shells
-from polyhedra_intersection import Cuboid
+from .polyhedra_intersection import Cuboid
 import fortranformat as ff
 import numpy as np
 
@@ -28,22 +28,22 @@ class GaussianCube:
 
 	@staticmethod
 	def from_file(name):
-		logging.info(u'')
-		logging.info(u'*********************************************')
-		logging.info(u'  Reading cube from %s' % name)
-		logging.info(u'*********************************************')
-		logging.info(u'')
+		logging.info('')
+		logging.info('*********************************************')
+		logging.info('  Reading cube from %s' % name)
+		logging.info('*********************************************')
+		logging.info('')
 		with open(name) as f:
 			gc = GaussianCube()
 			n = 0
 			i = 0
 			nat = 9999999999
-			lines = f.xreadlines()
+			lines = f
 			for line in lines:
 				if n == 2:
 					ls = line.split()
 					nat = int(ls[0])
-					logging.debug(u'  atoms count: %d' % nat)
+					logging.debug('  atoms count: %d' % nat)
 					gc.origin = Vector([float(x) for x in ls[1:4]])
 				elif 3 <= n < 6:
 					ls = line.split()
@@ -71,7 +71,7 @@ class GaussianCube:
 						gc.data[x,y,z] = f
 						i += 1
 						if i % (gc.data.size / 10) == 0:
-							logging.debug(u'  %d of %d' % (i, gc.data.size))	
+							logging.debug('  %d of %d' % (i, gc.data.size))	
 				n += 1
 			return gc
 
@@ -83,11 +83,11 @@ class GaussianCube:
 		self.to_file_custom(name, ranges)
 
 	def to_file_custom(self, name, ranges):
-		logging.info(u'')
-		logging.info(u'*********************************************')
-		logging.info(u'  Writing cube to %s' % name)
-		logging.info(u'*********************************************')
-		logging.info(u'')
+		logging.info('')
+		logging.info('*********************************************')
+		logging.info('  Writing cube to %s' % name)
+		logging.info('*********************************************')
+		logging.info('')
 		with open(name, 'w') as f:
 			f.write("\n\n")
 			f.write("%5d%12.6f%12.6f%12.6f\n" % (len(self.atoms), self.origin.x, self.origin.y, self.origin.z))
@@ -98,13 +98,13 @@ class GaussianCube:
 			i = 0
 			lf = ff.FortranRecordWriter('(6e13.5)')
 			size = (ranges[0][1] - ranges[0][0]) * (ranges[1][1] - ranges[1][0]) * (ranges[2][1] - ranges[2][0])
-			for x in xrange(ranges[0][0], ranges[0][1]):
-				for y in xrange(ranges[1][0], ranges[1][1]):
-					for z in xrange(ranges[2][0], ranges[2][1]):
+			for x in range(ranges[0][0], ranges[0][1]):
+				for y in range(ranges[1][0], ranges[1][1]):
+					for z in range(ranges[2][0], ranges[2][1]):
 						f.write(lf.write([self.voxel_value([x,y,z])]))
 						i += 1
 						if i % (size / 10) == 0:
-							logging.debug(u'  %d of %d' % (i, size))
+							logging.debug('  %d of %d' % (i, size))
 						if z % 6 == 5:
 							f.write("\n")
 					f.write("\n")

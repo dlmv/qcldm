@@ -28,7 +28,7 @@ p1 = [0.000000, 2.437766, 7.361902]
 
 p2 = [0.000000, 2.437766, -2.453967]
 
-print (source.voxel_cuboid(source.find_voxel(p1)).center - np.array(p1)) - (source.voxel_cuboid(source.find_voxel(p2)).center - np.array(p2))
+print((source.voxel_cuboid(source.find_voxel(p1)).center - np.array(p1)) - (source.voxel_cuboid(source.find_voxel(p2)).center - np.array(p2)))
 
 #print source.find_voxel(p1)
 #print source.voxel_cuboid(source.find_voxel(p1)).center

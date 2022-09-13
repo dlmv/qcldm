@@ -8,7 +8,7 @@ dx= %.6f dy= %.6f dz= %.6f
 
 def read_crystal_cube_parameters():
 	with open('crystal.cube') as crf:
-		head = [next(crf) for x in xrange(6)]
+		head = [next(crf) for x in range(6)]
 		start = [float(x) for x in head[2].split()[1:]]
 		vectors = [0.,0.,0.]
 		steps = [0,0,0]
@@ -33,7 +33,7 @@ def create_cube_input(start, vectors, steps, coords, r):
 
 def read_center_coords():
 	with open('coord') as crf:
-		head = [next(crf) for x in xrange(2)]
+		head = [next(crf) for x in range(2)]
 		coords = [float(x) for x in head[1].split()[:-1]]
 		return coords
 
@@ -43,7 +43,7 @@ def rewrite_control(cube_input):
 	shutil.copy('control', 'control.bak')
 	with open('control.bak') as inp:
 		with open('control', 'w') as outp:
-			for line in inp.xreadlines():
+			for line in inp:
 				if skipping and line[0] == '$':
 					skipping = False
 				if line.startswith('$dft-functional') and not written:

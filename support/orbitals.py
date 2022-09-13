@@ -50,7 +50,7 @@ def find_homo(lines, n):
 	return 0
 
 def read_line(line, atom, hnum):
-	ls = filter(None, re.split('\s*', line[:-1]))
+	ls = [_f for _f in re.split('\s*', line[:-1]) if _f]
 	if len(ls) - hnum * 4 == 4:
 		atom = (int(ls[0]), ls[1])
 		ls = ls[2:]
@@ -78,11 +78,11 @@ def read_portion(lines, n):
 		else:
 			return None, len(lines)
 	if found:
-		nums = filter(None, re.split('\s*', lines[n][:-1]))
+		nums = [_f for _f in re.split('\s*', lines[n][:-1]) if _f]
 		n += 1
-		es = filter(None, re.split('\s*', lines[n][:-1]))
+		es = [_f for _f in re.split('\s*', lines[n][:-1]) if _f]
 		n += 2
-		cs = filter(None, re.split('\s*', lines[n][:-1]))
+		cs = [_f for _f in re.split('\s*', lines[n][:-1]) if _f]
 		n += 2
 		for k in range(len(nums)):
 			lcaos.append(LCAO(int(nums[k]), float(es[k])))
@@ -117,7 +117,7 @@ def parse_orbitals(name, verbose=False):
 		l = lcaos[n]
 		s = print_string(l, n, nocc, verbose)
 		if n == 0 or l.e != lcaos[n-1].e:
-			print s
+			print(s)
 
 verbose = '-v' in sys.argv[2:]
 parse_orbitals(sys.argv[1], verbose)

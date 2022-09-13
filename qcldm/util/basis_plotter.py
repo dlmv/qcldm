@@ -45,7 +45,7 @@ def plot_funcs(fs, filename, xmax=-1, ymax = 2):
 			if xp != None:
 				n = int(round(max(abs(x - xp), abs(y - yp))))
 				if n > 0 and n < 1000:
-					for i in xrange(n + 1):
+					for i in range(n + 1):
 						xc = int(round((x * i + xp * (n - i)) / n))
 						yc = int(round((y * i + yp * (n - i)) / n))
 						for xs, ys in point:
@@ -69,7 +69,7 @@ def plothue():
 	for x in range(w):
 		hue = 1.0 * x / w
 		color = tuple([int(round(i * 255)) for i in colorsys.hls_to_rgb(hue, 0.5, 1)])
-		for y in range(h) if color.count(0) == 2 else range(h / 2):
+		for y in list(range(h)) if color.count(0) == 2 else list(range(h / 2)):
 			pix[x, y] = color
 	img.save('hue.png')
 

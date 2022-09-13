@@ -51,10 +51,10 @@ for atom in cluster.atoms[0:]:
 	r = atom.distance(center)
 	if r0 < r:
 		continue
-	if atom.name() not in neighmap.keys():
+	if atom.name() not in list(neighmap.keys()):
 		neighmap[atom.name()] = {}
 	foundr = False
-	for rr in neighmap[atom.name()].keys():
+	for rr in list(neighmap[atom.name()].keys()):
 		if abs(rr - r) < 0.01:
 			foundr = True
 			neighmap[atom.name()][rr] += ' + ' + FORMULA_TEMPLATE % {'R' : atom.distance(center) / Units.BOHR, 'r' : IONIC_RADII[atom.name()] / Units.BOHR}

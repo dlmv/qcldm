@@ -35,7 +35,7 @@ class Cluster:
 	def add_cations(self, shells, name, r):
 		for a in self.cell.extended_cell(2):
 			if a.name() == name and a.distance(self.centers[0]) <= r:
-				print a
+				print(a)
 				found = False
 				for shell in shells:
 					if a in shell:
@@ -95,24 +95,24 @@ class Cluster:
 
 	def estimate_atoms_charges(self):
 		for a in self.cell.atoms:
-			if not AtomKeys.ESTIMATED_VALENCE in a.data().keys():
+			if not AtomKeys.ESTIMATED_VALENCE in list(a.data().keys()):
 				a.data()[AtomKeys.ESTIMATED_VALENCE] = Shells.estimate_valence_byname(a.name())
 		
-			if not AtomKeys.ESTIMATED_CHARGE in a.data().keys():
+			if not AtomKeys.ESTIMATED_CHARGE in list(a.data().keys()):
 				a.data()[AtomKeys.ESTIMATED_CHARGE] = Shells.estimate_charge_byname(a.name())
 			
-			if a.name() in self.settings.valence_override_map.keys():
+			if a.name() in list(self.settings.valence_override_map.keys()):
 				a.data()[AtomKeys.ESTIMATED_VALENCE] = self.settings.valence_override_map[a.name()]
-			if a.name() in self.settings.charge_override_map.keys():
+			if a.name() in list(self.settings.charge_override_map.keys()):
 				a.data()[AtomKeys.ESTIMATED_CHARGE] = self.settings.charge_override_map[a.name()]
 		
 
 	def round_valence(self, atoms, desired):
-		logging.debug(u'Rounding total valence...')
+		logging.debug('Rounding total valence...')
 		tv = 0
 		for a in atoms:
 			tv += a.valence
-		logging.debug(u'  Current is %f; rounding to %d' % (tv, desired))
+		logging.debug('  Current is %f; rounding to %d' % (tv, desired))
 #		itv = round(tv)
 		itv = desired
 		for a in atoms:
@@ -134,7 +134,7 @@ class Cluster:
 		
 
 	def rearrange_charges(self, atoms):
-		logging.debug(u'Checking for exceeding values...')
+		logging.debug('Checking for exceeding values...')
 		exc_atoms = set()
 		exc_chg = 0.
 		for a in atoms:
@@ -169,26 +169,26 @@ class Cluster:
 		self.ct_data = LinearSystemChargeTransferBondData(self.cell, self.charge_key, self.settings.bond_distance_override_map) if self.electrostatic_atoms else None
 		self.mul_data = bond_data
 
-		logging.info(u'')
-		logging.info(u'*********************************************')
-		logging.info(u'  Estimating cluster charges')
-		logging.info(u'*********************************************')
-		logging.info(u'')
+		logging.info('')
+		logging.info('*********************************************')
+		logging.info('  Estimating cluster charges')
+		logging.info('*********************************************')
+		logging.info('')
 		atoms = []
-		logging.debug(u'Core atoms')
+		logging.debug('Core atoms')
 		tmp = []
 		for i in range(len(self.core_atoms)):
 			a = self.core_atoms[i]
 			valence = a.data()[AtomKeys.ESTIMATED_VALENCE]
 			ca = ClusterAtom(a, valence, valence)
 			tmp.append(ca)
-			logging.debug(u'  %d/%d' % (i + 1, 	len(self.core_atoms)))
+			logging.debug('  %d/%d' % (i + 1, 	len(self.core_atoms)))
 
 		atoms.extend(tmp)
 		desired = -self.estimate_central_charge()
 		tmp = []
 
-		logging.debug(u'Border atoms')
+		logging.debug('Border atoms')
 		for i in range(len(self.border_atoms)):
 			a = self.border_atoms[i]
 			nbs = self.cell.neighbours.first_neighbours(a, self.settings.bond_distance_override_map)
@@ -207,7 +207,7 @@ class Cluster:
 			valence *= inside_overlap / total_overlap
 			ca = ClusterAtom(a, valence, el_charge + valence)
 			tmp.append(ca)
-			logging.debug(u'  %d/%d' % (i + 1, len(self.border_atoms)))
+			logging.debug('  %d/%d' % (i + 1, len(self.border_atoms)))
 
 
 		self.round_valence(tmp, desired)
@@ -215,7 +215,7 @@ class Cluster:
 		atoms.extend(tmp)
 
 		tmp = []
-		logging.debug(u'Electrostatic atoms')
+		logging.debug('Electrostatic atoms')
 		for i in range(len(self.electrostatic_atoms)):
 			a = self.electrostatic_atoms[i]
 			nbs = self.cell.neighbours.first_neighbours(a, self.settings.bond_distance_override_map)
@@ -226,32 +226,32 @@ class Cluster:
 					el_charge += add_charge
 			ca = ClusterAtom(a, 0, el_charge)
 			tmp.append(ca)
-			logging.debug(u'  %d/%d' % (i + 1, len(self.electrostatic_atoms)))
+			logging.debug('  %d/%d' % (i + 1, len(self.electrostatic_atoms)))
 
 		atoms.extend(tmp)
 
 		self.atoms = atoms
 		
 	def make_groups(self):
-		logging.info(u'')
-		logging.info(u'*********************************************')
-		logging.info(u'  GROUPING ATOMS')
-		logging.info(u'*********************************************')
-		logging.info(u'')
+		logging.info('')
+		logging.info('*********************************************')
+		logging.info('  GROUPING ATOMS')
+		logging.info('*********************************************')
+		logging.info('')
 		groups = {}
 		atoms = self.border_atoms + self.electrostatic_atoms
 		full_atoms = self.core_atoms + self.border_atoms + self.electrostatic_atoms
 		index = 0
-		for i in xrange(len(atoms)):
-			logging.debug(u'  %d/%d' % (i + 1, len(atoms)))
+		for i in range(len(atoms)):
+			logging.debug('  %d/%d' % (i + 1, len(atoms)))
 			a = atoms[i]
-			if a.tuple_data() in groups.keys():
+			if a.tuple_data() in list(groups.keys()):
 				continue
 			found = False
 			if self.settings.use_symmetry:	
-				for j in xrange(len(atoms)):
+				for j in range(len(atoms)):
 					a1 = atoms[j]
-					if a1.tuple_data() in groups.keys() or i==j:
+					if a1.tuple_data() in list(groups.keys()) or i==j:
 						continue
 					if compare_clusters(a, full_atoms, a1, full_atoms):
 						found = True

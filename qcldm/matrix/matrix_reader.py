@@ -50,16 +50,16 @@ def matrix_key(a1, a2, o1, o2):
 	return tuple(sorted([(a1.tuple_data(), o1 + 1), (a2.tuple_data(), o2 + 1)]))
 
 def read_cell_atom(line, c):
-	ls = filter(None, re.split('\s*', line))
+	ls = [_f for _f in re.split('\s*', line) if _f]
 	a = CellAtom(c, int(ls[1]), [int(ls[2]), int(ls[3]), int(ls[4])])
 	return a
 
 def read_matrix_atoms(name, c):
-	logging.info(u'')
-	logging.info(u'*********************************************')
-	logging.info(u'  Reading matrix atoms')
-	logging.info(u'*********************************************')
-	logging.info(u'')
+	logging.info('')
+	logging.info('*********************************************')
+	logging.info('  Reading matrix atoms')
+	logging.info('*********************************************')
+	logging.info('')
 	with open(name, 'r') as f:
 		atoms = []
 		lines = f.readlines()
@@ -67,12 +67,12 @@ def read_matrix_atoms(name, c):
 		for line in lines[1:n+1]:
 			a = read_cell_atom(line, c)
 			atoms.append(a)
-		logging.debug(u'Total atoms: %d' % len(atoms))
+		logging.debug('Total atoms: %d' % len(atoms))
 		return atoms
 
 def read_header(line, atoms):
 	orbs = []
-	ls = filter(None, re.split('[\s*|\**]', line))
+	ls = [_f for _f in re.split('[\s*|\**]', line) if _f]
 	for an, on in [(int(ls[i]), int(ls[i + 1])) for i in range(0, len(ls), 2)]:
 		atom = atoms[an - 1]
 		o = (atom.tuple_data(), on)
@@ -86,10 +86,10 @@ def read_matrix_part(lines, n, c, atoms, prec):
 	n += 1
 	data = {}
 	while n < len(lines) and 'matrix' not in lines[n]:
-		ls = filter(None, re.split('\s*', lines[n]))
+		ls = [_f for _f in re.split('\s*', lines[n]) if _f]
 		atom1 = CellAtom(c, int(ls[0]), [0, 0, 0])
 		o1 = (atom1.tuple_data(), int(ls[1]))
-		for i in xrange(len(ls[2:])):
+		for i in range(len(ls[2:])):
 			o2 = orbs[i]
 			key = tuple(sorted([o1, o2]))
 			value = float(ls[i + 2])
@@ -101,11 +101,11 @@ def read_matrix_part(lines, n, c, atoms, prec):
 def read_matrix(name, c, mat_atoms, prec=0):
 	if not os.path.exists(name) or not mat_atoms:
 		return None
-	logging.info(u'')
-	logging.info(u'*********************************************')
-	logging.info(u'  Reading matrix: %s' % name)
-	logging.info(u'*********************************************')
-	logging.info(u'')
+	logging.info('')
+	logging.info('*********************************************')
+	logging.info('  Reading matrix: %s' % name)
+	logging.info('*********************************************')
+	logging.info('')
 	with open(name, 'r') as f:
 		datamap = {}
 		lines = f.readlines()
@@ -113,7 +113,7 @@ def read_matrix(name, c, mat_atoms, prec=0):
 		n = 1
 		while n < len(lines):
 			data, n = read_matrix_part(lines, n, c, mat_atoms, prec)
-			logging.debug(u'Progress: %d/%d' % (n, len(lines)))
+			logging.debug('Progress: %d/%d' % (n, len(lines)))
 			datamap.update(data)
 
 	return datamap

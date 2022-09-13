@@ -1,10 +1,11 @@
 import re, sys, math
+from functools import reduce
 sys.dont_write_bytecode = True
 
 from ..numeric_functions.numeric_function import NumericFunction, NumericOperations
 
 def dfac(n):
-	return 1 if n < 2 else reduce(lambda x,y: y*x, range(n,1,-2))
+	return 1 if n < 2 else reduce(lambda x,y: y*x, list(range(n,1,-2)))
 
 def gauss_norm(a, l):
 	return (2**(2*l+3.5)  / dfac(2*l+1) / math.pi**0.5)**0.5 * a**((2.*l+3)/4)
@@ -77,7 +78,7 @@ class GaussBasis:
 
 	def add_function(self, cg):
 		l = cg.fs[0].l
-		if l not in self.components.keys():
+		if l not in list(self.components.keys()):
 			self.components[l] = []
 		self.components[l].append(cg)
 		

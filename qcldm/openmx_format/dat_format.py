@@ -1,7 +1,7 @@
 import re, os, sys, math
 from math3d import Vector
-from openmx_format import Openmx_format
-from openmx_species import openmx_species
+from .openmx_format import Openmx_format
+from .openmx_species import openmx_species
 from ..util.units import Units
 from ..structures.cell import Cell
 from ..structures.atom_vector import AtomVector, AtomKeys
@@ -84,7 +84,7 @@ class DAT_INPUT:
 		self.base_format.set_param('System.Name', [self.system_name])
 		self.base_format.set_param('level.of.stdout', [str(self.stdout_level)])
 		self.base_format.set_param('level.of.fileout', [str(self.fileout_level)])
-		self.base_format.set_param('Species.Number', [str(len(self.species.keys()))])
+		self.base_format.set_param('Species.Number', [str(len(list(self.species.keys())))])
 		ls = []
 		for name in sorted(self.species.keys()):
 			ls.append(self.species[name].fulllist())

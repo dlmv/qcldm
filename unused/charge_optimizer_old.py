@@ -1,6 +1,7 @@
 #!/usr/bin/python 
 import os, sys, threading, time
 from scipy.optimize import minimize
+from functools import reduce
 
 #CUBE_CHARGE_SCALE = 1000
 
@@ -24,7 +25,7 @@ class Embedding:
 				nc += 1
 			else:
 				found = False
-				for k in self.groups.keys():
+				for k in list(self.groups.keys()):
 					if i in self.groups[k][1:]:
 						root = self.groups[k][0]
 						res.append(res[root])
@@ -41,7 +42,7 @@ class Embedding:
 				res.append("CUBE")
 			else:
 				found = False
-				for k in self.groups.keys():
+				for k in list(self.groups.keys()):
 					if i in self.groups[k]:
 						res.append(k)
 						found = True
@@ -69,7 +70,7 @@ def read_start_embedding():
 	filename = "embedding.start"
 	if os.path.exists("embedding.restart"):
 		filename = "embedding.restart"
-		print "restarting"
+		print("restarting")
 	with open(filename) as es:
 		for i, l in enumerate(es):
 			ls = l.split()
@@ -85,7 +86,7 @@ def read_start_embedding():
 				if grname == 'CUBE':
 					cube_charges.append(charge)
 					e.cube.append(i)
-				elif grname not in e.groups.keys():
+				elif grname not in list(e.groups.keys()):
 					charges.append(charge)
 					e.limits.append(limits)
 					e.groups[grname] = [i]
@@ -156,7 +157,7 @@ def check_if_step_not_grad(xe, eps):
 	global last_xe_step
 	global last_xe
 	if last_xe == None:
-		print 'first step!'
+		print('first step!')
 		last_xe_step = xe
 		last_xe = xe
 		return True
@@ -170,11 +171,11 @@ def check_if_step_not_grad(xe, eps):
 				s_diff += abs(x - lx)
 				
 		if n_diff == 1 and abs(s_diff - eps) <= PREC:
-			print 'grad step!'
+			print('grad step!')
 			last_xe = xe
 			return False
 		else:
-			print 'true step!'
+			print('true step!')
 			last_xe_step = xe
 			last_xe = xe
 			return True
@@ -243,7 +244,7 @@ if len(sys.argv) == 3:
 	optimize_embedding(eps, ftol, 9999)
 
 else:
-	print 'Usage: charge_optimizer.py [STEP] [PRECISION]\nExample: charge_optimizer.py 1e-2 1e-5'
+	print('Usage: charge_optimizer.py [STEP] [PRECISION]\nExample: charge_optimizer.py 1e-2 1e-5')
 
 
 

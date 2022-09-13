@@ -81,8 +81,8 @@ def read_data(root):
 		if dname.startswith('JReduced'):
 			found = True
 			if orbitals:
-				print 'Multiple logs in %s' % root
-				print 'Aborting!'
+				print('Multiple logs in %s' % root)
+				print('Aborting!')
 				return
 			for f in files:
 				r = re.match(file_regex, f)
@@ -98,8 +98,8 @@ def read_data(root):
 							if rr:
 								o.e = float(rr.groups()[0])
 	if not found:
-		print 'No logs in %s' % root
-		print 'Aborting!'
+		print('No logs in %s' % root)
+		print('Aborting!')
 		return
 	orbitals = sorted(orbitals)
 	transitions = []
@@ -124,7 +124,7 @@ trs2 = read_data(root2)
 if trs1 and trs2 and trs1 == trs2:
 	for t1, t2 in zip(trs1, trs2):
 #		pass
-		print t1, (t2.e - t1.e) * 27211
+		print(t1, (t2.e - t1.e) * 27211)
 
 
 

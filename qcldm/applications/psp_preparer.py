@@ -64,7 +64,7 @@ def prepare_psp(limit, cutoff, depth = -20):
 	inplist = ""
 	eld = ELEMENTS[psp.z].eleconfig_dict
 	nval = 0
-	for n, l in eld.keys():
+	for n, l in list(eld.keys()):
 		if n > nval:
 			nval = n
 	valence = Shells.estimate_valence(psp.z)

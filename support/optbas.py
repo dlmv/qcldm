@@ -103,7 +103,7 @@ def basis_from_string(s):
 		for i in range(i + 1, i + 1 + nc):
 			a,c = lines[i].split()
 			prims.append(BasisPrimitive(float(a), float(c)))
-		if l not in data.keys():
+		if l not in list(data.keys()):
 			data[l] = []
 		data[l].append(BasisFunction(prims))
 		i += 1
@@ -154,7 +154,7 @@ def read_energy_from_control():
 	with open('control') as control:
 		read_energy = False
 		last_energy = 0.
-		for line in control.xreadlines():
+		for line in control:
 			if '$energy' in line:
 				read_energy = True
 			elif read_energy and '$' in line:
@@ -169,7 +169,7 @@ def read_start_basis():
 	filename = "basis.start"
 	if os.path.exists("basis.restart"):
 		filename = "basis.restart"
-		print "restarting"
+		print("restarting")
 	with open(filename) as basis:
 		lines = basis.readlines()
 		i = 0

@@ -20,7 +20,7 @@ co = CrystalOut.from_file(c.out_file)
 write_xyz(co.cell.cell, 'cell.xyz')
 #write_xyz(cm.cell.supercell, 'supercell.xyz')
 
-print co.cell.cell
+print(co.cell.cell)
 
 num = 1
 

@@ -1,5 +1,6 @@
 import re, sys, math
 from numpy import logspace, sign
+from functools import reduce
 
 class NumericFunction():
 	def __init__(self):
@@ -50,7 +51,7 @@ class NumericFunction():
 	def get_cutoff(self, prec=0.001):
 		s = 0
 		norm = self | self
-		for n in reversed(range(len(self.data) - 1)):
+		for n in reversed(list(range(len(self.data) - 1))):
 			r1 = self.data[n][0]
 			r2 = self.data[n+1][0]
 			dr = r2 - r1
@@ -144,7 +145,7 @@ class NumericOperations:
 
 	@staticmethod
 	def integrate(data):
-		res = reduce(lambda s, ((r1, f1), (r2, f2)): s + (f1 * r1**2 + f2 * r2**2) * (r2 - r1) / 2, zip(data[:-1], data[1:]), 0)
+		res = reduce(lambda s, ((r1, f1), (r2, f2)): s + (f1 * r1**2 + f2 * r2**2) * (r2 - r1) / 2, list(zip(data[:-1], data[1:])), 0)
 		return res
 
 	@staticmethod
@@ -201,12 +202,12 @@ class NumericOperations:
 	def resort_lnj(ps):
 		res = {}
 		for p in ps:
-			if p.l not in res.keys():
+			if p.l not in list(res.keys()):
 				res[p.l] = {}
-			if p.n not in res[p.l].keys():
+			if p.n not in list(res[p.l].keys()):
 				res[p.l][p.n] = {}
-			if p.j in res[p.l][p.n].keys():
-				print 'same values!!!', p.n, p.l, p.j
+			if p.j in list(res[p.l][p.n].keys()):
+				print('same values!!!', p.n, p.l, p.j)
 			res[p.l][p.n][p.j] = p
 		return res
 
@@ -214,21 +215,21 @@ class NumericOperations:
 	def resort_ln(ps):
 		res = {}
 		for p in ps:
-			if p.l not in res.keys():
+			if p.l not in list(res.keys()):
 				res[p.l] = {}
-			if p.n not in res[p.l].keys():
+			if p.n not in list(res[p.l].keys()):
 				res[p.l][p.n] = {}
 			res[p.l][p.n][p.j] = p
-		for l in res.keys():
-			for n in res[l].keys():
-				nj = len(res[l][n].keys())
+		for l in list(res.keys()):
+			for n in list(res[l].keys()):
+				nj = len(list(res[l][n].keys()))
 				if nj == 1:
-					res[l][n] = res[l][n][res[l][n].keys()[0]]
+					res[l][n] = res[l][n][list(res[l][n].keys())[0]]
 				elif nj == 2:
-					p = NumericOperations.j_to_ae(res[l][n][res[l][n].keys()[0]], res[l][n][res[l][n].keys()[1]])[0]
+					p = NumericOperations.j_to_ae(res[l][n][list(res[l][n].keys())[0]], res[l][n][list(res[l][n].keys())[1]])[0]
 					res[l][n] = p
 				else:
-					print "Wrong j number!"
+					print("Wrong j number!")
 		return res
 
 	@staticmethod

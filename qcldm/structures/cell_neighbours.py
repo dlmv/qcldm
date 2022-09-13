@@ -22,26 +22,26 @@ class NeighbourCache:
 		self.cache = {}
 
 	def neighbours_cluster(self, centers, layers, override_map):
-		logging.info(u'')
-		logging.info(u'*********************************************')
-		logging.info(u'  Cutting cluster for: '  + str(centers))
-		logging.info(u'*********************************************')
-		logging.info(u'')
+		logging.info('')
+		logging.info('*********************************************')
+		logging.info('  Cutting cluster for: '  + str(centers))
+		logging.info('*********************************************')
+		logging.info('')
 		shells = [centers]
 		for i in range(layers):
 			self.expand_neighbours(shells, override_map)
 		return shells
 
 	def load_all(self, override_map):
-		logging.info(u'')
-		logging.info(u'*********************************************')
-		logging.info(u'  Loading neighbours for the whole cell')
-		logging.info(u'*********************************************')
-		logging.info(u'')
+		logging.info('')
+		logging.info('*********************************************')
+		logging.info('  Loading neighbours for the whole cell')
+		logging.info('*********************************************')
+		logging.info('')
 		for i in range(len(self.cell.cell)):
 			c = self.cell.cell[i]
-			logging.debug(u'Finding neighbours %d/%d for: %s' % (i+1, len(self.cell.cell), str(c)))
-			logging.debug(u'  Neighbours count: %d' % (len(self.first_neighbours(c, override_map))))
+			logging.debug('Finding neighbours %d/%d for: %s' % (i+1, len(self.cell.cell), str(c)))
+			logging.debug('  Neighbours count: %d' % (len(self.first_neighbours(c, override_map))))
 
 	def write_neighbours(self, name):
 		self.load_all()
@@ -56,10 +56,10 @@ class NeighbourCache:
 		self.cache = {}
 		with open(name, 'r') as f:
 			for line in f.readlines():
-				ls  = filter(None, re.split(':', line))
-				ls1 = filter(None, re.split('\s*', ls[1]))
+				ls  = [_f for _f in re.split(':', line) if _f]
+				ls1 = [_f for _f in re.split('\s*', ls[1]) if _f]
 				num = int(ls[0])
-				if num not in self.cache.keys():
+				if num not in list(self.cache.keys()):
 					self.cache[num] = []
 				nb = self.cell.cell[int(ls1[0])].shifted(int(ls1[1]), int(ls1[2]), int(ls1[3]))
 				self.cache[num].append(nb)
@@ -108,8 +108,8 @@ class NeighbourCache:
 			
 
 	def merge_from(self, other):
-		for n in other.cache.keys():
-			if n not in self.cache.keys():
+		for n in list(other.cache.keys()):
+			if n not in list(self.cache.keys()):
 				self.cache[n] = []
 			for other_atom in other.cache[n]:
 				self_atom = self.cell.cell[other_atom.num - 1].shifted(other_atom.shifts)
@@ -120,7 +120,7 @@ class NeighbourCache:
 		atoms = []
 		shifts = center.shifts
 		center = center.shifted(-shifts)
-		if center.num in self.cache.keys():
+		if center.num in list(self.cache.keys()):
 			atoms = self.cache[center.num]
 		else:
 			for a0 in center.cell.supercell:
@@ -138,7 +138,7 @@ class NeighbourCache:
 		rc = (ELEMENTS[center.name()].covrad + ELEMENTS[a.name()].covrad) / Units.UNIT
 		rc = rc * 0.8 + 0.8
 		bond = tuple(sorted([center.name(), a.name()]))
-		if bond in override_map.keys():
+		if bond in list(override_map.keys()):
 			rc = override_map[bond]
 		if not check_distance(center, a, rc):
 			return False

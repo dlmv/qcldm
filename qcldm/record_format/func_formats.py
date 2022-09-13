@@ -1,6 +1,6 @@
 import re, sys, math, os, logging
 
-from record_format import read_records
+from .record_format import read_records
 from ..functions.numeric_function import NumericFunction
 
 def read_common_header(records):
@@ -30,17 +30,17 @@ def read_psf_headers(data, n):
 	return funcs
 
 def read_psf(name):
-	logging.info(u'')
-	logging.info(u'*********************************************')
-	logging.info(u'  Reading PSF file: %s' % name)
-	logging.info(u'*********************************************')
-	logging.info(u'')
+	logging.info('')
+	logging.info('*********************************************')
+	logging.info('  Reading PSF file: %s' % name)
+	logging.info('*********************************************')
+	logging.info('')
 	records = read_records(name)
 	grid, nvf = read_common_header(records)
 	funcs = read_psf_headers(records[0][0], nvf)
 	for i in range(int(nvf)):
 		funcs[i].data = read_function(records[i + 2][0], grid)
-	logging.debug(u'Number of functions: %d' % len(funcs))
+	logging.debug('Number of functions: %d' % len(funcs))
 #	for p in funcs:
 #		logging.debug(u' L=%d N=%d J=%3.1f' % (p.l, p.n, p.j))
 	return funcs
@@ -61,17 +61,17 @@ def read_hfj_dft_headers(data, n):
 	return funcs
 
 def read_hfj_dft(name):
-	logging.info(u'')
-	logging.info(u'*********************************************')
-	logging.info(u'  Reading HFJ-DFT output: %s' % name)
-	logging.info(u'*********************************************')
-	logging.info(u'')
+	logging.info('')
+	logging.info('*********************************************')
+	logging.info('  Reading HFJ-DFT output: %s' % name)
+	logging.info('*********************************************')
+	logging.info('')
 	records = read_records(name)
 	grid, nvf = read_common_header(records)
 	funcs = read_hfj_dft_headers(records[0][0], nvf)
 	for i in range(nvf):
 		funcs[i].data = read_function(records[i + 4][0], grid)
-	logging.debug(u'Number of functions: %d' % len(funcs))
+	logging.debug('Number of functions: %d' % len(funcs))
 #	for p in funcs:
 #		logging.debug(u' L=%d N=%d J=%3.1f' % (p.l, p.n, p.j))
 	return funcs
@@ -93,17 +93,17 @@ def read_hfd_headers(data, n):
 	return funcs
 
 def read_hfd(name):
-	logging.info(u'')
-	logging.info(u'*********************************************')
-	logging.info(u'  Reading HFD output: %s' % name)
-	logging.info(u'*********************************************')
-	logging.info(u'')
+	logging.info('')
+	logging.info('*********************************************')
+	logging.info('  Reading HFD output: %s' % name)
+	logging.info('*********************************************')
+	logging.info('')
 	records = read_records(name)
 	grid, nvf = read_common_header(records)
 	funcs = read_hfd_headers(records[0][0], nvf)
 	for i in range(nvf):
 		funcs[i].data = read_function(records[i + 4][0], grid)
-	logging.debug(u'Number of functions: %d' % len(funcs))
+	logging.debug('Number of functions: %d' % len(funcs))
 #	for p in funcs:
 #		logging.debug(u' L=%d N=%d J=%3.1f' % (p.l, p.n, p.j))
 	return funcs

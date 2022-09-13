@@ -7,6 +7,7 @@ from ..atom.basis import Basis
 from ..atom.pseudo_potential import SeparablePseudoPotential
 from ..openmx_format.pao_format import PAO
 from ..openmx_format.vps_format import VPS
+from functools import reduce
 
 
 
@@ -90,11 +91,11 @@ def rewrite_dat_file(dat, cell, newspecies, datadir):
 
 
 def rewrite_files(dat, cluster, datadir):
-	logging.info(u'')
-	logging.info(u'*********************************************')
-	logging.info(u'  Creating cluster input')
-	logging.info(u'*********************************************')
-	logging.info(u'')
+	logging.info('')
+	logging.info('*********************************************')
+	logging.info('  Creating cluster input')
+	logging.info('*********************************************')
+	logging.info('')
 	newspecies = {}
 	newatoms = []
 	paodir = os.path.join(datadir, "PAO")
@@ -113,5 +114,5 @@ def rewrite_files(dat, cluster, datadir):
 		newspecies[newsp.name] = newsp
 		a = AtomVector(newsp.name, a.origin.position())
 		newatoms.append(a)
-		logging.debug(u'  %d/%d' % (i + 1, len(cluster.atoms)))
+		logging.debug('  %d/%d' % (i + 1, len(cluster.atoms)))
 	rewrite_dat_file(dat, Cell(newatoms, []), newspecies, datadir)

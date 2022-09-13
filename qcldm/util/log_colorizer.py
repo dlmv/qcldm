@@ -29,6 +29,6 @@ def init_log(argv):
 		level = logging.DEBUG
 	elif '-v' in argv:
 		level = logging.INFO
-	logging.basicConfig(format = u'%(asctime)s %(levelname)-8s %(message)s', level = level,
+	logging.basicConfig(format = '%(asctime)s %(levelname)-8s %(message)s', level = level,
                               datefmt='%Y-%m-%d %H:%M:%S')
 	colorize()

@@ -143,7 +143,7 @@ def do_step(xs, e, crystall_command=crystall_command):
 	t = check_if_step_not_grad(xs, step)
 	write_log_before(t, xs)
 	ret = sp.call(crystall_command, shell=True)
-	print ret
+	print(ret)
 #	with open(out_filename) as outf:
 #		if 'SIGTERM' in outf.read():
 #			write_log_error("ERROR, restarting without GUESSP...")

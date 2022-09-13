@@ -1,5 +1,5 @@
 import re, os, sys, math
-from openmx_format import Openmx_format
+from .openmx_format import Openmx_format
 from ..atom.pseudo_potential import SeparablePseudoPotential
 from ..functions.numeric_function import NumericFunction
 
@@ -37,7 +37,7 @@ class VPS:
 			for i in range(projN):
 				projectors[i][0].data.append((r, float(ls[i * 2 + 3])))
 				projectors[i][1].data.append((r, float(ls[i * 2 + 4])))
-		pp.blochl_projectors = zip(proj_ls, projectors, proj_energies)
+		pp.blochl_projectors = list(zip(proj_ls, projectors, proj_energies))
 
 		if pccON:
 			pp.pcc = NumericFunction()

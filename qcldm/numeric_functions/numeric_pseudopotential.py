@@ -38,17 +38,17 @@ class GRECPPseudoPotential:
 
 	def convert_potentials(self, grecp):
 		form = "GRECP" if grecp else "semilocal"
-		logging.info(u'')
-		logging.info(u'*********************************************')
-		logging.info(u'  Converting raw PPs to %s form' % form)
-		logging.info(u'*********************************************')
+		logging.info('')
+		logging.info('*********************************************')
+		logging.info('  Converting raw PPs to %s form' % form)
+		logging.info('*********************************************')
 		self.PPS = {}
-		for l in self.pps.keys():
-			logging.debug(u'L=%d' % l)
+		for l in list(self.pps.keys()):
+			logging.debug('L=%d' % l)
 			self.PPS[l] = {}
 			nlist = sorted(self.pps[l].keys())
 			nv = nlist[-1]
-			logging.debug(u' valent N=%d' % nv)
+			logging.debug(' valent N=%d' % nv)
 			v0 = self.pps[l][nv][l + 0.5]
 			v1 = self.pps[l][nv][l - 0.5] if l != 0 else v0
 
@@ -61,7 +61,7 @@ class GRECPPseudoPotential:
 					c1.append([self.pps[l][nc][l - 0.5], self.pfs[l][nc][l - 0.5]])
 				cs += (str(nc) + ", ")
 			cs = cs[:-2]
-			logging.debug(u' GRECP core shells: %s' % (cs if cs else 'none'))
+			logging.debug(' GRECP core shells: %s' % (cs if cs else 'none'))
 			self.PPS[l][l + 0.5] = create_pseudo_potential(v0, c0, self.loc, grecp)
 			if l != 0:
 				self.PPS[l][l - 0.5] = create_pseudo_potential(v1, c1, self.loc, grecp)
@@ -88,37 +88,37 @@ class GRECPPseudoPotential:
 		return nfs
 
 	def prepare_blochl_form(self, blochl_proj, sine_proj):
-		logging.info(u'')
-		logging.info(u'*********************************************')
-		logging.info(u'  Creating Blochl Projectors')
-		logging.info(u'*********************************************')
-		logging.info(u'')
+		logging.info('')
+		logging.info('*********************************************')
+		logging.info('  Creating Blochl Projectors')
+		logging.info('*********************************************')
+		logging.info('')
 
 		projectors = []
 		proj_energies = []
 		proj_ls = []
 
 		for l in sorted(self.pps.keys()):
-			logging.debug(u'L=%d' % l)
+			logging.debug('L=%d' % l)
 			p = self.PPS[l][l + 0.5], self.PPS[l][(l - 0.5) if l != 0 else (l + 0.5)]
 			fs = [[],[]]
 			nv = sorted(self.pps[l].keys())[-1]
 			for n in sorted(self.pps[l].keys()):
-				if l in self.pfs.keys() and n in self.pfs[l].keys():
-					logging.debug(u' Adding pseudofunction for N=%d' % n)
+				if l in list(self.pfs.keys()) and n in list(self.pfs[l].keys()):
+					logging.debug(' Adding pseudofunction for N=%d' % n)
 					f0 = self.pfs[l][n][l + 0.5]
 					f1 = self.pfs[l][n][l - 0.5] if l != 0 else f0
 					fs[0].append(f0)
 					fs[1].append(f1)
 
 			if blochl_proj > 1:
-				logging.debug(u' Expanding projector basis by factor of %d' % blochl_proj)
+				logging.debug(' Expanding projector basis by factor of %d' % blochl_proj)
 				fs[0] = self.expand_vf(p[0], fs[0], blochl_proj)
 				fs[1] = self.expand_vf(p[1], fs[1], blochl_proj)
 
 
-			if l in self.projs.keys():
-				logging.debug(u' Adding %d explicit projectors' % len(self.projs[l]))
+			if l in list(self.projs.keys()):
+				logging.debug(' Adding %d explicit projectors' % len(self.projs[l]))
 				for n in sorted(self.projs[l].keys()):
 					f0 = self.projs[l][n][l + 0.5]
 					f1 = self.projs[l][n][l - 0.5] if l != 0 else f0
@@ -132,7 +132,7 @@ class GRECPPseudoPotential:
 				pmax = max(pmax, p[1](f).get_cutoff(0.001))
 
 			if sine_proj > 0:
-				logging.debug(u' Adding %d sine waves in R=%f' % (sine_proj, pmax))
+				logging.debug(' Adding %d sine waves in R=%f' % (sine_proj, pmax))
 				for nn in range(sine_proj):
 					f0 = CustomFunctions.restricted_sine(self.grid, pmax, nn)
 					f1 = CustomFunctions.restricted_sine(self.grid, pmax, nn)
@@ -149,7 +149,7 @@ class GRECPPseudoPotential:
 				projectors.append((p1, p2))
 				proj_energies.append((e1, e2))
 				proj_ls.append(l)
-		return zip(proj_ls, projectors, proj_energies)
+		return list(zip(proj_ls, projectors, proj_energies))
 
 
 	

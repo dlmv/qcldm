@@ -1,5 +1,5 @@
 import re, os, sys, math
-from openmx_format import Openmx_format
+from .openmx_format import Openmx_format
 from ..atom.basis import Basis
 from ..functions.numeric_function import NumericFunction
 
@@ -59,8 +59,8 @@ class PAO:
 			ls.append(tls)
 		res.set_multiparam("valence.charge.density", ls)
 		res.add_text('')
-		res.set_param('PAO.Lmax', ["{}".format(len(basis.functions.keys()) - 1)])
-		res.set_param('PAO.Mul', ["{}".format(len(basis.functions.values()[0]))])
+		res.set_param('PAO.Lmax', ["{}".format(len(list(basis.functions.keys())) - 1)])
+		res.set_param('PAO.Mul', ["{}".format(len(list(basis.functions.values())[0]))])
 		for l in sorted(basis.functions.keys()):
 			lpaos = basis.functions[l]
 			ls = []

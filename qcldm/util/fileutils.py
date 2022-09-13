@@ -3,7 +3,7 @@ import os, logging, errno
 
 def ensure_file(f):
 	if not os.path.isfile(f):
-		logging.error(u'File not found: %s' % f)
+		logging.error('File not found: %s' % f)
 		raise RuntimeError()
 		
 def ensure_files(inps, outps):
@@ -11,7 +11,7 @@ def ensure_files(inps, outps):
 	odate = float("inf")
 	for f in inps:
 		if not os.path.isfile(f):
-			logging.error(u'File not found: %s' % f)
+			logging.error('File not found: %s' % f)
 			raise RuntimeError()
 		idate = max(idate, os.path.getmtime(f))
 	for f in outps:

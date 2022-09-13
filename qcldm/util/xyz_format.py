@@ -1,8 +1,8 @@
 #!/usr/bin/python
 import math, re
 from math3d import Vector
-from units import Units
-from elements import ELEMENTS
+from .units import Units
+from .elements import ELEMENTS
 from ..structures.cell import Cell
 from ..structures.atom_vector import AtomVector, AtomKeys
 

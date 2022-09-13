@@ -18,22 +18,22 @@ def expand_grid(f):
 	return grid
 
 def approximate(f, conv, logbound, maxcoef, nmin, nmax, writefile=False):
-	logging.info(u'')
-	logging.info(u'*********************************************')
-	logging.info(u'  Approximating a function, l=%d, n=%d' % (f.l, f.n))
-	logging.info(u'*********************************************')
-	logging.info(u'')
+	logging.info('')
+	logging.info('*********************************************')
+	logging.info('  Approximating a function, l=%d, n=%d' % (f.l, f.n))
+	logging.info('*********************************************')
+	logging.info('')
 	fnorm = f.norm()
-	logging.info(u'Norm = %g' % (fnorm))
+	logging.info('Norm = %g' % (fnorm))
 	f.normalize()
 	nn = f.num_nodes()
-	logging.info(u'Num nodes = %d' % (nn))
+	logging.info('Num nodes = %d' % (nn))
 	f = f.rescaled(expand_grid(f))
 	convd = False
 	minconv = (-1, 1e50, None)
 
 	for n in range(nmin, nmax + 1):
-		logging.info(u'Assume n = %d, Conv = %e' % (n, conv))
+		logging.info('Assume n = %d, Conv = %e' % (n, conv))
 		cg, convd, res = approximate_n(f, n, logbound, conv, maxcoef, writefile)
 		fg = cg.to_numeric(f.grid())
 
@@ -70,16 +70,16 @@ def approximate(f, conv, logbound, maxcoef, nmin, nmax, writefile=False):
 		if convd:
 			break
 	n, res, cg = minconv
-	logging.info(u'Taking n = %d, Conv = %e' % (n, res))
+	logging.info('Taking n = %d, Conv = %e' % (n, res))
 	
 	fg = cg.to_numeric(f.grid())
 
-	logging.info(u'AnalyticNorm = %f' % (cg.norm()))
-	logging.info(u'NumericNorm = %f' % (fg.norm()))
+	logging.info('AnalyticNorm = %f' % (cg.norm()))
+	logging.info('NumericNorm = %f' % (fg.norm()))
 
 	cg.fs = [(k*fnorm, g) for k, g in cg.fs]
 
-	logging.info(u'RestoredNorm = %f' % (cg.norm()))
+	logging.info('RestoredNorm = %f' % (cg.norm()))
 
 #	cg, res = shift_exps(f, cg, GRID_K, conv, maxcoef, res)
 
@@ -101,7 +101,7 @@ def approximate_n(f, n, logbound, conv, maxcoef, writefile):
 	r = (math.exp(logarn) / a)**(1. / n)
 	cg = approx_func(f, a, r, n, conv, maxcoef)
 	convd = res < conv
-	logging.info(u'%s: %e, Norm = %f' % ("Converged" if convd else "Not converged", res, cg.norm()))
+	logging.info('%s: %e, Norm = %f' % ("Converged" if convd else "Not converged", res, cg.norm()))
 	if writefile:
 		print_approx('approx_tmp', f, cg)
 	return cg, convd, res
@@ -112,7 +112,7 @@ def scan_2grid(fun, xs1, xs2, r, k, conv, recurdepth=1):
 	ratio = 2
 	res0 = fun( (xs1, xs2) )
 	indent = ' ' * recurdepth
-	logging.debug(indent + u'Depth %d. Start: %f (%f, %f)' % (recurdepth, res0, xs1, xs2))
+	logging.debug(indent + 'Depth %d. Start: %f (%f, %f)' % (recurdepth, res0, xs1, xs2))
 	for i1 in range(-k + 1, k):
 		for i2 in range(-k + 1, k):
 			x1 = xs1 + r * i1 / k
@@ -133,13 +133,13 @@ def scan_2grid(fun, xs1, xs2, r, k, conv, recurdepth=1):
 					if len(mins) > k:
 						mins = mins[:k]
 	res, x1, x2 = mins[0]
-	logging.debug(indent + u'Current result: %f (%f, %f)' % (res, x1, x2))
+	logging.debug(indent + 'Current result: %f (%f, %f)' % (res, x1, x2))
 	if res > max(res0 * 0.95, ((res0 + conv) / 2)):
-		logging.debug(indent + u'No need to search here!')
+		logging.debug(indent + 'No need to search here!')
 		return res, x1, x2
 	recurdepth += 1
 	if recurdepth > MAX_REC:
-		logging.debug(indent + u'Recursion limit!')
+		logging.debug(indent + 'Recursion limit!')
 		return res, x1, x2
 	optmins = []
 	for (res, x1, x2) in mins:
@@ -252,7 +252,7 @@ def approx_res(f, loga, logarn, n, conv, maxcoef):
 	r = (math.exp(logarn) / a)**(1. / n)
 	gs = gauss_set(f.l, a, r, n)
 	res = gauss_approx(f, gs, conv, maxcoef)
-	return (sum(map(lambda x:x*x,res.fun)) / len(res.fun))**0.5
+	return (sum([x*x for x in res.fun]) / len(res.fun))**0.5
 #	res = gauss_approx_slsqp(f, gs, conv, maxcoef)
 #	print (res[1]/ len(res[0]))**0.5
 #	return (res[1]/ len(res[0]))**0.5

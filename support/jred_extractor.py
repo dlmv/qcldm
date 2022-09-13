@@ -19,8 +19,8 @@ def read_data(root):
 		dname = os.path.basename(os.path.normpath(dr))
 		if dname.startswith('JReduced'):
 			if dm:
-				print 'Multiple logs in %s' % root
-				print 'Aborting!'
+				print('Multiple logs in %s' % root)
+				print('Aborting!')
 				return
 			with open(os.path.join(os.path.normpath(dr), 'JRed_DM_Re_notAcc_')) as f:
 				lines = f.read().splitlines()
@@ -40,7 +40,7 @@ def read_data(root):
 					ljs[(l, j)] += d
 				for l in sorted(ls):
 					if l != 0:
-						print l, ljs[(l, l + 0.5)] / ljs[(l, l - 0.5)]
+						print(l, ljs[(l, l + 0.5)] / ljs[(l, l - 0.5)])
 #				for l, j in sorted(ljs.keys()):
 #					print l, j, ljs[(l, j)]
 

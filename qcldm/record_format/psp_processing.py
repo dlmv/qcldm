@@ -1,7 +1,7 @@
 import re, sys, math, os, logging
 from ..functions.numeric_function import NumericFunction, NumericOperations
-from record_format import read_records, write_records
-from psp_format import read_psp_headers, read_pp
+from .record_format import read_records, write_records
+from .psp_format import read_psp_headers, read_pp
 
 #smoothing
 
@@ -29,7 +29,7 @@ def rewrite_headers(raw_pps, data):
 	nl = {}
 	raw_pps = [p for p, k in raw_pps if k >= 0]
 	for p in raw_pps:
-		if p.l not in nl.keys():
+		if p.l not in list(nl.keys()):
 			nl[p.l] = (p.n, p.n)
 		else:
 			nl[p.l] = (min(nl[p.l][0], p.n), max(nl[p.l][1], p.n))
@@ -48,8 +48,8 @@ def rewrite_headers(raw_pps, data):
 def load_pp(record, grid, pp, pf):
 	record[0] = list(record[0])
 	record[1] = list(record[1])
-	pp.data = zip(grid, record[0][:len(grid)])
-	pf.data = zip(grid, record[1][:len(grid)])
+	pp.data = list(zip(grid, record[0][:len(grid)]))
+	pf.data = list(zip(grid, record[1][:len(grid)]))
 	pp.zval = float(record[0][len(grid) + 10])
 	pf.gam = record[1][len(grid) + 1]
 	pp.gam = record[0][len(grid) + 1]
@@ -144,7 +144,7 @@ def psp_to_hfj(inpname, outpname, localonly=False):
 	for p in new_pps:
 		record = [0] * len(records[0][0])
 		record[0:ngrid] = [v for r, v in p.data]
-		for i in reversed(range(len(p.data))):
+		for i in reversed(list(range(len(p.data)))):
 			if p.data[i][1] != 0:
 				record[len(p.data) + 2] = i + 1
 				break
@@ -157,7 +157,7 @@ def psp_to_hfj(inpname, outpname, localonly=False):
 	for f in pfs:
 		record = [0] * len(records[0][0])
 		record[0:ngrid] = [v for r, v in f.data]
-		for i in reversed(range(len(f.data))):
+		for i in reversed(list(range(len(f.data)))):
 			if f.data[i][1] != 0:
 				record[len(f.data) + 2] = i + 1
 				break

@@ -5,6 +5,7 @@ from ..util.units import Units
 from ..structures.cell import Cell
 from ..structures.atom_vector import AtomVector, AtomKeys
 from ..atom.shells import Shells
+from functools import reduce
 
 #lattice_str = 'DIRECT LATTICE VECTOR COMPONENTS (BOHR)'
 #basis_str = 'LOCAL ATOMIC FUNCTIONS BASIS SET'
@@ -110,11 +111,11 @@ class CrystalMatrix:
 		atomsh = satoms
 		h_indices = [CrystalMatrix.n_to_atomorb_tuple(i, atomsh) for i in ls]
 		ntot = reduce((lambda x,y: x + y), [ca.data()[AtomKeys.ORBITAL_COUNT] for ca in atoms])
-		v_indices = [CrystalMatrix.n_to_atomorb_tuple(i+1, atomsv) for i in xrange(ntot)]
+		v_indices = [CrystalMatrix.n_to_atomorb_tuple(i+1, atomsv) for i in range(ntot)]
 		n += 1
 		if lines[n] == '':
 			n += 1
-		for k in xrange(n, n + ntot):
+		for k in range(n, n + ntot):
 			ls = lines[k].split()
 			assert len(ls) == len(h_indices) + 1
 			vi = k - n + 1
@@ -173,13 +174,13 @@ class CrystalMatrix:
 		matrix_map = {}
 		while True:
 			mtype = NoSpin
-			for k in xrange(n, len(lines)):
+			for k in range(n, len(lines)):
 				m = re.match(spin_regex, lines[k])
 				m1 = re.match(matrix_regex, lines[k])
 				if m:
-					logging.debug(u'****************')
+					logging.debug('****************')
 					logging.debug(lines[k])
-					logging.debug(u'****************')
+					logging.debug('****************')
 					mt = m.group(1)
 					if mt == 'ALPHA+BETA':
 						mtype = AplusB
@@ -188,7 +189,7 @@ class CrystalMatrix:
 					else:
 						assert False, mt
 					k1 = k + 1
-					for k in xrange(k1, len(lines)):
+					for k in range(k1, len(lines)):
 						m1 = re.match(matrix_regex, lines[k])
 						if m1:
 							break
@@ -197,7 +198,7 @@ class CrystalMatrix:
 					mtype = NoSpin
 					break
 			data, n = CrystalMatrix.read_sdm(lines, k, cell, prec)
-			assert mtype not in matrix_map.keys()
+			assert mtype not in list(matrix_map.keys())
 			matrix_map[mtype] = data
 			if 'TTTTTTTTTTTTTT' in lines[n]:
 				break
@@ -209,9 +210,9 @@ class CrystalMatrix:
 #			mat['a']['a'] = {}
 #			mat['a']['a']['re'] = matrix_map[NoSpin]
 #			mat
-		if Counter(matrix_map.keys()) == Counter([AplusB, AminusB]):
-			logging.debug(u'')
-			logging.debug(u'2-spin matrix, converting')
+		if Counter(list(matrix_map.keys())) == Counter([AplusB, AminusB]):
+			logging.debug('')
+			logging.debug('2-spin matrix, converting')
 			mat = {}
 			mat['a'] = {}
 			mat['b'] = {}
@@ -232,9 +233,9 @@ class CrystalMatrix:
 				mat['b']['b']['re'][key] = -matrix_map[AminusB][key] / 2
 			
 			return mat
-		elif Counter(matrix_map.keys()) == Counter([AplusB]):
-			logging.debug(u'')
-			logging.debug(u'1-spin matrix, converting')
+		elif Counter(list(matrix_map.keys())) == Counter([AplusB]):
+			logging.debug('')
+			logging.debug('1-spin matrix, converting')
 			mat = {}
 			mat['a'] = {}
 			mat['b'] = {}
@@ -248,7 +249,7 @@ class CrystalMatrix:
 				mat['b']['b']['re'][key] = matrix_map[AplusB][key] / 2
 			return mat
 		else:
-			assert False, matrix_map.keys()
+			assert False, list(matrix_map.keys())
 
 	@staticmethod
 	def read_olp_block(lines, n, atoms, satoms, prec):
@@ -260,11 +261,11 @@ class CrystalMatrix:
 		h_indices = [CrystalMatrix.n_to_atomorb_tuple(i, atomsh) for i in ls]
 		ntot = reduce((lambda x,y: x + y), [ca.data()[AtomKeys.ORBITAL_COUNT] for ca in atoms])
 		nstart = ls[0]
-		v_indices = [CrystalMatrix.n_to_atomorb_tuple(i+1, atomsv) for i in xrange(ntot)]
+		v_indices = [CrystalMatrix.n_to_atomorb_tuple(i+1, atomsv) for i in range(ntot)]
 		n += 1
 		if lines[n] == '':
 			n += 1
-		for k in xrange(n, n + ntot - nstart + 1):
+		for k in range(n, n + ntot - nstart + 1):
 			ls = lines[k].split()
 			assert len(ls) == min(len(h_indices), k - n + 1) + 1
 			vi = k - n + nstart
@@ -309,7 +310,7 @@ class CrystalMatrix:
 	def read_olp(lines, cell, prec):
 		n = 0
 		matrix_map = {}
-		for k in xrange(n, len(lines)):
+		for k in range(n, len(lines)):
 			m1 = re.match(matrix_regex, lines[k])
 			if m1:
 				break
@@ -338,11 +339,11 @@ class CrystalMatrix:
 
 	@staticmethod
 	def from_file(name, cell, mtype, prec=0):
-		logging.info(u'')
-		logging.info(u'*********************************************')
-		logging.info(u'  Reading matrix from %s' % name)
-		logging.info(u'*********************************************')
-		logging.info(u'')
+		logging.info('')
+		logging.info('*********************************************')
+		logging.info('  Reading matrix from %s' % name)
+		logging.info('*********************************************')
+		logging.info('')
 		with open(name) as f:
 			return CrystalMatrix.from_string(f.read(), cell, mtype, prec)
 

@@ -22,7 +22,7 @@ class Basis_Matrix:
 class Orbital_Order(Basis_Matrix):
 
 	def order(self, l):
-		return range(2 * l + 1)
+		return list(range(2 * l + 1))
 
 	def lmatrix(self, l):
 		mat = [[0] * (2 * l + 1) for x in range(2 * l + 1)]

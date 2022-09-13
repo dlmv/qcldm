@@ -1,6 +1,6 @@
 import re, sys, math, os, logging
 
-from record_format import read_records
+from .record_format import read_records
 from ..functions.numeric_function import NumericFunction, NumericOperations
 from ..atom.pseudo_potential import GRECPPseudoPotential
 
@@ -28,11 +28,11 @@ def read_psp_headers(data, n):
 	return raw_pps
 
 def read_psp(name):
-	logging.info(u'')
-	logging.info(u'*********************************************')
-	logging.info(u'  Reading PSP file: %s' % name)
-	logging.info(u'*********************************************')
-	logging.info(u'')
+	logging.info('')
+	logging.info('*********************************************')
+	logging.info('  Reading PSP file: %s' % name)
+	logging.info('*********************************************')
+	logging.info('')
 	records = read_records(name)
 	z = int(records[0][0][0])
 	npf = records[0][0][1]
@@ -60,13 +60,13 @@ def read_psp(name):
 			pfs.append(f)
 		else:
 			pass
-	logging.debug(u'Number of PPs: %d' % len(pps))
+	logging.debug('Number of PPs: %d' % len(pps))
 	for p in pps:
-		logging.debug(u' L=%d N=%d J=%3.1f' % (p.l, p.n, p.j))
+		logging.debug(' L=%d N=%d J=%3.1f' % (p.l, p.n, p.j))
 	pps_map = NumericOperations.resort_lnj(pps)
 	lmax = sorted(pps_map.keys())[-1]
 	nmax_lmax = sorted(pps_map[lmax].keys())[-1]
-	logging.debug(u'Local PP: L=%d N=%d' % (lmax, nmax_lmax))
+	logging.debug('Local PP: L=%d N=%d' % (lmax, nmax_lmax))
 	loc = NumericOperations.j_to_ae(pps_map[lmax][nmax_lmax][lmax - 0.5], pps_map[lmax][nmax_lmax][lmax + 0.5])[0]
 
 	gp = GRECPPseudoPotential(pps, pfs, loc, z, zval)

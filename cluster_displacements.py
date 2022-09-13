@@ -16,9 +16,9 @@ cell2 = read_xyz(name2)
 
 sd, mxd, mxa = get_dispacements(cell1, cell2)
 
-print "Standard deviation: %f" % sd
-print "Max deviation: %f" % mxd
-print mxa
+print("Standard deviation: %f" % sd)
+print("Max deviation: %f" % mxd)
+print(mxa)
 
 
 

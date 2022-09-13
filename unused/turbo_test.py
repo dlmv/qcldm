@@ -13,9 +13,9 @@ init_log(sys.argv)
 c = ControlFormat.from_file('control')
 
 if len(c.cell.cell) != 1:
-	logging.error(u'Only for a single atom!!!')
+	logging.error('Only for a single atom!!!')
 	sys.exit(1)
-b = c.bases.values()[0]
+b = list(c.bases.values())[0]
 olp = b.internal_overlap()
 oar = b.orbarray()
 OLP = []

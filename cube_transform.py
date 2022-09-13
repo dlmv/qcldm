@@ -36,7 +36,7 @@ for symop in co.cell.symops:
 	na1 = co.cell.apply_symop_to_point(a1, symop, True)
 	if na1 == a2:
 		symop_to_use = symop
-		print symop
+		print(symop)
 		break
 
 trans = transformed_copy(cube, co.cell, symop_to_use)

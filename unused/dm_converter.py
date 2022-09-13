@@ -15,7 +15,7 @@ d = DAT_INPUT.from_file('temporal_12345.input')
 write_xyz(d.cell.cell, 'cell.xyz')
 
 if len(d.cell.cell) != 1:
-	logging.error(u'Only for a single atom!!!')
+	logging.error('Only for a single atom!!!')
 	sys.exit(1)
 
 dms, olp, atoms = read_matrices(d.cell)

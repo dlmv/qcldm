@@ -11,7 +11,7 @@ class TurboTemplate:
 	def __init__(self, data):
 		self.data = data
 
-	key_regex = re.compile(u"\$[\w\-]+")
+	key_regex = re.compile("\$[\w\-]+")
 
 	def param(self, key):
 		for d in self.data:
@@ -38,7 +38,7 @@ class TurboTemplate:
 			elif key:
 				buf.append(l)
 			else:
-				print "Strange line: ", l
+				print("Strange line: ", l)
 
 		f = TurboTemplate(data)
 		return f

@@ -3,12 +3,12 @@ import re, math, logging
 
 from math3d import Vector, Orientation
 
-from atom_vector import AtomVector
+from .atom_vector import AtomVector
 
 def composition(c):
 	res = {}
 	for a in c:
-		if a.name() not in res.keys():
+		if a.name() not in list(res.keys()):
 			res[a.name()] = 0
 		res[a.name()] += 1
 	return res

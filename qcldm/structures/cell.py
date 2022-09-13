@@ -8,9 +8,9 @@ np.set_printoptions(edgeitems=10, linewidth=100000)
 import scipy.linalg as linalg
 from scipy.linalg import null_space
 
-from cell_neighbours import NeighbourCache
-from cluster_comparator import compare_clusters
-from atom_vector import AtomVector
+from .cell_neighbours import NeighbourCache
+from .cluster_comparator import compare_clusters
+from .atom_vector import AtomVector
 
 
 def compare_cell_atoms(c1, c2):
@@ -347,7 +347,7 @@ class Cell:
 	def extended_cell(self, size):
 		atoms = []
 
-		c_range = range(-size, size+1)
+		c_range = list(range(-size, size+1))
 		for ia in c_range:
 			for ib in c_range:
 				for ic in c_range:
@@ -372,14 +372,14 @@ class Cell:
 		return False
 
 	def group_atoms(self):
-		logging.info(u'')
-		logging.info(u'************************************************************')
-		logging.info(u'          Grouping atoms')
-		logging.info(u'************************************************************')
-		logging.info(u'')
+		logging.info('')
+		logging.info('************************************************************')
+		logging.info('          Grouping atoms')
+		logging.info('************************************************************')
+		logging.info('')
 		grouplist = []
 		for i in range(len(self.cell)):
-			logging.debug(u'Grouping: %d/%d' % (i+1, len(self.cell)))
+			logging.debug('Grouping: %d/%d' % (i+1, len(self.cell)))
 			igroup = set([i])
 			for group in grouplist:
 				if self.check_atom_in_group(i, group):
@@ -387,7 +387,7 @@ class Cell:
 					grouplist.remove(group)
 			grouplist.append(igroup)
 
-		print grouplist
+		print(grouplist)
 
 
 

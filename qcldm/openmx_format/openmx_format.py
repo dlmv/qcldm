@@ -83,7 +83,7 @@ class Openmx_format:
 		for l in lines:
 			if l.find('#') != -1:
 				l = l[:l.find('#')]
-			ls = filter(None, re.split("\s+", l.strip()))
+			ls = [_f for _f in re.split("\s+", l.strip()) if _f]
 			if not ls:
 				if not data or not isinstance(data[-1], Openmx_format.RawText):
 					data.append(Openmx_format.RawText(['']))

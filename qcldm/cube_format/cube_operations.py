@@ -7,15 +7,15 @@ from ..structures.atom_vector import AtomVector, AtomKeys
 from ..atom.shells import Shells
 import fortranformat as ff
 import numpy as np
-from gaussian_cube import GaussianCube
+from .gaussian_cube import GaussianCube
 
 def rescale_simple(source, target):
 	assert not target.is_periodic()
-	logging.info(u'')
-	logging.info(u'*********************************************')
-	logging.info(u'  Rescaling cube')
-	logging.info(u'*********************************************')
-	logging.info(u'')
+	logging.info('')
+	logging.info('*********************************************')
+	logging.info('  Rescaling cube')
+	logging.info('*********************************************')
+	logging.info('')
 	res = GaussianCube()
 	res.size = [x for x in target.size]
 	res.origin = target.origin.copy()
@@ -34,7 +34,7 @@ def rescale_simple(source, target):
 				res.data[tx,ty,tz] = value
 				i += 1
 				if i % (res.data.size / 10) == 0:
-					logging.debug(u'  %d of %d' % (i, res.data.size))
+					logging.debug('  %d of %d' % (i, res.data.size))
 	return res
 
 def weighted_mean(p1, w1, p2, w2):
@@ -45,11 +45,11 @@ def weighted_mean(p1, w1, p2, w2):
 
 def rescale_medium(source, target):
 	assert not target.is_periodic()
-	logging.info(u'')
-	logging.info(u'*********************************************')
-	logging.info(u'  Rescaling cube')
-	logging.info(u'*********************************************')
-	logging.info(u'')
+	logging.info('')
+	logging.info('*********************************************')
+	logging.info('  Rescaling cube')
+	logging.info('*********************************************')
+	logging.info('')
 	res = GaussianCube()
 	res.size = [x for x in target.size]
 	res.origin = target.origin.copy()
@@ -72,7 +72,7 @@ def rescale_medium(source, target):
 				res.data[tx,ty,tz] = value
 				i += 1
 				if i % (res.data.size / 100) == 0:
-					logging.debug(u'  %d of %d' % (i, res.data.size))
+					logging.debug('  %d of %d' % (i, res.data.size))
 	return res
 
 def subtract(cube1, cube2):
@@ -81,11 +81,11 @@ def subtract(cube1, cube2):
 	assert cube1.vectors == cube2.vectors
 	assert cube1.celltype == cube2.celltype
 #	assert cube1.atoms == cube2.atoms
-	logging.info(u'')
-	logging.info(u'*********************************************')
-	logging.info(u'  Substracting cubes')
-	logging.info(u'*********************************************')
-	logging.info(u'')
+	logging.info('')
+	logging.info('*********************************************')
+	logging.info('  Substracting cubes')
+	logging.info('*********************************************')
+	logging.info('')
 	
 	res = GaussianCube()
 	res.size = [x for x in cube1.size]
@@ -104,16 +104,16 @@ def subtract(cube1, cube2):
 				res.data[tx,ty,tz] = value
 				i += 1
 				if i % (res.data.size / 10) == 0:
-					logging.debug(u'  %d of %d' % (i, res.data.size))
+					logging.debug('  %d of %d' % (i, res.data.size))
 	return res
 				
 def masked(target, f):
 	assert not target.is_periodic()
-	logging.info(u'')
-	logging.info(u'*********************************************')
-	logging.info(u'  Applying mask')
-	logging.info(u'*********************************************')
-	logging.info(u'')
+	logging.info('')
+	logging.info('*********************************************')
+	logging.info('  Applying mask')
+	logging.info('*********************************************')
+	logging.info('')
 	res = GaussianCube()
 	res.size = [x for x in target.size]
 	res.origin = target.origin.copy()
@@ -132,7 +132,7 @@ def masked(target, f):
 				res.data[tx,ty,tz] = value
 				i += 1
 				if i % (res.data.size / 10) == 0:
-					logging.debug(u'  %d of %d' % (i, res.data.size))
+					logging.debug('  %d of %d' % (i, res.data.size))
 	return res
 
 def masked_atomsphere(target, atomnum, r):
@@ -141,11 +141,11 @@ def masked_atomsphere(target, atomnum, r):
 	return masked(target, f)
 
 def integrate(target):
-	logging.info(u'')
-	logging.info(u'*********************************************')
-	logging.info(u'  Integrating')
-	logging.info(u'*********************************************')
-	logging.info(u'')
+	logging.info('')
+	logging.info('*********************************************')
+	logging.info('  Integrating')
+	logging.info('*********************************************')
+	logging.info('')
 	res = 0
 	i = 0
 	dv = target.voxel_volume()
@@ -155,15 +155,15 @@ def integrate(target):
 				res += target.voxel_value([tx, ty, tz]) * dv
 				i += 1
 				if i % (target.data.size / 10) == 0:
-					logging.debug(u'  %d of %d' % (i, target.data.size))
+					logging.debug('  %d of %d' % (i, target.data.size))
 	return res
 
 def integrate_in_sphere(target, atomnum, r):
-	logging.info(u'')
-	logging.info(u'*********************************************')
-	logging.info(u'  Integrating')
-	logging.info(u'*********************************************')
-	logging.info(u'')
+	logging.info('')
+	logging.info('*********************************************')
+	logging.info('  Integrating')
+	logging.info('*********************************************')
+	logging.info('')
 	res = 0
 	i = 0
 	dv = target.voxel_volume()
@@ -177,15 +177,15 @@ def integrate_in_sphere(target, atomnum, r):
 					res += abs(target.voxel_value([tx, ty, tz]) * dv)
 				i += 1
 				if i % (target.data.size / 10) == 0:
-					logging.debug(u'  %d of %d' % (i, target.data.size))
+					logging.debug('  %d of %d' % (i, target.data.size))
 	return res
 
 def integrate_in_sphere_range(target, atomnum, r, step):
-	logging.info(u'')
-	logging.info(u'*********************************************')
-	logging.info(u'  Integrating')
-	logging.info(u'*********************************************')
-	logging.info(u'')
+	logging.info('')
+	logging.info('*********************************************')
+	logging.info('  Integrating')
+	logging.info('*********************************************')
+	logging.info('')
 	i = 0
 	dv = target.voxel_volume()
 	center = target.atoms[atomnum - 1].position()
@@ -204,15 +204,15 @@ def integrate_in_sphere_range(target, atomnum, r, step):
 						res[n] += abs(target.voxel_value([tx, ty, tz]) * dv)
 				i += 1
 				if i % (target.data.size / 10) == 0:
-					logging.debug(u'  %d of %d' % (i, target.data.size))
+					logging.debug('  %d of %d' % (i, target.data.size))
 	return rs, res
 
 def integrate_in_sphere_range_opt(target, atomnum, r, step):
-	logging.info(u'')
-	logging.info(u'*********************************************')
-	logging.info(u'  Integrating')
-	logging.info(u'*********************************************')
-	logging.info(u'')
+	logging.info('')
+	logging.info('*********************************************')
+	logging.info('  Integrating')
+	logging.info('*********************************************')
+	logging.info('')
 	i = 0
 	dv = target.voxel_volume()
 	center = target.atoms[atomnum - 1].position()
@@ -232,15 +232,15 @@ def integrate_in_sphere_range_opt(target, atomnum, r, step):
 						break
 				i += 1
 				if i % (target.data.size / 10) == 0:
-					logging.debug(u'  %d of %d' % (i, target.data.size))
+					logging.debug('  %d of %d' % (i, target.data.size))
 	return rs, res
 
 def integrate_in_sphere_range_normed(target, atomnum, r, step):
-	logging.info(u'')
-	logging.info(u'*********************************************')
-	logging.info(u'  Integrating')
-	logging.info(u'*********************************************')
-	logging.info(u'')
+	logging.info('')
+	logging.info('*********************************************')
+	logging.info('  Integrating')
+	logging.info('*********************************************')
+	logging.info('')
 	i = 0
 	dv = target.voxel_volume()
 	center = target.atoms[atomnum - 1].position()
@@ -253,7 +253,7 @@ def integrate_in_sphere_range_normed(target, atomnum, r, step):
 			for tz in range(target.size[2]):
 				i += 1
 				if i % (target.data.size / 10) == 0:
-					logging.debug(u'  %d of %d' % (i, target.data.size))
+					logging.debug('  %d of %d' % (i, target.data.size))
 				
 				cc = target.voxel_center([tx, ty, tz])
 				value = abs(target.voxel_value([tx, ty, tz]) * dv)

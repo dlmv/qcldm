@@ -3,7 +3,7 @@ import re, os, logging
 from ..atom.shells import Shells
 from ..gauss_functions.gauss_function import GaussFunction, GaussFunctionNormed, GaussFunctionContracted
 
-from turbo_format import TurboTemplate
+from .turbo_format import TurboTemplate
 
 class TurboBasis:
 
@@ -131,7 +131,7 @@ class TurboBasis:
 					semilocal.append(TurboBasis.EcpPart(tmpfuncs))
 				assert lines[n].strip() == '*'
 				spinorbit = []
-				if 'lsomax' in ecp_def_map.keys():
+				if 'lsomax' in list(ecp_def_map.keys()):
 					n += 1
 					for l in range(1, ecp_def_map['lsomax'] + 1):
 						assert lines[n].strip().split()[0] == '%s-SpinOrbit' % Shells.SHELLS[l].lower(), 'wrong so for %s' % name

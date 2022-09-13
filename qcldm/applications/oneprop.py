@@ -1,6 +1,6 @@
 
 import re, os, logging, shutil
-import ConfigParser
+import configparser
 
 from ..matrix.matrix_cutter import write_reduced
 from ..gauss_functions.gauss_formats import GaussFormat
@@ -55,7 +55,7 @@ def get_dirs():
 	gaussdir = '.'
 	libdir = '.\\lib\\'
 
-	config = ConfigParser.ConfigParser()
+	config = configparser.ConfigParser()
 	config.read(os.path.join(os.path.expanduser("~"), ".oneprop.ini"))
 	try:
 		gaussdir = config.get("dirs", "gaussdir")
@@ -80,7 +80,7 @@ def prepare_oneprop_openmx(dat, atoms, dms, num, rc):
 		f.write(options)
 
 	basis = ''
-	for s in dat.species.values():
+	for s in list(dat.species.values()):
 		gfile = os.path.join(gaussdir, s.pao + '.gauss')
 		title, fs = read_gauss_basis(gfile)
 		title = title.replace('X', s.name)
@@ -102,7 +102,7 @@ def prepare_oneprop_crystal(co, atoms, dms, num, rc):
 		f.write(options)
 		
 	basis = ''
-	for k in co.basis.keys():
+	for k in list(co.basis.keys()):
 		basis += '%s 0\n' % k
 		basis += GaussFormat.basis_to_gaussian94(co.basis[k])
 		basis += '****\n'
@@ -120,7 +120,7 @@ def read_gauss_basis(gfile):
 		if line[0] != ' ':
 			if cur:
 				l = cur[0].lower()
-				if l not in fs.keys():
+				if l not in list(fs.keys()):
 					fs[l] = []
 				fs[l].append(cur)
 			cur = line + '\n'
@@ -130,7 +130,7 @@ def read_gauss_basis(gfile):
 		if n == len(lines):
 			if cur:
 				l = cur[0].lower()
-				if l not in fs.keys():
+				if l not in list(fs.keys()):
 					fs[l] = []
 				fs[l].append(cur)
 	return title, fs
@@ -139,8 +139,8 @@ def basis_to_string(fs, nums):
 	shells = "spdfgh"
 	res = ''
 	for l in shells:
-		if l in fs.keys():
-			if l not in nums.keys():
+		if l in list(fs.keys()):
+			if l not in list(nums.keys()):
 				continue
 			for n in range(nums[l]):
 				lf = fs[l][n]

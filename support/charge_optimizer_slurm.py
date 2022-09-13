@@ -2,6 +2,7 @@
 import os, sys, re, time, subprocess, shutil
 from scipy.optimize import minimize
 import numpy as np
+from functools import reduce
 
 
 
@@ -70,7 +71,7 @@ def read_start_embedding():
 	filename = "embedding.start"
 	if os.path.exists("embedding.restart"):
 		filename = "embedding.restart"
-		print "restarting"
+		print("restarting")
 	with open(filename) as es:
 		for i, l in enumerate(es):
 			ls = l.split()
@@ -229,7 +230,7 @@ class GradTask:
 class GradQueue:
 	def __init__(self, tasks, limit):
 		self.waitq = list(tasks)
-		print 'make dirs for all tasks'
+		print('make dirs for all tasks')
 		for task in tasks:
 			task.create_input_sync()
 		self.runq = []
@@ -287,7 +288,7 @@ class GradManager:
 		return n_diff, s_diff
 
 	def find_cached_value(self, x):
-		for k in self.cache.keys():
+		for k in list(self.cache.keys()):
 			n_diff, s_diff = self.check_diff(x, k)
 			if n_diff == 0:
 				return self.cache[k]
@@ -362,7 +363,7 @@ def optimize_embedding(eps, ftol, limit, maxit):
 	cons = ({'type': 'eq', 'fun' : lambda x: sum(e.apply_groups(x)) - s})
 	G = GradManager(e, n, empos, eps, limit)
 	f = lambda x: G.calculate(x)
-	limits = zip(e.lowlimits, e.highlimits)
+	limits = list(zip(e.lowlimits, e.highlimits))
 	res = minimize(f, x0, args=(), method='SLSQP', jac=None, 
 bounds=limits, constraints=cons, tol=None, callback=None, options={'disp': False, 'eps': eps, 'maxiter': maxit, 'ftol': ftol})
 	write_embedding(e, res.x)
@@ -378,7 +379,7 @@ if len(sys.argv) == 4:
 	optimize_embedding(eps, ftol, limit, 9999)
 
 else:
-	print 'Usage: charge_optimizer_slurm.py [STEP] [PRECISION] [LIMIT]\nExample: charge_optimizer.py 1e-2 1e-5 10'
+	print('Usage: charge_optimizer_slurm.py [STEP] [PRECISION] [LIMIT]\nExample: charge_optimizer.py 1e-2 1e-5 10')
 
 
 

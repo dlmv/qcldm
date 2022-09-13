@@ -70,10 +70,10 @@ def build_basis(c, specs):
 			el = spec[0].split()[0]
 			bas = c.bases[spec[0]]
 		el = el[0].upper() + el[1:].lower()
-		assert el not in elbasmap.keys() or bas.name == elbasmap[el].name, 'multiple bases for %s: %s AND %s' % (el, bas.name, elbasmap[el].name)
+		assert el not in list(elbasmap.keys()) or bas.name == elbasmap[el].name, 'multiple bases for %s: %s AND %s' % (el, bas.name, elbasmap[el].name)
 		elbasmap[el] = bas
 		if spec[1] != None:
-			assert el not in elecpmap.keys(), 'multiple ecps for %s' % el
+			assert el not in list(elecpmap.keys()), 'multiple ecps for %s' % el
 			elecpmap[el] = c.ecps[spec[1]]
 	
 	for el in sorted(elbasmap.keys()):
@@ -124,12 +124,12 @@ with open('test.nw', 'w') as f:
 	bqbases = []
 	smap = c.species_map()
 	for i, a in enumerate(c.cell.atoms):
-		embedded = AtomKeys.ESTIMATED_CHARGE in a.data().keys()
+		embedded = AtomKeys.ESTIMATED_CHARGE in list(a.data().keys())
 		name = a.name()
 		if name.lower() == 'q':
 			name = 'bq'
 		if embedded:
-			if name not in embcount.keys():
+			if name not in list(embcount.keys()):
 				embcount[name] = 0
 			embcount[name] = embcount[name] + 1
 			if name != 'bq':
@@ -159,7 +159,7 @@ with open('test.nw', 'w') as f:
 		coord_block += "\n"
 		specs.add(smap[i + 1])
 	charge =  charge - round(charge)
-	print charge	
+	print(charge)	
 	chargestr = "%13.8f" % charge
 	basis_block, ecp_block, so_block = build_basis(c, specs)
 	f.write(TEMPLATE.replace('%%COORD%%', coord_block[:-1]).replace('%%BASIS%%', basis_block[:-1]).replace('%%ECP%%', ecp_block[:-1]).replace('%%SOECP%%', so_block[:-1]).replace('%%CHARGE%%', chargestr))
