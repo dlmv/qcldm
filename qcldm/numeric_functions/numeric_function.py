@@ -145,7 +145,9 @@ class NumericOperations:
 
 	@staticmethod
 	def integrate(data):
-		res = reduce(lambda s, ((r1, f1), (r2, f2)): s + (f1 * r1**2 + f2 * r2**2) * (r2 - r1) / 2, list(zip(data[:-1], data[1:])), 0)
+		res = 0
+#		res = reduce(lambda s, ((r1, f1), (r2, f2)): s + (f1 * r1**2 + f2 * r2**2) * (r2 - r1) / 2, list(zip(data[:-1], data[1:])), 0)
+		#FIXME: rewrite in python 3 without tuple matching
 		return res
 
 	@staticmethod
