@@ -1,144 +1,54 @@
 #!/usr/bin/python 
-import re, os, sys, threading, math, time
+import os, sys, math
 from scipy.optimize import minimize
 from functools import reduce
 
-SHELLS = "spdfgh"
+dscf_command = '/home/maltsev/from_demidov/turbo/bin/amd64/part_dscf>log_dscf.log'
+grad_command = '/home/maltsev/from_demidov/turbo/bin/amd64/part_grad>log_grad.log'
 
-class Exponent:
-	def __init__(self, c, n, a):
-		self.c = c
-		self.n = n
-		self.a = a
+last_xe = None
+last_xe_step = None
 
-class ECP_Component:
-	def __init__(self):
-		self.name = ''
-		self.exps = []
+PREC = 2e-8
 
-	def block(self):
-		res = self.name + '\n'
-		for e in self.exps:
-			res += "%20.7f%5d%20.7f\n" % (e.c, e.n, e.a)
-		return res
-		
-		
+def check_if_step_not_grad(xe, eps):
+	xe = list(xe)
+	global last_xe_step
+	global last_xe
+	if last_xe == None:
+		last_xe_step = xe
+		last_xe = xe
+		return True
+	else:
+		assert len(xe) == len(last_xe_step)
+		n_diff = 0
+		s_diff = 0
+		for x, lx in zip(xe, last_xe_step):
+			if abs(x - lx) >= PREC:
+				n_diff += 1
+				s_diff += abs(x - lx)
+				
+		if n_diff == 1 and abs(s_diff - eps) <= PREC:
+			last_xe = xe
+			return False
+		else:
+			last_xe_step = xe
+			last_xe = xe
+			return True
 
-class Ecp:
-	def __init__(self):
-		self.name = ''
-		self.ndict = {}
-		self.components = []
-		self.so_components = []
-
-	def block(self):
-		res = '*\n'
-		res += self.name + '\n*\n'
-		for k in ['ncore', 'lmax', 'lsomax']:
-			if k in list(self.ndict.keys()):
-				res += '  %s=  %d  ' % (k, self.ndict[k])
-		res += '\n#        coefficient   r^n          exponent\n'
-		for c in self.components:
-			res += c.block()
-		if self.so_components:
-			res += '*\n'
-			for c in self.so_components:
-				res += c.block()
-		return res
-
-class Basis_Data():
-	def __init__(self):
-		self.basis = ''
-		self.ecps = []
-
-def read_component(lines, n):
-	res = ECP_Component()
-	res.name = lines[n]
-	n += 1
-	while re.match('\s+.*', lines[n]):
-		ls = lines[n].split()
-		exp = Exponent(float(ls[0]), int(ls[1]), float(ls[2]))
-		res.exps.append(exp)
-		n += 1
-	return n, res
-	
-def read_ecp(lines, n):
-	res = Ecp()
-	n += 1
-	res.name = lines[n]
-	n += 2
-	ls = re.split("[\s=]+", lines[n].strip())
-	for k, v in zip(ls[0::2], ls[1::2]):
-		res.ndict[k] = int(v)
-	n += 2
-	while lines[n] != '*':
-		n, comp = read_component(lines, n)
-		res.components.append(comp)
-	if 'lsomax' in list(res.ndict.keys()) and res.ndict['lsomax'] > 0:
-		n += 1
-		while lines[n] != '*':
-			n, comp = read_component(lines, n)
-			res.so_components.append(comp)
-	return n, res
-	
-	
-def read_basis_and_ecp():
-	with open('basis') as bs:
-		BD = Basis_Data()
-		lines = bs.read().splitlines()
-		basis = ''
-		n = 0
-		while  n < len(lines) and lines[n] != '$ecp':
-			basis += lines[n] + '\n'
-			n += 1
-		BD.basis = basis
-		n += 1
-		while lines[n + 1] != '$end':
-			n, ecp = read_ecp(lines, n)
-			BD.ecps.append(ecp)
-		return BD
-
-def write_basis_and_ecp(BD):
-	with open('basis', 'w') as bs:
-		bs.write(BD.basis)
-		bs.write('$ecp\n')
-		for ecp in BD.ecps:
-			bs.write(ecp.block())
-		bs.write('*\n$end\n')
-
-def load_var_exponents(ecps):
-	res = []
-	for ecp in ecps:
-		if ecp.name.split()[1].startswith('var_'):
-			for comp in ecp.components:
-				for exp in comp.exps:
-					res.append(math.log10(exp.a))
-	return res
-
-def rewrite_var_exponents(ecps, x):
-	n = 0
-	for ecp in ecps:
-		if ecp.name.split()[1].startswith('var_'):
-			for comp in ecp.components:
-				for exp in comp.exps:
-					exp.a = math.pow(10, x[n])
-					n += 1
 def read_embed_positions():
-	pos = []
-	nepos = []
+	empos = []
 	with open("coord") as c:
 		n = 0
 		for l in c:
 			ls = l.split()
 			if '$' not in l and ls:
 				if ls[-1] == 'zz':
-					pos += [n]
-				elif ls[-1] == 'ne':#FIXME
-					nepos += [n]
+					empos += [n]
 				n += 1
-	return n, pos, nepos
+	return n, empos	
 
-def read_grad_from_control(num, pos, nepos):
+def read_grad_from_control(num, empos):
 	with open("control") as c:
 		lines = c.read().splitlines()
 		n = 0
@@ -164,50 +74,69 @@ def read_grad_from_control(num, pos, nepos):
 			for i in range(num):
 				n = n0 + num + 1 +  i
 				igrads = [float(l.replace("D", "E")) for l in lines[n].split()]
-				if i not in pos + nepos:
+				if i not in empos:
 					rawgrads.extend(igrads)
 			grad = (reduce(lambda s, i: s + i**2, rawgrads, 0.))**0.5
 
-def write_result(x, grad):
-	with open("ecp.log", "a") as emb:
-		emb.write("********** GRAD = %12.10f **********\n" % (grad))
-		for xx in x:
-			emb.write('%20.7f\n' % math.pow(10, xx))
+def read_basis_start(filename):
+	with open(filename) as inp:
+		basis = inp.read()
+		lines = basis.splitlines()
+		exps = []
+		for line in lines:
+			if line and line[-1] == '!':
+				exp = math.log(float(line.split()[-2]))
+				exps.append(exp)
+		return basis, exps
 
+def write_basis(basis, exps, restart):
+	with open('basis.restart' if restart else 'basis', 'w') as outp:
+		lines = basis.splitlines()
+		expindex = 0
+		for line in lines:
+			if line and line[-1] == '!':
+				ls = line.split()
+				ls[-2] = math.exp(exps[expindex])
+				expindex += 1
+				fmt = "   %f   %d   %f  !" if restart else "   %f   %d   %f"
+				line = fmt % (float(ls[0]), int(ls[1]), float(ls[2]))
+			outp.write(line + "\n")
 
-lock = threading.Lock()
+def write_result(basis, exps, grad, truestep):
+	with open("basis.log", "a") as logf:
+		logf.write("********** VALUE = %12.10f | TYPE = %s **********\n" % (grad, "MAIN" if truestep else "GRAD"))
+		for e in exps:
+			logf.write('  log ={:12.7f} value ={:12.7f}\n'.format(e, math.exp(e)))
 
-def calculate(n, pos, nepos, BD, x):
-	with lock:
-		rewrite_var_exponents(BD.ecps, x)
-		write_basis_and_ecp(BD)
-		assert os.system('dscf > log_dscf.log') == 0
-		time.sleep(5)
-		assert os.system('grad > log_grad.log') == 0
-		time.sleep(5)
-		grad = read_grad_from_control(n, pos, nepos)
-		write_result(x, grad)
+def calculate(n, empos, basis, exps, eps):
+		write_basis(basis, exps, False)
+		assert os.system(dscf_command) == 0
+		assert os.system(grad_command) == 0
+		grad = read_grad_from_control(n, empos)
+		t = check_if_step_not_grad(exps, eps)
+		write_result(basis, exps, grad, t)
+		if t:
+			write_basis(basis, exps, True)
 		return grad
 
-
 def optimize_ecp(eps, ftol, maxit):
-	BD = read_basis_and_ecp()
-	x0 = load_var_exponents(BD.ecps)
-	write_basis_and_ecp(BD)
-	n, pos, nepos = read_embed_positions()
-	f = lambda x: calculate(n, pos, nepos, BD, x)
-	res = minimize(f, x0, args=(), method='SLSQP', jac=None, bounds=(), constraints=(), tol=None, callback=None, options={'disp': False, 'eps': eps, 'maxiter': maxit, 'ftol': ftol})
-	rewrite_var_exponents(BD.ecps, res.x)
-	write_basis_and_ecp(BD)
+	filename = 'basis.restart' if os.path.exists('basis.restart') else 'basis.start'
+#	filename = 'basis.start'
+	n, empos = read_embed_positions()
+	basis, exps = read_basis_start(filename)
+	target = lambda x: calculate(n, empos, basis, x, eps)
+	bounds = [(math.log(1./15),math.log(15))] * len(exps)
+	res = minimize(target, exps, bounds=bounds, method='SLSQP', options={'eps':eps, 'ftol':ftol, 'maxiter':maxit})
 
 if len(sys.argv) == 3:
 	eps = float(sys.argv[1])
 	ftol = float(sys.argv[2])
-	with open("ecp.log", "w") as emb:
-		emb.write("OPTIMIZATION START: eps=%.2e, ftol=%.2e\n" % (eps, ftol))
+	with open("basis.log", "w") as bb:
+		bb.write("OPTIMIZATION START: eps=%.2e, ftol=%.2e\n" % (eps, ftol))
 	optimize_ecp(eps, ftol, 9999)
+
 else:
-	print('Usage: charge_optimizer.py [STEP] [PRECISION]\nExample: charge_optimizer.py 1e-2 1e-5')
+	print('Usage: ecp_optimizer.py [STEP] [PRECISION]\nExample: charge_optimizer.py 1e-2 1e-5')
 
 
 
