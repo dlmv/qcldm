@@ -135,24 +135,44 @@ class Cluster:
 
 	def rearrange_charges(self, atoms):
 		logging.debug('Checking for exceeding values...')
-		exc_atoms = set()
+		add_caps = []
+		sub_caps = []
 		exc_chg = 0.
 		for a in atoms:
 			valence = a.origin.data()[AtomKeys.ESTIMATED_VALENCE]
 			if a.charge > valence:
 				exc_chg += a.charge - valence
-				exc_atoms.add(a.origin)
 				a.charge = valence
-		n_good = len(atoms) - len(exc_atoms)
-		assert n_good > 0, "All atoms exceeding valence & charges!!!"
-		ok = True
-		for a in atoms:
-			valence = a.origin.data()[AtomKeys.ESTIMATED_VALENCE]
-			ok = ok and a.charge <= valence
-			if a.origin not in exc_atoms:
-				a.charge += exc_chg / n_good
-		if not ok:
-			self.rearrange_charges(atoms)
+				add_caps.append(0)
+				sub_caps.append(valence)
+			elif a.charge < 0:
+				exc_chg += a.charge
+				a.charge = 0
+				add_caps.append(valence)
+				sub_caps.append(0)
+			else:
+				add_caps.append(valence - a.charge)
+				sub_caps.append(a.charge)
+		if exc_chg > 0:
+			s = sum(add_caps)
+			logging.debug('  Dustributing positive charge of %f' % exc_chg)
+			if s < exc_chg:
+				logging.error('  But only %f can be distributed!' % s)
+				assert False
+			for a, c in zip(atoms, add_caps):
+				a.charge += exc_chg * c / s
+		elif exc_chg < 0:
+			exc_chg *= -1
+			s = sum(sub_caps)
+			logging.debug('  Dustributing negative charge of %f' % exc_chg)
+			if s < exc_chg:
+				logging.error('  But only %f can be distributed!' % s)
+				assert False
+			for a, c in zip(atoms, sub_caps):
+				a.charge -= exc_chg * c / s
+		else:
+			logging.debug('  Everything already ok')
+
 
 	def estimate_charges_mulliken(self, dm, olp,):
 		self.estimate_charges(MullikenOverlapBondData(dm, olp))
