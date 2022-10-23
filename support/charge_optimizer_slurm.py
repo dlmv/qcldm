@@ -152,10 +152,13 @@ def write_embedding_block(emb, e, x, include_limits_and_groups):
 		else:
 			emb.write("%2s %12.8f\n" % (s, c))
 
-def all_grads(xs, eps):
-	for i, x in enumerate(xs):
+def all_grads(xs, limits, eps):
+	for i in range(len(xs)):
 		gradlist = list(xs)
-		gradlist[i] = x + eps
+		x = xs[i]
+		l = limits[i]
+		newx = x + eps if x + eps <= l else x - eps
+		gradlist[i] = newx
 		yield gradlist
 		
 class GradTask:
@@ -315,7 +318,7 @@ class GradManager:
 				else:
 					tasks = []
 					gradfunc = lambda x: read_grad_from_control(self.n, self.empos, x)
-					for i, xs in enumerate(all_grads(self.last_main_x, eps)):
+					for i, xs in enumerate(all_grads(self.last_main_x, self.e.highlimits, eps)):
 						dirname = 'grad%s' % i
 						task = GradTask(dirname, self.e, xs, self.cache, gradfunc)
 						tasks.append(task)
@@ -323,7 +326,7 @@ class GradManager:
 					q.do_tasks()
 					self.grad_done = True
 					v = self.find_cached_value(x)
-					assert v
+					assert v, x
 					write_result(self.e, x, v, t)
 					return v
 						
