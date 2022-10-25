@@ -52,13 +52,13 @@ class Cluster:
 		self.centers = [center]
 		
 		skip_centers = []
-		for (atom, shell, r) in self.settings.skip_centers:
-			sc = self.get_add_center(self.centers, skip_centers, atom, shell, r)
-			skip_centers.append(sc)
 		
-		for (atom, shell, r) in self.settings.add_centers:
+		for (atom, shell, r, add_not_skip) in self.settings.add_centers:
 			ac = self.get_add_center(self.centers, skip_centers, atom, shell, r)
-			self.centers.append(ac)
+			if add_not_skip:
+				self.centers.append(ac)
+			else:
+				skip_centers.append(ac)
 		
 		self.estimate_atoms_charges()
 
