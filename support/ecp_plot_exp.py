@@ -86,7 +86,7 @@ fig, axs = plt.subplots(len(parts[1]), 1)
 
 
 for l in sorted((list(parts[1].keys()))):
-	x = np.logspace(-10, 1, num=500)
+	x = np.logspace(-5, 1, num=500)
 	axs[l].set_xscale('log')
 	axs[l].plot(x, [parts[0][l](xx) for xx in x], color='blue', linewidth=0.5)
 	axs[l].plot(x, [parts[1][l](xx) for xx in x], color='red', linewidth=0.5)
