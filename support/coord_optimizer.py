@@ -156,7 +156,7 @@ tcoords = coords
 
 order = 0
 order_count = 0
-same_order_limit = 20
+same_order_limit = 15
 
 while True:
 	grad, tcoords = step(coords, tcoords, num, empos, grad, damp)
