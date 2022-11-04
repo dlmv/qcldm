@@ -65,12 +65,12 @@ class GaussianCube:
 				elif 6+nat <= n:
 					ls = [float(k) for k in line.split()]
 					for f in ls:
-						x = i / gc.size[2] / gc.size[1]
-						y = i / gc.size[2] % gc.size[1]
+						x = i // gc.size[2] // gc.size[1]
+						y = i // gc.size[2] % gc.size[1]
 						z = i % gc.size[2] % gc.size[1]
 						gc.data[x,y,z] = f
 						i += 1
-						if i % (gc.data.size / 10) == 0:
+						if i % (gc.data.size // 10) == 0:
 							logging.debug('  %d of %d' % (i, gc.data.size))	
 				n += 1
 			return gc
@@ -103,7 +103,7 @@ class GaussianCube:
 					for z in range(ranges[2][0], ranges[2][1]):
 						f.write(lf.write([self.voxel_value([x,y,z])]))
 						i += 1
-						if i % (size / 10) == 0:
+						if i % (size // 10) == 0:
 							logging.debug('  %d of %d' % (i, size))
 						if z % 6 == 5:
 							f.write("\n")
