@@ -1,5 +1,5 @@
 #!/usr/bin/python 
-import os, sys, threading, time
+import os, sys, threading, time, math
 from functools import reduce
 
 def read_embed_positions():
@@ -154,12 +154,23 @@ grad = read_grad_from_control(num, empos)
 write_result(grad, damp)
 tcoords = coords
 
+order = 0
+order_count = 0
+same_order_limit = 15
+
 while True:
-	grad1, tcoords = step(coords, tcoords, num, empos, grad, damp)
-	write_result(grad1, damp)
-	if abs(grad1-grad) < eps:
+	grad, tcoords = step(coords, tcoords, num, empos, grad, damp)
+	write_result(grad, damp)
+	if grad < eps:
 		break
-	grad = grad1
+	grad_order = math.floor(math.log(grad, 10))
+	if grad_order == order:
+		order_count += 1
+		if order_count > same_order_limit:
+			break
+	else:
+		order = grad_order
+		order_count = 0
 
 
 

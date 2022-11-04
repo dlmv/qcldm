@@ -15,7 +15,6 @@ class EmbeddingSettings:
 		self.name = ''
 		self.make_turbo = False
 		self.charge_method = 'mulliken'
-		self.skip_centers = []
 		self.add_centers = []
 		self.cation_sphere = []
 		self.reverse_embedding_map = {}
@@ -81,12 +80,12 @@ class EmbeddingSettings:
 						atom, shell, r = read_3params(ls)
 						shell = int(shell)
 						r = float(r)
-						es.skip_centers.append((atom, shell, r))
+						es.add_centers.append((atom, shell, r, False))
 					elif param == 'add_center':
 						atom, shell, r = read_3params(ls)
 						shell = int(shell)
 						r = float(r)
-						es.add_centers.append((atom, shell, r))
+						es.add_centers.append((atom, shell, r, True))
 					elif param == 'add_cations_in_sphere':
 						atom, r = read_2params(ls)
 						r = float(r)
