@@ -33,7 +33,7 @@ def rescale_simple(source, target):
 				value = source.point_value(cuboid.center)
 				res.data[tx,ty,tz] = value
 				i += 1
-				if i % (res.data.size / 10) == 0:
+				if i % (res.data.size // 10) == 0:
 					logging.debug('  %d of %d' % (i, res.data.size))
 	return res
 
@@ -71,7 +71,7 @@ def rescale_medium(source, target):
 				value /= 9
 				res.data[tx,ty,tz] = value
 				i += 1
-				if i % (res.data.size / 100) == 0:
+				if i % (res.data.size // 100) == 0:
 					logging.debug('  %d of %d' % (i, res.data.size))
 	return res
 
@@ -103,7 +103,7 @@ def subtract(cube1, cube2):
 				value = cube1.voxel_value([tx, ty, tz]) - cube2.voxel_value([tx, ty, tz])
 				res.data[tx,ty,tz] = value
 				i += 1
-				if i % (res.data.size / 10) == 0:
+				if i % (res.data.size // 10) == 0:
 					logging.debug('  %d of %d' % (i, res.data.size))
 	return res
 				
@@ -131,7 +131,7 @@ def masked(target, f):
 				value = target.voxel_value([tx, ty, tz]) if f(cuboid.center) else 0
 				res.data[tx,ty,tz] = value
 				i += 1
-				if i % (res.data.size / 10) == 0:
+				if i % (res.data.size // 10) == 0:
 					logging.debug('  %d of %d' % (i, res.data.size))
 	return res
 
@@ -154,7 +154,7 @@ def integrate(target):
 			for tz in range(target.size[2]):
 				res += target.voxel_value([tx, ty, tz]) * dv
 				i += 1
-				if i % (target.data.size / 10) == 0:
+				if i % (target.data.size // 10) == 0:
 					logging.debug('  %d of %d' % (i, target.data.size))
 	return res
 
@@ -176,7 +176,7 @@ def integrate_in_sphere(target, atomnum, r):
 				if f(cuboid.center):
 					res += abs(target.voxel_value([tx, ty, tz]) * dv)
 				i += 1
-				if i % (target.data.size / 10) == 0:
+				if i % (target.data.size // 10) == 0:
 					logging.debug('  %d of %d' % (i, target.data.size))
 	return res
 
@@ -203,7 +203,7 @@ def integrate_in_sphere_range(target, atomnum, r, step):
 					if f(cuboid.center):
 						res[n] += abs(target.voxel_value([tx, ty, tz]) * dv)
 				i += 1
-				if i % (target.data.size / 10) == 0:
+				if i % (target.data.size // 10) == 0:
 					logging.debug('  %d of %d' % (i, target.data.size))
 	return rs, res
 
@@ -231,7 +231,7 @@ def integrate_in_sphere_range_opt(target, atomnum, r, step):
 					else:
 						break
 				i += 1
-				if i % (target.data.size / 10) == 0:
+				if i % (target.data.size // 10) == 0:
 					logging.debug('  %d of %d' % (i, target.data.size))
 	return rs, res
 
@@ -252,7 +252,7 @@ def integrate_in_sphere_range_normed(target, atomnum, r, step):
 		for ty in range(target.size[1]):
 			for tz in range(target.size[2]):
 				i += 1
-				if i % (target.data.size / 10) == 0:
+				if i % (target.data.size // 10) == 0:
 					logging.debug('  %d of %d' % (i, target.data.size))
 				
 				cc = target.voxel_center([tx, ty, tz])
