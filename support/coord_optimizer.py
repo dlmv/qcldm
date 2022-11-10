@@ -99,11 +99,11 @@ def write_if_best(grad, coords):
 				outp.write(" %16.10f %16.10f% 16.10f  %s\n" % (x,y,z,name))
 			outp.write("$end")
 
-def write_result(grad, damp):
+def write_result(grad, scale):
 	with open("coord.log", "a") as log:
-		log.write("grad = %13.8f | damp = %5.3f\n" % (grad, damp))
+		log.write("grad = %13.8f | scale = %5.3f\n" % (grad, scale))
 
-def step(startcoords, lastcoords, num, empos, lastgrad, damp):
+def step(startcoords, lastcoords, num, empos, lastgrad, scale):
 		assert os.system('%s/bin/amd64/part_relax > log_relax.log' % os.environ['TURBO']) == 0
 		time.sleep(2)
 		relaxcoords = read_coord('coord')
@@ -116,7 +116,7 @@ def step(startcoords, lastcoords, num, empos, lastgrad, damp):
 			else:
 				nc = []
 				for lk, rk in zip(lc, rc):
-					nc.append(lk*(1-damp) + rk*damp)
+					nc.append(lk*(1-scale) + rk*scale)
 			ncoords.append([sname, nc])
 		write_coords(ncoords, 'coord')
 		assert os.system('%s/bin/amd64/part_dscf > log_dscf.log'  % os.environ['TURBO']) == 0
@@ -129,7 +129,7 @@ def step(startcoords, lastcoords, num, empos, lastgrad, damp):
 		return grad, ncoords
 
 eps = float(sys.argv[1])
-damp = float(sys.argv[2]) if len(sys.argv) > 2 else 1
+scale = float(sys.argv[2]) if len(sys.argv) > 2 else 1
 
 
 coords = None
@@ -151,7 +151,7 @@ time.sleep(2)
 assert os.system('%s/bin/amd64/part_grad > log_grad.log' % os.environ['TURBO']) == 0
 time.sleep(2)
 grad = read_grad_from_control(num, empos)
-write_result(grad, damp)
+write_result(grad, scale)
 tcoords = coords
 
 order = 0
@@ -159,8 +159,8 @@ order_count = 0
 same_order_limit = 15
 
 while True:
-	grad, tcoords = step(coords, tcoords, num, empos, grad, damp)
-	write_result(grad, damp)
+	grad, tcoords = step(coords, tcoords, num, empos, grad, scale)
+	write_result(grad, scale)
 	if grad < eps:
 		break
 	grad_order = math.floor(math.log(grad, 10))
