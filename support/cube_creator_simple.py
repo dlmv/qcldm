@@ -18,10 +18,10 @@ def create_cube_input(coords, r, spin):
 	res = cube_template % ('spin' if spin else '', x0, y0, z0, nx, ny, nz, dx, dy, dz)
 	return res
 
-def read_center_coords():
+def read_center_coords(n):
 	with open('coord') as crf:
-		head = [next(crf) for x in range(2)]
-		coords = [float(x) for x in head[1].split()[:-1]]
+		head = [next(crf) for x in range(n+1)]
+		coords = [float(x) for x in head[n].split()[:-1]]
 		return coords
 
 def rewrite_control(cube_input):
@@ -42,10 +42,11 @@ def rewrite_control(cube_input):
 					outp.write(line)
 			
 		
-r = float(sys.argv[1])
-spin = len(sys.argv) > 2 and sys.argv[2] == 'spin'
+n = int(sys.argv[1])
+r = float(sys.argv[2])
+spin = len(sys.argv) > 3 and sys.argv[3] == 'spin'
 			
-coords =read_center_coords()
+coords =read_center_coords(n)
 
 cube_input = create_cube_input(coords, r, spin)
 #print(cube_input)
