@@ -85,6 +85,9 @@ def write_current(e, values, restart, noguess):
 				elif nr == -1:
 					a *= mult
 					k *= mult**0.5
+				elif nr == 0:
+					a *= mult
+					k *= mult
 				else:
 					assert False, nr
 				line = "{:24.16f} {:24.16f} {:3d}".format(a, k, nr)
