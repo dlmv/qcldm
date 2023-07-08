@@ -31,7 +31,7 @@ class GaussFunctionNormed(GaussFunction):
 	def overlap(f1, f2):
 		if f1.l != f2.l:
 			return 0
-		ff = GaussFunctionNormed((f1.a + f2.a) / 2, (f1.l + f2.l) / 2)
+		ff = GaussFunctionNormed((f1.a + f2.a) / 2, (f1.l + f2.l) // 2)
 		return (f1.norm * f2.norm) / ff.norm**2
 
 class GaussFunctionContracted:
@@ -58,6 +58,8 @@ class GaussFunctionContracted:
 	def normalize(self):
 		n = self.norm()
 		self.fs = [(c / n, f) for c, f in self.fs]
+		if not [(c,f) for (c,f) in self.fs if c > 0]:
+			self.fs = [(-c,f) for (c,f) in self.fs]
 
 	def get_cutoff(self, prec=0.001):
 		return self.to_numeric(NumericOperations.loggrid(1e-8, 2e2, 1000)).get_cutoff(prec)
