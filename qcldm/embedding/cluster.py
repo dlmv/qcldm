@@ -268,7 +268,7 @@ class Cluster:
 			if a.tuple_data() in list(groups.keys()):
 				continue
 			found = False
-			if self.settings.use_symmetry:	
+			if not self.settings.ignore_symmetry:	
 				for j in range(len(atoms)):
 					a1 = atoms[j]
 					if a1.tuple_data() in list(groups.keys()) or i==j:

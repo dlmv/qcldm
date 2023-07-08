@@ -1,4 +1,4 @@
-import os
+import os, logging
 class EmbeddingSettings:
 	def __init__(self):
 		self.center = -1
@@ -18,7 +18,7 @@ class EmbeddingSettings:
 		self.add_centers = []
 		self.cation_sphere = []
 		self.reverse_embedding_map = {}
-		self.use_symmetry = False
+		self.ignore_symmetry = False
 
 	@staticmethod
 	def from_file(name):
@@ -94,8 +94,10 @@ class EmbeddingSettings:
 						atom, replacement = read_2params(ls)
 						core = int(core)
 						es.reverse_embedding_map[atom] = replacement
-					elif param == 'use_symmetry':
-						es.use_symmetry = True
+					elif param == 'ignore_symmetry':
+						es.ignore_symmetry = True
+					else:
+						logging.error('Unknown param: %s' % param)
 						
 			return es
 
