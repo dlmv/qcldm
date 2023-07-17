@@ -59,10 +59,10 @@ class ControlFormat:
 		return mat
 
 	@staticmethod
-	def read_embedding():
+	def read_embedding(path):
 		res = []
-		if os.path.exists('embedding'):
-			with open('embedding') as em:
+		if os.path.exists(os.path.join(path, 'embedding')):
+			with open(os.path.join(path, 'embedding')) as em:
 				for line in em.read().splitlines():
 					ls = line.split()
 					res.append((ls[0], float(ls[1])))
@@ -73,18 +73,18 @@ class ControlFormat:
 	def get_normal_name(a):
 		return a[0].upper() + a[1:].lower()
 
-	def load(self, of, embmap):
+	def load(self, path, of, embmap):
 		self.base_format = of
 		bp = self.base_format.param('basis')
 		assert bp.lineparam.strip() == 'file=basis'
-		self.bases, self.ecps = TurboBasis.read_basis('basis')
+		self.bases, self.ecps = TurboBasis.read_basis(os.path.join(path, 'basis'))
 		smap = self.species_map()
 		
-		embedding = ControlFormat.read_embedding()
+		embedding = ControlFormat.read_embedding(path)
 			
 		cp = self.base_format.param('coord')
 		assert cp.lineparam.strip() == 'file=coord'
-		coordf = TurboTemplate.from_file('coord')
+		coordf = TurboTemplate.from_file(os.path.join(path, 'coord'))
 		cp = coordf.param('coord')
 		atoms = []
 		empos = 0
@@ -193,15 +193,15 @@ class ControlFormat:
 	def to_file(self, name):
 		self.get_format().to_file(name)
 
-	@staticmethod
-	def from_string(datastring, embmap = {}):
-		res = ControlFormat()
-		res.load(TurboTemplate.from_string(datastring), embmap)
-		return res
+#	@staticmethod
+#	def from_string(datastring, embmap = {}):
+#		res = ControlFormat()
+#		res.load(TurboTemplate.from_string(datastring), embmap)
+#		return res
 
 	@staticmethod
-	def from_file(name, embmap = {}):
+	def from_path(path, embmap = {}):
 		res = ControlFormat()
-		res.load(TurboTemplate.from_file(name), embmap)
+		res.load(path, TurboTemplate.from_file(os.path.join(path, 'control')), embmap)
 		return res
 

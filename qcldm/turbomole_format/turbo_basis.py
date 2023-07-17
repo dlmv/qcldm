@@ -23,6 +23,22 @@ class TurboBasis:
 		self.name = name
 		self.functions = functions
 
+	def description(self):
+		exp_map = {}
+		funcnumber_map = {}
+		lmax = 0
+		for f in self.functions:
+			lmax = max(lmax, f.fs[0][1].l)
+			if f.fs[0][1].l not in funcnumber_map.keys():
+				funcnumber_map[f.fs[0][1].l] = 1
+			else:
+				funcnumber_map[f.fs[0][1].l] += 1
+			if f.fs[0][1].l not in exp_map.keys():
+				exp_map[f.fs[0][1].l] = set()
+			for k, g in f.fs:
+				exp_map[f.fs[0][1].l].add(g.a)
+		return '(%s)/[%s]' % (','.join([str(len(exp_map[l])) for l in range(lmax + 1)]), ','.join([str(funcnumber_map[l]) for l in range(lmax + 1)]))
+
 	def orbnum(self):
 		res = 0
 		for l in range(len(Shells.SHELLS)):

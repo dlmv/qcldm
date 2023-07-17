@@ -13,6 +13,7 @@ template = '''\\begin{table*}[!h]
 \\label{table:generated_basises} 
 \\begin{tabular*}{\\textwidth}{@{\\extracolsep{\\fill}}%s}
 \\hline
+\\hline
 %s
 \\end{tabular*}
 \\end{table*}'''
@@ -22,10 +23,12 @@ basis_names =  ['%s %s' % (e,n) for e, n in zip(*(iter(sys.argv[1:]),) * 2)]
 turbo_basises, turbo_ecps = TurboBasis.read_basis('basis')
 body = '\\multicolumn{%d}{c}{basises, basises, basises...} \\\\\n\\hline\n' % (len(basis_names) * 2 + 1)
 
+
 for bn in basis_names:
 	assert bn in turbo_basises.keys(), 'No basis with name \'%s\' in basis file' % bn
 
 body += '& ' + ' & '.join(['\multicolumn{2}{c%s}{%s}' % ('' if (i == len(basis_names) - 1) else '|', n.replace('_', '\\_')) for i,n in enumerate(basis_names)]) + '\\\\\n'
+body += '& ' + ' & '.join(['\multicolumn{2}{c%s}{%s}' % ('' if (i == len(basis_names) - 1) else '|', turbo_basises[n].description()) for i,n in enumerate(basis_names)]) + '\\\\\n'
 body += '& ' + ' & '.join(['\multicolumn{1}{c}{Exp}', '\multicolumn{1}{c|}{Coeff}'] * (len(basis_names) - 1) + ['\multicolumn{1}{c}{Exp}', '\multicolumn{1}{c}{Coeff}']) + '\\\\\n'
 
 
