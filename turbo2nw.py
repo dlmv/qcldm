@@ -110,7 +110,7 @@ def build_basis(c, specs):
 
 init_log(sys.argv)
 
-c = ControlFormat.from_file('control')
+c = ControlFormat.from_path('.')
 #for a in c.cell.atoms:
 #	print a
 
