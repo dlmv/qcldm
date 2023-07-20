@@ -12,9 +12,10 @@ from qcldm.atom.shells import Shells
 
 TEMPLATE = '''start cluster 
 title "cluster" 
-geometry "full-cluster" units au 
+geometry "full-cluster" units au noautoz
+symmetry c1
 %%COORD%%
-end  
+end
 
 
 basis spherical
@@ -31,22 +32,21 @@ end
 
 set geometry "full-cluster"
 charge %%CHARGE%%
-dft  
+dft
  XC pbe0
  CONVERGENCE fast
  vectors input hcore
  vectors output ./cluster.movecs
  iterations 200
-grid xfine
-tolerances accCoul 20 tol_rho 20
-end  
+grid lebedev 350 17 becke;tolerances accCoul 20 tol_rho 20
+end
 
 task sodft
 '''
 
 def dummy_basis():
 	gc = GaussFunctionContracted()
-	gc.fs.append([1, GaussFunctionNormed(100000, 0)])
+	gc.fs.append([1, GaussFunctionNormed(1000, 0)])
 	return TurboBasis('', [gc])
 	
 
