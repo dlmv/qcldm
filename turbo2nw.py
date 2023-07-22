@@ -4,9 +4,10 @@ sys.dont_write_bytecode = True
 
 from qcldm.turbomole_format.control_format import ControlFormat
 from qcldm.turbomole_format.turbo_basis import TurboBasis
-from qcldm.gauss_functions.gauss_function import GaussFunctionNormed, GaussFunctionContracted
+from qcldm.gauss_functions.gauss_function import GaussFunction, GaussFunctionNormed, GaussFunctionContracted
 from qcldm.util.log_colorizer import init_log
 from qcldm.util.units import Units
+from qcldm.util.elements import ELEMENTS
 from qcldm.structures.atom_vector import AtomKeys
 from qcldm.atom.shells import Shells
 
@@ -48,9 +49,12 @@ def dummy_basis():
 	gc = GaussFunctionContracted()
 	gc.fs.append([1, GaussFunctionNormed(1000, 0)])
 	return TurboBasis('', [gc])
-	
 
-def build_basis(c, specs):
+
+def dummy_ecp(name):
+	return TurboBasis.TurboEcp('', ELEMENTS[name].number, TurboBasis.EcpPart([[0.00000001, GaussFunction(1, 0)]]), [], [])
+
+def build_basis(c, specs, placeholder):
 	basis_str = ''
 	ecp_str = ''
 	so_str = ''
@@ -58,12 +62,16 @@ def build_basis(c, specs):
 	elbasmap = {}
 	elecpmap = {}
 	for spec in specs:
-#		print spec
-		if spec[0] == 'none' and spec[1] == None:
-			continue
+#		print(spec)
 		el = None
 		bas = None
-		if spec[0] == 'none':
+		if spec[0] == 'none' and spec[1] == None:
+#			print(spec)
+#			continue
+			el = placeholder
+			bas = dummy_basis()
+			elecpmap[el] = dummy_ecp(placeholder)
+		elif spec[0] == 'none':
 			el = spec[1].split()[0]
 			bas = dummy_basis()
 		else:
@@ -114,6 +122,7 @@ c = ControlFormat.from_path('.')
 #for a in c.cell.atoms:
 #	print a
 
+placeholder = 'He'
 
 
 with open('test.nw', 'w') as f:
@@ -127,7 +136,9 @@ with open('test.nw', 'w') as f:
 		embedded = AtomKeys.ESTIMATED_CHARGE in list(a.data().keys())
 		name = a.name()
 		if name.lower() == 'q':
-			name = 'bq'
+#			name = 'bq'
+			name = placeholder
+			a.data()[AtomKeys.ESTIMATED_CHARGE] += ELEMENTS[name].number
 		if embedded:
 			if name not in list(embcount.keys()):
 				embcount[name] = 0
@@ -161,7 +172,7 @@ with open('test.nw', 'w') as f:
 	charge =  charge - round(charge)
 	print(charge)	
 	chargestr = "%13.8f" % charge
-	basis_block, ecp_block, so_block = build_basis(c, specs)
+	basis_block, ecp_block, so_block = build_basis(c, specs, placeholder)
 	f.write(TEMPLATE.replace('%%COORD%%', coord_block[:-1]).replace('%%BASIS%%', basis_block[:-1]).replace('%%ECP%%', ecp_block[:-1]).replace('%%SOECP%%', so_block[:-1]).replace('%%CHARGE%%', chargestr))
 
 
