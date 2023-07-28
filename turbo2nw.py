@@ -11,8 +11,8 @@ from qcldm.util.elements import ELEMENTS
 from qcldm.structures.atom_vector import AtomKeys
 from qcldm.atom.shells import Shells
 
-TEMPLATE = '''start cluster 
-title "cluster" 
+TEMPLATE = '''start cluster
+title "cluster"
 geometry "full-cluster" units au noautoz
 symmetry c1
 %%COORD%%
@@ -22,8 +22,8 @@ end
 basis spherical
 %%BASIS%%
 end
- 
-ecp 
+
+ecp
 %%ECP%%
 end
 
