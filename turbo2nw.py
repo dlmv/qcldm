@@ -33,16 +33,23 @@ end
 
 set geometry "full-cluster"
 charge %%CHARGE%%
+scf
+ vectors input  hcore
+ vectors output ./cluster.movecs
+ uhf
+ maxiter 100
+end
+task scf energy
 dft
  XC pbe0
  CONVERGENCE fast
- vectors input hcore
+ vectors input ./cluster.movecs
  vectors output ./cluster.movecs
  iterations 200
 grid lebedev 350 17 becke;tolerances accCoul 20 tol_rho 20
 end
 
-task sodft
+task dft gradient
 '''
 
 def dummy_basis():
