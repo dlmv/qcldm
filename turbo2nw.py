@@ -54,12 +54,12 @@ task dft gradient
 
 def dummy_basis():
 	gc = GaussFunctionContracted()
-	gc.fs.append([1, GaussFunctionNormed(1000, 0)])
+	gc.fs.append([1, GaussFunctionNormed(100, 0)])
 	return TurboBasis('', [gc])
 
 
 def dummy_ecp(name):
-	return TurboBasis.TurboEcp('', ELEMENTS[name].number, TurboBasis.EcpPart([[0.00000001, GaussFunction(1, 0)]]), [], [])
+	return TurboBasis.TurboEcp('', ELEMENTS[name].number, TurboBasis.EcpPart([[0, GaussFunction(1, 2)]]), [TurboBasis.EcpPart([[0.00000001, GaussFunction(1, 2)]])], [])
 
 def build_basis(c, specs, placeholder):
 	basis_str = ''
