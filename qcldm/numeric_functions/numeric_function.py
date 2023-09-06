@@ -51,6 +51,7 @@ class NumericFunction():
 	def get_cutoff(self, prec=0.001):
 		s = 0
 		norm = self | self
+		assert norm
 		for n in reversed(list(range(len(self.data) - 1))):
 			r1 = self.data[n][0]
 			r2 = self.data[n+1][0]
@@ -141,13 +142,19 @@ class NumericFunction():
 			raise TypeError("Unsupported operand type(s) for >>: '{}' and '{}'".format(self.__class__, type(other)))
 
 
+def integrate_helper(p):
+	r1 = p[0][0]
+	f1 = p[0][1]
+	r2 = p[1][0]
+	f2 = p[1][1]
+	return (f1 * r1**2 + f2 * r2**2) * (r2 - r1) / 2
+
 class NumericOperations:
 
 	@staticmethod
 	def integrate(data):
 		res = 0
-#		res = reduce(lambda s, ((r1, f1), (r2, f2)): s + (f1 * r1**2 + f2 * r2**2) * (r2 - r1) / 2, list(zip(data[:-1], data[1:])), 0)
-		#FIXME: rewrite in python 3 without tuple matching
+		res = reduce(lambda s, p: s + integrate_helper(p), list(zip(data[:-1], data[1:])), 0)
 		return res
 
 	@staticmethod
