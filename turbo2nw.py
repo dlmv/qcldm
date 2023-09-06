@@ -11,8 +11,8 @@ from qcldm.util.elements import ELEMENTS
 from qcldm.structures.atom_vector import AtomKeys
 from qcldm.atom.shells import Shells
 
-TEMPLATE = '''start cluster 
-title "cluster" 
+TEMPLATE = '''start cluster
+title "cluster"
 geometry "full-cluster" units au noautoz
 symmetry c1
 %%COORD%%
@@ -22,8 +22,8 @@ end
 basis spherical
 %%BASIS%%
 end
- 
-ecp 
+
+ecp
 %%ECP%%
 end
 
@@ -33,26 +33,33 @@ end
 
 set geometry "full-cluster"
 charge %%CHARGE%%
+scf
+ vectors input  hcore
+ vectors output ./cluster.movecs
+ uhf
+ maxiter 100
+end
+task scf energy
 dft
  XC pbe0
  CONVERGENCE fast
- vectors input hcore
+ vectors input ./cluster.movecs
  vectors output ./cluster.movecs
  iterations 200
 grid lebedev 350 17 becke;tolerances accCoul 20 tol_rho 20
 end
 
-task sodft
+task dft gradient
 '''
 
 def dummy_basis():
 	gc = GaussFunctionContracted()
-	gc.fs.append([1, GaussFunctionNormed(1000, 0)])
+	gc.fs.append([1, GaussFunctionNormed(100, 0)])
 	return TurboBasis('', [gc])
 
 
 def dummy_ecp(name):
-	return TurboBasis.TurboEcp('', ELEMENTS[name].number, TurboBasis.EcpPart([[0.00000001, GaussFunction(1, 0)]]), [], [])
+	return TurboBasis.TurboEcp('', ELEMENTS[name].number, TurboBasis.EcpPart([[0, GaussFunction(1, 2)]]), [TurboBasis.EcpPart([[0.00000001, GaussFunction(1, 2)]])], [])
 
 def build_basis(c, specs, placeholder):
 	basis_str = ''
