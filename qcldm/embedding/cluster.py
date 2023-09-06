@@ -156,7 +156,7 @@ class Cluster:
 		if exc_chg > 0:
 			s = sum(add_caps)
 			logging.debug('  Dustributing positive charge of %f' % exc_chg)
-			if s < exc_chg:
+			if s < exc_chg - 0.00001:
 				logging.error('  But only %f can be distributed!' % s)
 				assert False
 			for a, c in zip(atoms, add_caps):
