@@ -104,9 +104,9 @@ def prepare_oneprop_crystal(co, atoms, dms, num, rc):
 	basis = ''
 	for k in list(co.basis.keys()):
 		basis += '%s 0\n' % k
-		basis += GaussFormat.basis_to_gaussian94(co.basis[k])
+		basis += GaussFormat.basis_to_gaussian94(co.basis[k]) #FIXME: take precise basis from input section!
 		basis += '****\n'
-	with open(os.path.join(dirname, 'basis.L'), 'w') as f:
+	with open(os.path.join(dirname, 'basis.L.FIXME'), 'w') as f:
 		f.write(basis)
 		
 def read_gauss_basis(gfile):
