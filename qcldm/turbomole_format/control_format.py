@@ -130,7 +130,11 @@ class ControlFormat:
 			
 			atoms.append(a)
 
-			
+		twecp = self.base_format.param('twocomp-ecp')
+		if twecp:
+			ts = self.base_format.param('twocomp')
+			ls = re.split("[\s\-]+", ts.multiparam[0].strip())
+			self.nocc = len(list(range(int(ls[1]), int(ls[2]) + 1)))
 
 				
 		self.cell = Cell(atoms, [], [], [], [])
