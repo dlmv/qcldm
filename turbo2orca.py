@@ -73,6 +73,16 @@ def build_basis(c, specs):
 
 init_log(sys.argv)
 
+el_replacements = {}
+for el in 'He', 'Ne', 'Ar', 'Kr', 'Xe', 'Rn':
+	el1 = ELEMENTS[ELEMENTS[el].number + 1].symbol
+	el_replacements[el] = el1
+
+for arg in sys.argv[1:]:
+	m = re.match('^([A-Z][a-z]?)=([A-Z][a-z]?)$', arg)
+	el_replacements[m.group(1)] = m.group(2)
+
+
 c = ControlFormat.from_path('.')
 #for a in c.cell.atoms:
 #	print a
@@ -99,7 +109,7 @@ with open('test.inp', 'w') as f:
 	specs = set()
 	main_cluster_electrons = 0
 	smap = c.species_map()
-	replacements = {}
+	sp_replacements = {}
 	emb_numbers = []
 	for i, a in enumerate(c.cell.atoms):
 		embedded = AtomKeys.ESTIMATED_CHARGE in list(a.data().keys())
@@ -111,16 +121,16 @@ with open('test.inp', 'w') as f:
 		else:
 			
 			if embedded:
-				if name.lower() in ('he', 'ne', 'ar', 'kr', 'xe', 'rn'):
-					n = ELEMENTS[name].number + 1
-					name = ELEMENTS[n].symbol
-					if smap[i + 1] not in replacements.keys():
+				if name in el_replacements:
+					delta_val = Shells.estimate_valence_byname(el_replacements[name]) - Shells.estimate_valence_byname(name)
+					name = el_replacements[name]
+					if smap[i + 1] not in sp_replacements.keys():
 						repl = (name.lower() + ' ' + smap[i + 1][0].split()[1], name.lower() + ' ' + smap[i + 1][1].split()[1])
-						replacements[smap[i + 1]] = repl
+						sp_replacements[smap[i + 1]] = repl
 						specs.add(repl)
 						c.bases[repl[0]] = c.bases[smap[i + 1][0]]
 						c.ecps[repl[1]] = c.ecps[smap[i + 1][1]]
-					main_cluster_electrons += 1
+					main_cluster_electrons += delta_val
 				else:
 					specs.add(smap[i + 1])
 				emb_numbers.append(i)
