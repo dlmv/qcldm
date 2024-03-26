@@ -14,6 +14,8 @@ IONIC_RADII = {
 'Nb': 0.69,
 'U': 0.97,
 'Y': 0.89,
+'Ce': 1.0,
+'Th': 1.1,
 }
 
 #FORMULA_TEMPLATE = 'where(abs(x-%(R)f)>%(r)f,0,(1-((x-%(R)f)/%(r)f)**2)**0.5)'
@@ -55,7 +57,7 @@ for atom in cluster.atoms[0:]:
 		neighmap[atom.name()] = {}
 	foundr = False
 	for rr in list(neighmap[atom.name()].keys()):
-		if abs(rr - r) < 0.01:
+		if abs(rr - r) < 0.05:
 			foundr = True
 			neighmap[atom.name()][rr] += ' + ' + FORMULA_TEMPLATE % {'R' : atom.distance(center) / Units.BOHR, 'r' : IONIC_RADII[atom.name()] / Units.BOHR}
 			break
