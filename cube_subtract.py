@@ -10,10 +10,12 @@ from math3d import Vector
 
 init_log(sys.argv)
 
-cube1 = GaussianCube.from_file('rescaled.cube')
-cube2 = GaussianCube.from_file('cluster.cube')
+c1 = sys.argv[1]
+c2 = sys.argv[2]
 
-#cs = GaussianCube.from_file('mag.cube')
+cube1 = GaussianCube.from_file(c1)
+cube2 = GaussianCube.from_file(c2)
+
 
 c = subtract(cube1, cube2)
 
