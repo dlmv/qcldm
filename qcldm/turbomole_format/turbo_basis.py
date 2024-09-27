@@ -145,7 +145,7 @@ class TurboBasis:
 						tmpfuncs.append([c, GaussFunction(a, l)])
 						n += 1
 					semilocal.append(TurboBasis.EcpPart(tmpfuncs))
-				assert lines[n].strip() == '*'
+				assert lines[n].strip() == '*', lines[n]
 				spinorbit = []
 				if 'lsomax' in list(ecp_def_map.keys()):
 					n += 1

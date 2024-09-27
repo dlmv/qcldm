@@ -26,10 +26,10 @@ body = '\\multicolumn{%d}{c}{ECPs, ECPs, ECPs...} \\\\\n\\hline\n' % (len(ecp_na
 for en in ecp_names:
 	assert en in turbo_ecps.keys(), 'No ecp with name \'%s\' in basis file' % en
 
-body += ' & '.join(['& \multicolumn{3}{c%s}{%s}' % ('' if (i == len(ecp_names) - 1) else '|', n.replace('_', '\\_')) for i, n in enumerate(ecp_names)]) + '\\\\\n'
+body += ' & '.join(['\multicolumn{4}{c%s}{%s}' % ('' if (i == len(ecp_names) - 1) else '|', n.replace('_', '\\_')) for i, n in enumerate(ecp_names)]) + '\\\\\n'
 tmp = []
 for j, n in enumerate(ecp_names):
-	tmp.extend(['& \multicolumn{1}{l}{n$\mathrm{_{core}}$ = %d}' % turbo_ecps[n].ncore, '\multicolumn{1}{l}{l$\mathrm{_{max}}$ = %d}' % (len(turbo_ecps[n].semilocal)), ' '])
+	tmp.extend(['\multicolumn{4}{c%s}{n$\mathrm{_{core}}$ = %d; $\mathrm{l_{max}}$ = %d}' % ('' if (j == len(ecp_names) - 1) else '|', turbo_ecps[n].ncore, len(turbo_ecps[n].semilocal))])
 body += ' & '.join(tmp) + '\\\\\n'
 body += ' & '.join(['&  \multicolumn{1}{c}{Exponent}', '\multicolumn{1}{c}{r$\\mathrm{^n}$}', '\multicolumn{1}{c|}{Coefficient}'] * (len(ecp_names) - 1) + ['&  \multicolumn{1}{c}{Exponent}', '\multicolumn{1}{c}{r$\\mathrm{^n}$}', '\multicolumn{1}{c}{Coefficient}']) + '\\\\\n\\hline\n'
 
