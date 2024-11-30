@@ -17,7 +17,11 @@ TEMPLATE = '''!PBE0 TightSCF RIJCOSX AutoAux
   GridX 3,3,4
 end
 %maxcore 45000
-%Pal nprocs 12 end
+%scf
+guess hcore
+maxiter 200
+end
+%Pal nprocs 28 end
 %geom
  Constraints
   {C %%NS%% C}
