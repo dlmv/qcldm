@@ -17,6 +17,7 @@ TEMPLATE = '''!PBE0 TightSCF RIJCOSX AutoAux
   GridX 3,3,4
 end
 %maxcore 45000
+!NoTrah
 %scf
 guess hcore
 maxiter 200
