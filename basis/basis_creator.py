@@ -546,7 +546,7 @@ def read_table_part(lines, is_ecp, n):
 def parse_ecp_mos(mos_format):
 	logging.debug("Reading GRECP...")
 	lines = mos_format.splitlines()
-	m = re.match(r'^([A-Za-z]+)(\d+)\s+\*+$', lines[0])
+	m = re.match(r'^([A-Za-z]+)(\d+)[^\W\d]*\s+\*+$', lines[0])
 	halt(m is None, "COULD NOT PARSE ECP TITLE: '%s'" % lines[0])
 	name = m.group(1)
 	nval = int(m.group(2))
