@@ -961,7 +961,7 @@ def read_basis_nw(filename):
 #=======#                NETWORK                #=======#
         #=======================================#
 
-TABLE_REGEX = r'<td [^>]+>\s*%d<br\s*/>\s*<a href="/data/files/([^">]+)">'
+TABLE_REGEX = r'<td [^>]+>\s*%d<br\s*/>\s*<a href="/data/files/([^">]+)[^>]*">'
 
 def save_mos_ecp(n, path):
 	logging.debug("Downloading GRECP for element %d" % n)
