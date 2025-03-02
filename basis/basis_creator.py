@@ -283,6 +283,7 @@ def estimate_ecp_configuration(atom_number, ncore):
 	ncore_found = ncore == 0
 	maxn = 0
 	ecp_configuration = []
+	failed = False
 	for (n, l) in configuration.keys():
 		maxn = max(maxn, n)
 	for n, l in shell_sequence():
@@ -296,8 +297,26 @@ def estimate_ecp_configuration(atom_number, ncore):
 				if electrons_processed == ncore:
 					ncore_found = True
 				elif electrons_processed > ncore:
-					logging.warning("Unexpected NCore: %d" % ncore)
-					return None
+					failed = True
+					logging.debug("Shell sequence failed, switching to Aufbau")
+					break
+	if failed:
+		ecp_configuration = []
+		electrons_processed = 0
+		for n, l in aufbau_sequence():
+			if n > maxn:
+				break
+			if (n, l) in configuration.keys():
+				if ncore_found:
+					ecp_configuration.append([n, l, configuration[(n,l)]])
+				else:
+					electrons_processed += configuration[(n, l)]
+					if electrons_processed == ncore:
+						ncore_found = True
+					elif electrons_processed > ncore:
+						logging.warning("Unexpected NCore: %d" % ncore)
+						return None
+	print(ecp_configuration)
 	return ecp_configuration
 
 def estimate_maxl(atom_number, ncore):
