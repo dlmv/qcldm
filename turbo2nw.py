@@ -32,6 +32,7 @@ so
 end
 
 set geometry "full-cluster"
+set geometry:actlist %%FRATOM%%:%%LRATOM%%
 charge %%CHARGE%%
 scf
  vectors input  hcore
@@ -115,6 +116,7 @@ def build_basis(c, specs, placeholder):
 		if not ecp.spinorbit:
 			continue
 		for l, part in enumerate(ecp.spinorbit):
+			l += 1
 			so_str += el + ' ' * (2 - len(el)) + ' ' + Shells.SHELLS[l] + '\n'
 			for c, g in part.functions:
 				so_str += '    %2d %15.8f %15.8f\n' % (g.l, g.a, c)
@@ -139,8 +141,14 @@ with open('test.nw', 'w') as f:
 	embcount = {}
 	bqbases = []
 	smap = c.species_map()
+	first_real_atom = None
+	last_real_atom = None
 	for i, a in enumerate(c.cell.atoms):
 		embedded = AtomKeys.ESTIMATED_CHARGE in list(a.data().keys())
+		if not embedded:
+			if first_real_atom is None:
+				first_real_atom = str(i + 1)
+			last_real_atom = str(i + 1)
 		name = a.name()
 		if name.lower() == 'q':
 #			name = 'bq'
@@ -180,7 +188,7 @@ with open('test.nw', 'w') as f:
 	print(charge)	
 	chargestr = "%13.8f" % charge
 	basis_block, ecp_block, so_block = build_basis(c, specs, placeholder)
-	f.write(TEMPLATE.replace('%%COORD%%', coord_block[:-1]).replace('%%BASIS%%', basis_block[:-1]).replace('%%ECP%%', ecp_block[:-1]).replace('%%SOECP%%', so_block[:-1]).replace('%%CHARGE%%', chargestr))
+	f.write(TEMPLATE.replace('%%COORD%%', coord_block[:-1]).replace('%%BASIS%%', basis_block[:-1]).replace('%%ECP%%', ecp_block[:-1]).replace('%%SOECP%%', so_block[:-1]).replace('%%CHARGE%%', chargestr).replace('%%FRATOM%%', first_real_atom).replace('%%LRATOM%%', last_real_atom))
 
 
 
